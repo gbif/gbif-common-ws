@@ -27,13 +27,32 @@ import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
 import org.apache.http.client.HttpClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
-
+/**
+ * Base web service client module.
+ * Allows to specify HTTP connection parameters: httpTimeout, maxHttpConnections and maxHttpConnectionsPerRoute.
+ * The default values for those parameters are: httpTimeout = 10 seconds, maxHttpConnections = 100 and
+ * maxHttpConnectionsPerRoute = 100.
+ */
 public abstract class GbifWsClientModule extends PrivateModule {
+
+
+  /**
+   * Default names/keys to create an HTTP client connection.
+   * The values listed in this class are the expected key in a properties file.
+   */
+  public static class HttpClientConnParams {
+
+    // Used for each of i) getting a connection from the pool, establishing a connection and the
+    // socket timeout
+    public static String HTTP_TIMEOUT = "httpTimeout";
+    public static String MAX_HTTP_CONNECTIONS = "maxHttpConnections";
+    public static String MAX_HTTP_CONNECTIONS_PER_ROUTE = "maxHttpConnectionsPerRoute";
+  }
 
   private final Properties properties;
   private final Set<Package> clientPackages;
-  // Used for each of i) getting a connection from the pool, establishing a connection and the
-  // socket timeout
+
+  // Default values to establish a client connection
   protected static final int DEFAULT_HTTP_TIMEOUT_MSECS = 10000;
   protected static final int DEFAULT_MAX_HTTP_CONNECTIONS = 100;
   protected static final int DEFAULT_MAX_HTTP_CONNECTIONS_PER_ROUTE = 100;
@@ -84,8 +103,21 @@ public abstract class GbifWsClientModule extends PrivateModule {
   @Provides
   @Singleton
   public HttpClient provideHttpClient() {
-    return HttpUtil.newMultithreadedClient(DEFAULT_HTTP_TIMEOUT_MSECS, DEFAULT_MAX_HTTP_CONNECTIONS,
-      DEFAULT_MAX_HTTP_CONNECTIONS_PER_ROUTE);
+    int httpTimeout = DEFAULT_HTTP_TIMEOUT_MSECS;
+    int maxHttpConnections = DEFAULT_MAX_HTTP_CONNECTIONS;
+    int maxHttpConnectionsPerRoute = DEFAULT_MAX_HTTP_CONNECTIONS_PER_ROUTE;
+
+    if (properties.containsKey(HttpClientConnParams.HTTP_TIMEOUT)) {
+      httpTimeout = Integer.parseInt(properties.getProperty(HttpClientConnParams.HTTP_TIMEOUT));
+    }
+    if (properties.containsKey(HttpClientConnParams.MAX_HTTP_CONNECTIONS)) {
+      maxHttpConnections = Integer.parseInt(properties.getProperty(HttpClientConnParams.MAX_HTTP_CONNECTIONS));
+    }
+    if (properties.containsKey(HttpClientConnParams.MAX_HTTP_CONNECTIONS_PER_ROUTE)) {
+      maxHttpConnectionsPerRoute =
+        Integer.parseInt(properties.getProperty(HttpClientConnParams.MAX_HTTP_CONNECTIONS_PER_ROUTE));
+    }
+    return HttpUtil.newMultithreadedClient(httpTimeout, maxHttpConnections, maxHttpConnectionsPerRoute);
   }
 
   @Provides
