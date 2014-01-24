@@ -24,6 +24,8 @@ public final class OccurrencePaths {
 
   public static final String COLLECTOR_NAME_PATH = "collector_name";
 
+  public static final String RECORD_NUMBER_PATH = "record_number";
+
   public static final String CATALOG_NUMBER_PATH = "catalog_number";
 
   public static final String INSTITUTION_CODE_PATH = "institution_code";
