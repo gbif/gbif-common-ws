@@ -22,7 +22,7 @@ public final class OccurrencePaths {
 
   public static final String OCC_SEARCH_PATH = OCCURRENCE_PATH + "/search";
 
-  public static final String COLLECTOR_NAME_PATH = "collector_name";
+  public static final String RECORDED_BY_PATH = "recorded_by";
 
   public static final String RECORD_NUMBER_PATH = "record_number";
 
