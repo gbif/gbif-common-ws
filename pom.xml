@@ -31,8 +31,7 @@
     <guava.version>14.0.1</guava.version>
     <guice.version>3.0</guice.version>
     <!--  4.3.1 exists but has huge deprecation -->
-    <httpclient.version>4.2.5</httpclient.version>
-    <httpcore.version>4.2.4</httpcore.version>
+    <httpcomponents.version>4.2.5</httpcomponents.version>
     <!-- Normally one ties Jackson versions to Jersey versions, but we need 1.9.5+ of Jackson
          because of http://jira.codehaus.org/browse/JACKSON-757
          Jersey 1.17 comes with jackson 1.9.2, so its a minor update only -->
@@ -132,7 +131,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
+      <version>${httpcomponents.version}</version>
       <exclusions>
         <exclusion>
           <artifactId>commons-logging</artifactId>
@@ -143,7 +142,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${httpcore.version}</version>      
+      <version>${httpcomponents.version}</version>      
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
