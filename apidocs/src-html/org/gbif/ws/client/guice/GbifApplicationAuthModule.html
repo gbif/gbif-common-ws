@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.ws.client.guice;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.gbif.ws.client.filter.HttpGbifAuthFilter;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.ws.client.filter.SimplePrincipalProvider;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.Properties;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import com.google.inject.AbstractModule;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import com.sun.jersey.api.client.filter.ClientFilter;<a name="line.10"></a>
+<span class="sourceLineNo">011</span><a name="line.11"></a>
+<span class="sourceLineNo">012</span>/**<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * An authentication module for trusted GBIF applications.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * It requires an application key and can then act on behalf of any username.<a name="line.14"></a>
+<span class="sourceLineNo">015</span> *<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * To set the proxied username you can either set it directly on the module instance<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * or inject the SimplePrincipalProvider into your code anywhere to set the current user:<a name="line.17"></a>
+<span class="sourceLineNo">018</span> *<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * &lt;pre&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * {@code<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * GbifApplicationAuthModule authMod = new GbifApplicationAuthModule();<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * authMod.setPrincipal("admin");<a name="line.22"></a>
+<span class="sourceLineNo">023</span> *<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * // set user via SimplePrincipalProvider:<a name="line.24"></a>
+<span class="sourceLineNo">025</span> *<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * {@literal @}Inject<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * SimplePrincipalProvider pp;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * pp.setPrincipal("admin");<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * }<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;/pre&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * Note that the users role still depends on the roles defined in the user account in Drupal and will not default<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * to ADMIN. The user also has to exist in Drupal for the webservice authorization to work.<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *<a name="line.34"></a>
+<span class="sourceLineNo">035</span> */<a name="line.35"></a>
+<span class="sourceLineNo">036</span>// TODO: Make the application key configurable (Requires significant changes in the webservice AuthModule)<a name="line.36"></a>
+<span class="sourceLineNo">037</span>public class GbifApplicationAuthModule extends AbstractModule {<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>  public static final String PROPERTY_APP_KEY = "application.key";<a name="line.39"></a>
+<span class="sourceLineNo">040</span>  public static final String PROPERTY_APP_SECRET = "application.secret";<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span>  private final SimplePrincipalProvider pp = new SimplePrincipalProvider();<a name="line.42"></a>
+<span class="sourceLineNo">043</span>  private final GbifAppAuthService authService;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>  private final String applicationID;<a name="line.44"></a>
+<span class="sourceLineNo">045</span><a name="line.45"></a>
+<span class="sourceLineNo">046</span>  /**<a name="line.46"></a>
+<span class="sourceLineNo">047</span>   * Creates a new authentication guice module for a trusted application with its id and secret key.<a name="line.47"></a>
+<span class="sourceLineNo">048</span>   * The proxied user will be set to match the application ID.<a name="line.48"></a>
+<span class="sourceLineNo">049</span>   *<a name="line.49"></a>
+<span class="sourceLineNo">050</span>   * @param appId        the trusted application id<a name="line.50"></a>
+<span class="sourceLineNo">051</span>   * @param appSecretKey the secret key issued for this application<a name="line.51"></a>
+<span class="sourceLineNo">052</span>   */<a name="line.52"></a>
+<span class="sourceLineNo">053</span>  public GbifApplicationAuthModule(String appId, String appSecretKey) {<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    applicationID = appId;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    authService = new GbifAppAuthService(appId, appSecretKey);<a name="line.55"></a>
+<span class="sourceLineNo">056</span>    pp.setPrincipal(appId);<a name="line.56"></a>
+<span class="sourceLineNo">057</span>  }<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>  /**<a name="line.59"></a>
+<span class="sourceLineNo">060</span>   * Creates a new authentication guice module for a trusted application with its id and secret key given as<a name="line.60"></a>
+<span class="sourceLineNo">061</span>   * properties.<a name="line.61"></a>
+<span class="sourceLineNo">062</span>   * The proxied user will be set to match the application.key.<a name="line.62"></a>
+<span class="sourceLineNo">063</span>   *<a name="line.63"></a>
+<span class="sourceLineNo">064</span>   * @param properties that holds an entry for application.key and application.secret<a name="line.64"></a>
+<span class="sourceLineNo">065</span>   */<a name="line.65"></a>
+<span class="sourceLineNo">066</span>  public GbifApplicationAuthModule(Properties properties) {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    this(properties.getProperty(PROPERTY_APP_KEY), properties.getProperty(PROPERTY_APP_SECRET));<a name="line.67"></a>
+<span class="sourceLineNo">068</span>  }<a name="line.68"></a>
+<span class="sourceLineNo">069</span><a name="line.69"></a>
+<span class="sourceLineNo">070</span>  @Override<a name="line.70"></a>
+<span class="sourceLineNo">071</span>  protected void configure() {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>    bind(SimplePrincipalProvider.class).toInstance(pp);<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    bind(GbifAppAuthService.class).toInstance(authService);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    HttpGbifAuthFilter authFilter = new HttpGbifAuthFilter(applicationID, authService, pp);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    bind(ClientFilter.class).toInstance(authFilter);<a name="line.75"></a>
+<span class="sourceLineNo">076</span>  }<a name="line.76"></a>
+<span class="sourceLineNo">077</span><a name="line.77"></a>
+<span class="sourceLineNo">078</span>  public void setPrincipal(String username) {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>    pp.setPrincipal(username);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>  }<a name="line.80"></a>
+<span class="sourceLineNo">081</span>}<a name="line.81"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+org.gbif.ws.client
+org.gbif.ws.client.filter
+org.gbif.ws.client.guice
+org.gbif.ws.client.guice.testclient
+org.gbif.ws.client.interceptor
+org.gbif.ws.security
+org.gbif.ws.server.filter
+org.gbif.ws.server.interceptor
+org.gbif.ws.server.provider
+org.gbif.ws.util

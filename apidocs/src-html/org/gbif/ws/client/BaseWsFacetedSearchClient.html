@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.ws.client;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span><a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.api.model.common.search.FacetedSearchRequest;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.gbif.api.model.common.search.SearchParameter;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.gbif.api.model.common.search.SearchResponse;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.gbif.api.service.common.SearchService;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import javax.annotation.Nullable;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import javax.ws.rs.core.MultivaluedMap;<a name="line.10"></a>
+<span class="sourceLineNo">011</span><a name="line.11"></a>
+<span class="sourceLineNo">012</span>import com.sun.jersey.api.client.GenericType;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import com.sun.jersey.api.client.WebResource;<a name="line.13"></a>
+<span class="sourceLineNo">014</span><a name="line.14"></a>
+<span class="sourceLineNo">015</span>import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import static org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MULTISELECT;<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span>/**<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * Base web service search client supporting a {@link FacetedSearchRequest}.<a name="line.21"></a>
+<span class="sourceLineNo">022</span> *<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * @param &lt;T&gt; type of the response content<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * @param &lt;P&gt; search parameter type<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * @param &lt;R&gt; search request type<a name="line.25"></a>
+<span class="sourceLineNo">026</span> */<a name="line.26"></a>
+<span class="sourceLineNo">027</span>public abstract class BaseWsFacetedSearchClient&lt;T, P extends Enum&lt;?&gt; &amp; SearchParameter, R extends FacetedSearchRequest&lt;P&gt;&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>  extends BaseWsSearchClient&lt;T, P, R&gt; implements SearchService&lt;T, P, R&gt; {<a name="line.28"></a>
+<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">030</span>  protected BaseWsFacetedSearchClient(WebResource resource, GenericType&lt;SearchResponse&lt;T, P&gt;&gt; gType) {<a name="line.30"></a>
+<span class="sourceLineNo">031</span>    super(resource, gType);<a name="line.31"></a>
+<span class="sourceLineNo">032</span>  }<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span>  /**<a name="line.34"></a>
+<span class="sourceLineNo">035</span>   * Adds support for faceted search request parameters.<a name="line.35"></a>
+<span class="sourceLineNo">036</span>   */<a name="line.36"></a>
+<span class="sourceLineNo">037</span>  @Override<a name="line.37"></a>
+<span class="sourceLineNo">038</span>  protected MultivaluedMap&lt;String, String&gt; getParameterFromRequest(@Nullable R searchRequest) {<a name="line.38"></a>
+<span class="sourceLineNo">039</span>    // The searchRequest is transformed in a parameter map<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    MultivaluedMap&lt;String, String&gt; parameters = super.getParameterFromRequest(searchRequest);<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span>    if (searchRequest != null) {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>      parameters.putSingle(PARAM_FACETS_ONLY, Boolean.toString(searchRequest.isFacetsOnly()));<a name="line.43"></a>
+<span class="sourceLineNo">044</span>      parameters.putSingle(PARAM_FACET_MULTISELECT, Boolean.toString(searchRequest.isMultiSelectFacets()));<a name="line.44"></a>
+<span class="sourceLineNo">045</span>      if (searchRequest.getFacets() != null) {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>        for (P facet : searchRequest.getFacets()) {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>          parameters.add(PARAM_FACET, facet.name());<a name="line.47"></a>
+<span class="sourceLineNo">048</span>        }<a name="line.48"></a>
+<span class="sourceLineNo">049</span>      }<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    }<a name="line.50"></a>
+<span class="sourceLineNo">051</span><a name="line.51"></a>
+<span class="sourceLineNo">052</span>    return parameters;<a name="line.52"></a>
+<span class="sourceLineNo">053</span>  }<a name="line.53"></a>
+<span class="sourceLineNo">054</span>}<a name="line.54"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
