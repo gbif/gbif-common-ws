@@ -24,12 +24,12 @@
 <a class="jxr_linenumber" name="14" href="#14">14</a>  
 <a class="jxr_linenumber" name="15" href="#15">15</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.model.common.search.SearchParameter;
 <a class="jxr_linenumber" name="16" href="#16">16</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.model.common.search.SearchRequest;
-<a class="jxr_linenumber" name="17" href="#17">17</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.util.VocabularyUtils;
-<a class="jxr_linenumber" name="18" href="#18">18</a>  
-<a class="jxr_linenumber" name="19" href="#19">19</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
-<a class="jxr_linenumber" name="20" href="#20">20</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
-<a class="jxr_linenumber" name="22" href="#22">22</a>  
+<a class="jxr_linenumber" name="17" href="#17">17</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.util.SearchTypeValidator;
+<a class="jxr_linenumber" name="18" href="#18">18</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.util.VocabularyUtils;
+<a class="jxr_linenumber" name="19" href="#19">19</a>  
+<a class="jxr_linenumber" name="20" href="#20">20</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
+<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
 <a class="jxr_linenumber" name="23" href="#23">23</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.Context;
 <a class="jxr_linenumber" name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.MultivaluedMap;
 <a class="jxr_linenumber" name="25" href="#25">25</a>  
@@ -63,7 +63,7 @@
 <a class="jxr_linenumber" name="53" href="#53">53</a>  
 <a class="jxr_linenumber" name="54" href="#54">54</a>    <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="55" href="#55">55</a>  <em class="jxr_javadoccomment">   * Get an injectable.</em>
-<a class="jxr_linenumber" name="56" href="#56">56</a>  <em class="jxr_javadoccomment">   * </em>
+<a class="jxr_linenumber" name="56" href="#56">56</a>  <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="57" href="#57">57</a>  <em class="jxr_javadoccomment">   * @param ic the injectable context</em>
 <a class="jxr_linenumber" name="58" href="#58">58</a>  <em class="jxr_javadoccomment">   * @param context the annotation instance</em>
 <a class="jxr_linenumber" name="59" href="#59">59</a>  <em class="jxr_javadoccomment">   * @param type the context instance</em>
@@ -80,7 +80,7 @@
 <a class="jxr_linenumber" name="70" href="#70">70</a>  
 <a class="jxr_linenumber" name="71" href="#71">71</a>    <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="72" href="#72">72</a>  <em class="jxr_javadoccomment">   * Get the scope of the injectable provider.</em>
-<a class="jxr_linenumber" name="73" href="#73">73</a>  <em class="jxr_javadoccomment">   * </em>
+<a class="jxr_linenumber" name="73" href="#73">73</a>  <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="74" href="#74">74</a>  <em class="jxr_javadoccomment">   * @return the scope.</em>
 <a class="jxr_linenumber" name="75" href="#75">75</a>  <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="76" href="#76">76</a>    @Override
@@ -151,11 +151,15 @@
 <a class="jxr_linenumber" name="141" href="#141">141</a>     <strong class="jxr_keyword">for</strong> (Entry&lt;String, List&lt;String&gt;&gt; entry : params.entrySet()) {
 <a class="jxr_linenumber" name="142" href="#142">142</a>       P p = findSearchParam(entry.getKey());
 <a class="jxr_linenumber" name="143" href="#143">143</a>       <strong class="jxr_keyword">if</strong> (p != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="144" href="#144">144</a>         searchRequest.addParameter(p, removeEmptyParameters(entry.getValue()));
-<a class="jxr_linenumber" name="145" href="#145">145</a>       }
-<a class="jxr_linenumber" name="146" href="#146">146</a>     }
-<a class="jxr_linenumber" name="147" href="#147">147</a>   }
-<a class="jxr_linenumber" name="148" href="#148">148</a> }
+<a class="jxr_linenumber" name="144" href="#144">144</a>         <strong class="jxr_keyword">for</strong> (String val : removeEmptyParameters(entry.getValue())) {
+<a class="jxr_linenumber" name="145" href="#145">145</a>           <em class="jxr_comment">// validate value for certain types</em>
+<a class="jxr_linenumber" name="146" href="#146">146</a>           SearchTypeValidator.validate(p, val);
+<a class="jxr_linenumber" name="147" href="#147">147</a>           searchRequest.addParameter(p, val);
+<a class="jxr_linenumber" name="148" href="#148">148</a>         }
+<a class="jxr_linenumber" name="149" href="#149">149</a>       }
+<a class="jxr_linenumber" name="150" href="#150">150</a>     }
+<a class="jxr_linenumber" name="151" href="#151">151</a>   }
+<a class="jxr_linenumber" name="152" href="#152">152</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
