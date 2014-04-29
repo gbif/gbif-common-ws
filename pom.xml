@@ -26,7 +26,7 @@
 
   <properties>
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.10</gbif-api.version>
+    <gbif-api.version>0.14-SNAPSHOT</gbif-api.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.59</grizzly-servlet-webserver.version>
     <guava.version>14.0.1</guava.version>
@@ -143,7 +143,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${httpcomponents.version}</version>      
+      <version>${httpcomponents.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>

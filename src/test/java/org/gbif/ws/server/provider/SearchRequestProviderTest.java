@@ -14,7 +14,9 @@ package org.gbif.ws.server.provider;
 
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
+import org.gbif.api.vocabulary.Country;
 
+import java.util.UUID;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -42,10 +44,19 @@ import static org.junit.Assert.assertTrue;
 public class SearchRequestProviderTest {
 
   public enum TestSearchParameter implements SearchParameter {
-    FIRSTNAME, LASTNAME;
+    FIRSTNAME (String.class),
+    LASTNAME (String.class),
+    DATASET_KEY (UUID.class),
+    COUNTRY (Country.class);
+
+    private final Class<?> type;
+
+    TestSearchParameter(Class<?> type) {
+      this.type = type;
+    }
 
     public Class<?> type() {
-      return String.class;
+      return type;
     }
   }
 
@@ -66,6 +77,42 @@ public class SearchRequestProviderTest {
     params.add(TestSearchParameter.FIRSTNAME.name(), "");
     params.add(TestSearchParameter.FIRSTNAME.name(), null);
     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).isEmpty());
+  }
+
+  @Test
+  public void testTypedParameterValidation() {
+    // mock context and request
+    HttpContext ctx = Mockito.mock(HttpContext.class);
+    HttpRequestContext req = Mockito.mock(HttpRequestContext.class);
+    Mockito.when(ctx.getRequest()).thenReturn(req);
+    MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+    Mockito.when(req.getQueryParameters()).thenReturn(params);
+    params.add(TestSearchParameter.COUNTRY.name(), "FR");
+    final UUID uuid = UUID.randomUUID();
+    params.add(TestSearchParameter.DATASET_KEY.name(), uuid.toString());
+
+    SearchRequest<TestSearchParameter> sr = provider.getValue(ctx);
+
+    assertEquals(1, sr.getParameters().get(TestSearchParameter.COUNTRY).size());
+    assertEquals(Country.FRANCE.getIso2LetterCode(), sr.getParameters().get(TestSearchParameter.COUNTRY).iterator().next());
+
+    assertEquals(1, sr.getParameters().get(TestSearchParameter.DATASET_KEY).size());
+    assertEquals(uuid.toString(), sr.getParameters().get(TestSearchParameter.DATASET_KEY).iterator().next());
+  }
+
+  /**
+   * Tests iso codes for country params
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testTypedParameterValidation2() {
+    // mock context and request
+    HttpContext ctx = Mockito.mock(HttpContext.class);
+    HttpRequestContext req = Mockito.mock(HttpRequestContext.class);
+    Mockito.when(ctx.getRequest()).thenReturn(req);
+    MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+    Mockito.when(req.getQueryParameters()).thenReturn(params);
+    params.add(TestSearchParameter.COUNTRY.name(), "FRANCE");
+    SearchRequest<TestSearchParameter> sr = provider.getValue(ctx);
   }
 
   @Test

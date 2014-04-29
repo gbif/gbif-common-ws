@@ -14,12 +14,12 @@ package org.gbif.ws.server.provider;
 
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
+import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map.Entry;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -53,7 +53,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get an injectable.
-   * 
+   *
    * @param ic the injectable context
    * @param context the annotation instance
    * @param type the context instance
@@ -70,7 +70,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get the scope of the injectable provider.
-   * 
+   *
    * @return the scope.
    */
   @Override
@@ -141,7 +141,11 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     for (Entry<String, List<String>> entry : params.entrySet()) {
       P p = findSearchParam(entry.getKey());
       if (p != null) {
-        searchRequest.addParameter(p, removeEmptyParameters(entry.getValue()));
+        for (String val : removeEmptyParameters(entry.getValue())) {
+          // validate value for certain types
+          SearchTypeValidator.validate(p, val);
+          searchRequest.addParameter(p, val);
+        }
       }
     }
   }
