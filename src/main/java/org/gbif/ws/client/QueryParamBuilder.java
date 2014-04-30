@@ -1,5 +1,8 @@
 package org.gbif.ws.client;
 
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Language;
+
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -8,6 +11,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * A simple builder class to generate query parameter maps.
+ * It converts enum values to their name string, but uses ISO2 letter codes for the country and language enum.
  */
 public class QueryParamBuilder {
 
@@ -80,7 +84,15 @@ public class QueryParamBuilder {
       if (!Strings.isNullOrEmpty(k)) {
         for (Object val : value) {
           if (val != null) {
-            String v = val.toString();
+            // use iso codes for country and language enums, otherwise just toString
+            String v;
+            if (val instanceof Country){
+              v = ((Country) val).getIso2LetterCode();
+            } else if (val instanceof Language){
+              v = ((Language) val).getIso2LetterCode();
+            } else {
+              v = val.toString();
+            }
             if (!Strings.isNullOrEmpty(v)) {
               params.add(k, v);
             }

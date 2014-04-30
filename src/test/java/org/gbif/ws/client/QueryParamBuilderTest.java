@@ -1,5 +1,7 @@
 package org.gbif.ws.client;
 
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Language;
 import org.gbif.api.vocabulary.Rank;
 
 import org.junit.Test;
@@ -26,6 +28,16 @@ public class QueryParamBuilderTest {
     assertEquals(1, builder.build().size());
     assertEquals("1", builder.build().getFirst("kie"));
     assertEquals(4, builder.build().get("kie").size());
+  }
+
+  @Test
+  public void testIsoQueryParam() throws Exception {
+    QueryParamBuilder builder = QueryParamBuilder.create();
+
+    builder .queryParam("country", Country.DENMARK) .queryParam("lang", Language.DANISH);
+    assertEquals(2, builder.build().size());
+    assertEquals("DK", builder.build().getFirst("country"));
+    assertEquals("da", builder.build().getFirst("lang"));
   }
 
   @Test
