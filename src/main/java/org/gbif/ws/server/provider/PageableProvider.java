@@ -86,13 +86,9 @@ public class PageableProvider extends AbstractHttpContextInjectable<Pageable>
     if (params.getFirst(PARAM_LIMIT) != null) {
       try {
         limit = Integer.parseInt(params.getFirst(PARAM_LIMIT));
-        if (limit < 1) {
-          /* NOTE(lfrancke, 2013-07-04): This log line is here and info because it usually indicates a misuse of our
-           API. Only in rare circumstances will someone have manually provided 0 as the limit. It usually indicates that
-           we only try to get a record count. I'm not sure how that could/would be done properly in the API now. */
+        if (limit < 0) {
           LOG.info("Limit parameter was no positive integer [{}]. Using default {}",
-                   params.getFirst(PARAM_LIMIT),
-                   DEFAULT_PARAM_LIMIT);
+                   params.getFirst(PARAM_LIMIT), DEFAULT_PARAM_LIMIT);
           limit = DEFAULT_PARAM_LIMIT;
         }
       } catch (NumberFormatException e) {
