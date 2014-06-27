@@ -25,38 +25,36 @@
 <a class="jxr_linenumber" name="15" href="#15">15</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="16" href="#16">16</a>  <em class="jxr_javadoccomment"> * Base web service suggest &amp; faceted search client.</em>
 <a class="jxr_linenumber" name="17" href="#17">17</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="18" href="#18">18</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">class</strong> BaseWsSuggestClient&lt;T, P <strong class="jxr_keyword">extends</strong> Enum&lt;?&gt; &amp; SearchParameter,
-<a class="jxr_linenumber" name="19" href="#19">19</a>    R <strong class="jxr_keyword">extends</strong> FacetedSearchRequest&lt;P&gt;, RSUG <strong class="jxr_keyword">extends</strong> SearchRequest&lt;P&gt;&gt;
-<a class="jxr_linenumber" name="20" href="#20">20</a>    <strong class="jxr_keyword">extends</strong> BaseWsFacetedSearchClient&lt;T, P, R&gt; <strong class="jxr_keyword">implements</strong> SuggestService&lt;T, P, RSUG&gt; {
-<a class="jxr_linenumber" name="21" href="#21">21</a>  
-<a class="jxr_linenumber" name="22" href="#22">22</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> GenericType&lt;List&lt;T&gt;&gt; suggestType;
-<a class="jxr_linenumber" name="23" href="#23">23</a>  
-<a class="jxr_linenumber" name="24" href="#24">24</a>    <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="25" href="#25">25</a>  <em class="jxr_javadoccomment">   * @param resource    the base web resource being the parent of /search and /suggest</em>
-<a class="jxr_linenumber" name="26" href="#26">26</a>  <em class="jxr_javadoccomment">   * @param searchType  the generic type for the search response.</em>
-<a class="jxr_linenumber" name="27" href="#27">27</a>  <em class="jxr_javadoccomment">   * @param suggestType the generic type for the suggest response.</em>
-<a class="jxr_linenumber" name="28" href="#28">28</a>  <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="29" href="#29">29</a>    <strong class="jxr_keyword">protected</strong> <a href="../../../../org/gbif/ws/client/BaseWsSuggestClient.html">BaseWsSuggestClient</a>(WebResource resource, GenericType&lt;SearchResponse&lt;T, P&gt;&gt; searchType,
-<a class="jxr_linenumber" name="30" href="#30">30</a>      GenericType&lt;List&lt;T&gt;&gt; suggestType) {
-<a class="jxr_linenumber" name="31" href="#31">31</a>      <strong class="jxr_keyword">super</strong>(resource, searchType);
-<a class="jxr_linenumber" name="32" href="#32">32</a>      <strong class="jxr_keyword">this</strong>.suggestType = suggestType;
-<a class="jxr_linenumber" name="33" href="#33">33</a>    }
-<a class="jxr_linenumber" name="34" href="#34">34</a>  
-<a class="jxr_linenumber" name="35" href="#35">35</a>    <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="36" href="#36">36</a>  <em class="jxr_javadoccomment">   * Generic suggest operation retrieving search entities T.</em>
-<a class="jxr_linenumber" name="37" href="#37">37</a>  <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="38" href="#38">38</a>  <em class="jxr_javadoccomment">   * @param suggestRequest to issue the search/suggest operation.</em>
-<a class="jxr_linenumber" name="39" href="#39">39</a>  <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="40" href="#40">40</a>  <em class="jxr_javadoccomment">   * @return a List of NameUsageSearchSuggestResult objects</em>
-<a class="jxr_linenumber" name="41" href="#41">41</a>  <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="42" href="#42">42</a>    <strong class="jxr_keyword">public</strong> List&lt;T&gt; suggest(RSUG suggestRequest) {
-<a class="jxr_linenumber" name="43" href="#43">43</a>      <strong class="jxr_keyword">if</strong> (suggestRequest == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="44" href="#44">44</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"searchSuggestRequest cannot be null"</span>);
-<a class="jxr_linenumber" name="45" href="#45">45</a>      }
-<a class="jxr_linenumber" name="46" href="#46">46</a>      <strong class="jxr_keyword">return</strong> get(suggestType, <strong class="jxr_keyword">null</strong>, getParameterFromSearchRequest(suggestRequest), suggestRequest, <span class="jxr_string">"suggest"</span>);
-<a class="jxr_linenumber" name="47" href="#47">47</a>    }
-<a class="jxr_linenumber" name="48" href="#48">48</a>  
-<a class="jxr_linenumber" name="49" href="#49">49</a>  }
+<a class="jxr_linenumber" name="18" href="#18">18</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">class</strong> BaseWsSuggestClient&lt;T, P <strong class="jxr_keyword">extends</strong> Enum&lt;?&gt; &amp; SearchParameter, R <strong class="jxr_keyword">extends</strong> FacetedSearchRequest&lt;P&gt;, ST, RSUG <strong class="jxr_keyword">extends</strong> SearchRequest&lt;P&gt;&gt;
+<a class="jxr_linenumber" name="19" href="#19">19</a>    <strong class="jxr_keyword">extends</strong> BaseWsFacetedSearchClient&lt;T, P, R&gt; <strong class="jxr_keyword">implements</strong> SuggestService&lt;ST, P, RSUG&gt; {
+<a class="jxr_linenumber" name="20" href="#20">20</a>  
+<a class="jxr_linenumber" name="21" href="#21">21</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> GenericType&lt;List&lt;ST&gt;&gt; suggestType;
+<a class="jxr_linenumber" name="22" href="#22">22</a>  
+<a class="jxr_linenumber" name="23" href="#23">23</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="24" href="#24">24</a>  <em class="jxr_javadoccomment">   * @param resource the base web resource being the parent of /search and /suggest</em>
+<a class="jxr_linenumber" name="25" href="#25">25</a>  <em class="jxr_javadoccomment">   * @param searchType the generic type for the search response.</em>
+<a class="jxr_linenumber" name="26" href="#26">26</a>  <em class="jxr_javadoccomment">   * @param suggestType the generic type for the suggest response.</em>
+<a class="jxr_linenumber" name="27" href="#27">27</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="28" href="#28">28</a>    <strong class="jxr_keyword">protected</strong> <a href="../../../../org/gbif/ws/client/BaseWsSuggestClient.html">BaseWsSuggestClient</a>(WebResource resource, GenericType&lt;SearchResponse&lt;T, P&gt;&gt; searchType,
+<a class="jxr_linenumber" name="29" href="#29">29</a>      GenericType&lt;List&lt;ST&gt;&gt; suggestType) {
+<a class="jxr_linenumber" name="30" href="#30">30</a>      <strong class="jxr_keyword">super</strong>(resource, searchType);
+<a class="jxr_linenumber" name="31" href="#31">31</a>      <strong class="jxr_keyword">this</strong>.suggestType = suggestType;
+<a class="jxr_linenumber" name="32" href="#32">32</a>    }
+<a class="jxr_linenumber" name="33" href="#33">33</a>  
+<a class="jxr_linenumber" name="34" href="#34">34</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="35" href="#35">35</a>  <em class="jxr_javadoccomment">   * Generic suggest operation retrieving search entities T.</em>
+<a class="jxr_linenumber" name="36" href="#36">36</a>  <em class="jxr_javadoccomment">   * </em>
+<a class="jxr_linenumber" name="37" href="#37">37</a>  <em class="jxr_javadoccomment">   * @param suggestRequest to issue the search/suggest operation.</em>
+<a class="jxr_linenumber" name="38" href="#38">38</a>  <em class="jxr_javadoccomment">   * @return a List of NameUsageSearchSuggestResult objects</em>
+<a class="jxr_linenumber" name="39" href="#39">39</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="40" href="#40">40</a>    <strong class="jxr_keyword">public</strong> List&lt;ST&gt; suggest(RSUG suggestRequest) {
+<a class="jxr_linenumber" name="41" href="#41">41</a>      <strong class="jxr_keyword">if</strong> (suggestRequest == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="42" href="#42">42</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"searchSuggestRequest cannot be null"</span>);
+<a class="jxr_linenumber" name="43" href="#43">43</a>      }
+<a class="jxr_linenumber" name="44" href="#44">44</a>      <strong class="jxr_keyword">return</strong> get(suggestType, <strong class="jxr_keyword">null</strong>, getParameterFromSearchRequest(suggestRequest), suggestRequest, <span class="jxr_string">"suggest"</span>);
+<a class="jxr_linenumber" name="45" href="#45">45</a>    }
+<a class="jxr_linenumber" name="46" href="#46">46</a>  
+<a class="jxr_linenumber" name="47" href="#47">47</a>  }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
