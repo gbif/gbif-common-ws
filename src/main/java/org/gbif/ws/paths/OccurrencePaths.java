@@ -18,19 +18,19 @@ package org.gbif.ws.paths;
  */
 public final class OccurrencePaths {
 
-  public final static String OCCURRENCE_PATH = "occurrence";
+  public static final String OCCURRENCE_PATH = "occurrence";
 
   public static final String OCC_SEARCH_PATH = OCCURRENCE_PATH + "/search";
 
-  public static final String RECORDED_BY_PATH = "recorded_by";
+  public static final String RECORDED_BY_PATH = "recordedBy";
 
-  public static final String RECORD_NUMBER_PATH = "record_number";
+  public static final String RECORD_NUMBER_PATH = "recordNumber";
 
-  public static final String CATALOG_NUMBER_PATH = "catalog_number";
+  public static final String CATALOG_NUMBER_PATH = "catalogNumber";
 
-  public static final String INSTITUTION_CODE_PATH = "institution_code";
+  public static final String INSTITUTION_CODE_PATH = "institutionCode";
 
-  public static final String COLLECTION_CODE_PATH = "collection_code";
+  public static final String COLLECTION_CODE_PATH = "collectionCode";
 
   public static final String VERBATIM_PATH = "verbatim";
 
