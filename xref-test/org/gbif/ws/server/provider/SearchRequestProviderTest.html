@@ -27,24 +27,24 @@
 <a class="jxr_linenumber" name="17" href="#17">17</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.vocabulary.Country;
 <a class="jxr_linenumber" name="18" href="#18">18</a>  
 <a class="jxr_linenumber" name="19" href="#19">19</a>  <strong class="jxr_keyword">import</strong> java.util.UUID;
-<a class="jxr_linenumber" name="20" href="#20">20</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.Context;
-<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.MultivaluedMap;
-<a class="jxr_linenumber" name="22" href="#22">22</a>  
-<a class="jxr_linenumber" name="23" href="#23">23</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.api.core.HttpContext;
-<a class="jxr_linenumber" name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.api.core.HttpRequestContext;
-<a class="jxr_linenumber" name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.spi.component.ComponentContext;
-<a class="jxr_linenumber" name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.spi.component.ComponentScope;
-<a class="jxr_linenumber" name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.util.MultivaluedMapImpl;
-<a class="jxr_linenumber" name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.spi.inject.Injectable;
-<a class="jxr_linenumber" name="29" href="#29">29</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> org.mockito.Mockito;
-<a class="jxr_linenumber" name="31" href="#31">31</a>  
-<a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_LIMIT;
-<a class="jxr_linenumber" name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_OFFSET;
-<a class="jxr_linenumber" name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
-<a class="jxr_linenumber" name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.PARAM_OFFSET;
-<a class="jxr_linenumber" name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
-<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;
+<a class="jxr_linenumber" name="20" href="#20">20</a>  
+<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.Context;
+<a class="jxr_linenumber" name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.MultivaluedMap;
+<a class="jxr_linenumber" name="23" href="#23">23</a>  
+<a class="jxr_linenumber" name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.api.core.HttpContext;
+<a class="jxr_linenumber" name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.api.core.HttpRequestContext;
+<a class="jxr_linenumber" name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.spi.component.ComponentContext;
+<a class="jxr_linenumber" name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.spi.component.ComponentScope;
+<a class="jxr_linenumber" name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.core.util.MultivaluedMapImpl;
+<a class="jxr_linenumber" name="29" href="#29">29</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.spi.inject.Injectable;
+<a class="jxr_linenumber" name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> org.mockito.Mockito;
+<a class="jxr_linenumber" name="32" href="#32">32</a>  
+<a class="jxr_linenumber" name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_LIMIT;
+<a class="jxr_linenumber" name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_OFFSET;
+<a class="jxr_linenumber" name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
+<a class="jxr_linenumber" name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.api.model.common.paging.PagingConstants.PARAM_OFFSET;
+<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
 <a class="jxr_linenumber" name="38" href="#38">38</a>  
 <a class="jxr_linenumber" name="39" href="#39">39</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertEquals;
 <a class="jxr_linenumber" name="40" href="#40">40</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertNotNull;
@@ -54,10 +54,10 @@
 <a class="jxr_linenumber" name="44" href="#44">44</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/gbif/ws/server/provider/SearchRequestProviderTest.html">SearchRequestProviderTest</a> {
 <a class="jxr_linenumber" name="45" href="#45">45</a>  
 <a class="jxr_linenumber" name="46" href="#46">46</a>    <strong class="jxr_keyword">public</strong> enum <a href="../../../../../org/gbif/ws/server/provider/SearchRequestProviderTest.html">TestSearchParameter</a> <strong class="jxr_keyword">implements</strong> SearchParameter {
-<a class="jxr_linenumber" name="47" href="#47">47</a>      FIRSTNAME (String.<strong class="jxr_keyword">class</strong>),
-<a class="jxr_linenumber" name="48" href="#48">48</a>      LASTNAME (String.<strong class="jxr_keyword">class</strong>),
-<a class="jxr_linenumber" name="49" href="#49">49</a>      DATASET_KEY (UUID.<strong class="jxr_keyword">class</strong>),
-<a class="jxr_linenumber" name="50" href="#50">50</a>      COUNTRY (Country.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="47" href="#47">47</a>      FIRSTNAME(String.<strong class="jxr_keyword">class</strong>),
+<a class="jxr_linenumber" name="48" href="#48">48</a>      LASTNAME(String.<strong class="jxr_keyword">class</strong>),
+<a class="jxr_linenumber" name="49" href="#49">49</a>      DATASET_KEY(UUID.<strong class="jxr_keyword">class</strong>),
+<a class="jxr_linenumber" name="50" href="#50">50</a>      COUNTRY(Country.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="51" href="#51">51</a>  
 <a class="jxr_linenumber" name="52" href="#52">52</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Class&lt;?&gt; type;
 <a class="jxr_linenumber" name="53" href="#53">53</a>  
@@ -104,83 +104,83 @@
 <a class="jxr_linenumber" name="94" href="#94">94</a>      SearchRequest&lt;TestSearchParameter&gt; sr = provider.getValue(ctx);
 <a class="jxr_linenumber" name="95" href="#95">95</a>  
 <a class="jxr_linenumber" name="96" href="#96">96</a>      assertEquals(1, sr.getParameters().get(TestSearchParameter.COUNTRY).size());
-<a class="jxr_linenumber" name="97" href="#97">97</a>      assertEquals(Country.FRANCE.getIso2LetterCode(), sr.getParameters().get(TestSearchParameter.COUNTRY).iterator().next());
-<a class="jxr_linenumber" name="98" href="#98">98</a>  
-<a class="jxr_linenumber" name="99" href="#99">99</a>      assertEquals(1, sr.getParameters().get(TestSearchParameter.DATASET_KEY).size());
-<a class="jxr_linenumber" name="100" href="#100">100</a>     assertEquals(uuid.toString(), sr.getParameters().get(TestSearchParameter.DATASET_KEY).iterator().next());
-<a class="jxr_linenumber" name="101" href="#101">101</a>   }
-<a class="jxr_linenumber" name="102" href="#102">102</a> 
-<a class="jxr_linenumber" name="103" href="#103">103</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="104" href="#104">104</a> <em class="jxr_javadoccomment">   * Tests iso codes for country params</em>
-<a class="jxr_linenumber" name="105" href="#105">105</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="106" href="#106">106</a>   @Test(expected = IllegalArgumentException.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="107" href="#107">107</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTypedParameterValidation2() {
-<a class="jxr_linenumber" name="108" href="#108">108</a>     <em class="jxr_comment">// mock context and request</em>
-<a class="jxr_linenumber" name="109" href="#109">109</a>     HttpContext ctx = Mockito.mock(HttpContext.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="110" href="#110">110</a>     HttpRequestContext req = Mockito.mock(HttpRequestContext.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="111" href="#111">111</a>     Mockito.when(ctx.getRequest()).thenReturn(req);
-<a class="jxr_linenumber" name="112" href="#112">112</a>     MultivaluedMap&lt;String, String&gt; params = <strong class="jxr_keyword">new</strong> MultivaluedMapImpl();
-<a class="jxr_linenumber" name="113" href="#113">113</a>     Mockito.when(req.getQueryParameters()).thenReturn(params);
-<a class="jxr_linenumber" name="114" href="#114">114</a>     params.add(TestSearchParameter.COUNTRY.name(), <span class="jxr_string">"FRANCE"</span>);
-<a class="jxr_linenumber" name="115" href="#115">115</a>     SearchRequest&lt;TestSearchParameter&gt; sr = provider.getValue(ctx);
-<a class="jxr_linenumber" name="116" href="#116">116</a>   }
-<a class="jxr_linenumber" name="117" href="#117">117</a> 
-<a class="jxr_linenumber" name="118" href="#118">118</a>   @Test
-<a class="jxr_linenumber" name="119" href="#119">119</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGetInjectable() {
-<a class="jxr_linenumber" name="120" href="#120">120</a>     ComponentContext mockComponentContext = Mockito.mock(ComponentContext.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="121" href="#121">121</a>     Context mockContext = Mockito.mock(Context.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="122" href="#122">122</a> 
-<a class="jxr_linenumber" name="123" href="#123">123</a>     Injectable&lt;SearchRequest&gt; injectable =
-<a class="jxr_linenumber" name="124" href="#124">124</a>       provider.getInjectable(mockComponentContext, mockContext, SearchRequest.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="125" href="#125">125</a>     assertNotNull(injectable);
-<a class="jxr_linenumber" name="126" href="#126">126</a> 
-<a class="jxr_linenumber" name="127" href="#127">127</a>     injectable = provider.getInjectable(mockComponentContext, mockContext, String.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="128" href="#128">128</a>     assertNull(injectable);
-<a class="jxr_linenumber" name="129" href="#129">129</a>   }
-<a class="jxr_linenumber" name="130" href="#130">130</a> 
-<a class="jxr_linenumber" name="131" href="#131">131</a>   @Test
-<a class="jxr_linenumber" name="132" href="#132">132</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGetValue() {
-<a class="jxr_linenumber" name="133" href="#133">133</a>     <em class="jxr_comment">// mock context and request</em>
-<a class="jxr_linenumber" name="134" href="#134">134</a>     HttpContext ctx = Mockito.mock(HttpContext.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="135" href="#135">135</a>     HttpRequestContext req = Mockito.mock(HttpRequestContext.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="136" href="#136">136</a>     Mockito.when(ctx.getRequest()).thenReturn(req);
-<a class="jxr_linenumber" name="137" href="#137">137</a> 
-<a class="jxr_linenumber" name="138" href="#138">138</a>     MultivaluedMap&lt;String, String&gt; params = <strong class="jxr_keyword">new</strong> MultivaluedMapImpl();
-<a class="jxr_linenumber" name="139" href="#139">139</a>     Mockito.when(req.getQueryParameters()).thenReturn(params);
-<a class="jxr_linenumber" name="140" href="#140">140</a> 
-<a class="jxr_linenumber" name="141" href="#141">141</a>     <em class="jxr_comment">// test with no params</em>
-<a class="jxr_linenumber" name="142" href="#142">142</a>     assertEquals(DEFAULT_PARAM_OFFSET, provider.getValue(ctx).getOffset());
-<a class="jxr_linenumber" name="143" href="#143">143</a>     assertEquals(DEFAULT_PARAM_LIMIT, provider.getValue(ctx).getLimit());
-<a class="jxr_linenumber" name="144" href="#144">144</a> 
-<a class="jxr_linenumber" name="145" href="#145">145</a>     <em class="jxr_comment">// test with params</em>
-<a class="jxr_linenumber" name="146" href="#146">146</a>     params.add(PARAM_OFFSET, <span class="jxr_string">"200"</span>);
-<a class="jxr_linenumber" name="147" href="#147">147</a>     params.add(PARAM_LIMIT, <span class="jxr_string">"10"</span>);
-<a class="jxr_linenumber" name="148" href="#148">148</a>     params.add(TestSearchParameter.FIRSTNAME.name(), <span class="jxr_string">"Carla"</span>);
-<a class="jxr_linenumber" name="149" href="#149">149</a>     assertEquals(200, provider.getValue(ctx).getOffset());
-<a class="jxr_linenumber" name="150" href="#150">150</a>     assertEquals(10, provider.getValue(ctx).getLimit());
-<a class="jxr_linenumber" name="151" href="#151">151</a>     assertEquals(<span class="jxr_string">"Carla"</span>, provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).iterator().next());
-<a class="jxr_linenumber" name="152" href="#152">152</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
-<a class="jxr_linenumber" name="153" href="#153">153</a> 
-<a class="jxr_linenumber" name="154" href="#154">154</a>     <em class="jxr_comment">// test case insensitive parameter names</em>
-<a class="jxr_linenumber" name="155" href="#155">155</a>     params.clear();
-<a class="jxr_linenumber" name="156" href="#156">156</a>     params.add(<span class="jxr_string">"firstName"</span>, <span class="jxr_string">"Carla"</span>);
-<a class="jxr_linenumber" name="157" href="#157">157</a>     assertEquals(<span class="jxr_string">"Carla"</span>, provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).iterator().next());
-<a class="jxr_linenumber" name="158" href="#158">158</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
-<a class="jxr_linenumber" name="159" href="#159">159</a> 
-<a class="jxr_linenumber" name="160" href="#160">160</a>     <em class="jxr_comment">// test with wrong parameter names</em>
-<a class="jxr_linenumber" name="161" href="#161">161</a>     params.clear();
-<a class="jxr_linenumber" name="162" href="#162">162</a>     params.add(<span class="jxr_string">"coolname"</span>, <span class="jxr_string">"Carla"</span>);
-<a class="jxr_linenumber" name="163" href="#163">163</a>     assertTrue(provider.getValue(ctx).getParameters().isEmpty());
-<a class="jxr_linenumber" name="164" href="#164">164</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).isEmpty());
-<a class="jxr_linenumber" name="165" href="#165">165</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
-<a class="jxr_linenumber" name="166" href="#166">166</a> 
-<a class="jxr_linenumber" name="167" href="#167">167</a>     <em class="jxr_comment">// test with wrong paging params</em>
-<a class="jxr_linenumber" name="168" href="#168">168</a>     params.clear();
-<a class="jxr_linenumber" name="169" href="#169">169</a>     params.add(PARAM_OFFSET, <span class="jxr_string">"twenty"</span>);
-<a class="jxr_linenumber" name="170" href="#170">170</a>     params.add(PARAM_LIMIT, <span class="jxr_string">"-10"</span>);
-<a class="jxr_linenumber" name="171" href="#171">171</a>     params.add(PARAM_FACET, <span class="jxr_string">"f1"</span>);
-<a class="jxr_linenumber" name="172" href="#172">172</a>     params.add(PARAM_FACET, <span class="jxr_string">"f2"</span>);
-<a class="jxr_linenumber" name="173" href="#173">173</a>     params.add(PARAM_FACETS_ONLY, Boolean.TRUE.toString());
+<a class="jxr_linenumber" name="97" href="#97">97</a>      assertEquals(Country.FRANCE.getIso2LetterCode(), sr.getParameters().get(TestSearchParameter.COUNTRY).iterator()
+<a class="jxr_linenumber" name="98" href="#98">98</a>        .next());
+<a class="jxr_linenumber" name="99" href="#99">99</a>  
+<a class="jxr_linenumber" name="100" href="#100">100</a>     assertEquals(1, sr.getParameters().get(TestSearchParameter.DATASET_KEY).size());
+<a class="jxr_linenumber" name="101" href="#101">101</a>     assertEquals(uuid.toString(), sr.getParameters().get(TestSearchParameter.DATASET_KEY).iterator().next());
+<a class="jxr_linenumber" name="102" href="#102">102</a>   }
+<a class="jxr_linenumber" name="103" href="#103">103</a> 
+<a class="jxr_linenumber" name="104" href="#104">104</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="105" href="#105">105</a> <em class="jxr_javadoccomment">   * Tests iso codes for country params</em>
+<a class="jxr_linenumber" name="106" href="#106">106</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="107" href="#107">107</a>   @Test(expected = IllegalArgumentException.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="108" href="#108">108</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTypedParameterValidation2() {
+<a class="jxr_linenumber" name="109" href="#109">109</a>     <em class="jxr_comment">// mock context and request</em>
+<a class="jxr_linenumber" name="110" href="#110">110</a>     HttpContext ctx = Mockito.mock(HttpContext.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="111" href="#111">111</a>     HttpRequestContext req = Mockito.mock(HttpRequestContext.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="112" href="#112">112</a>     Mockito.when(ctx.getRequest()).thenReturn(req);
+<a class="jxr_linenumber" name="113" href="#113">113</a>     MultivaluedMap&lt;String, String&gt; params = <strong class="jxr_keyword">new</strong> MultivaluedMapImpl();
+<a class="jxr_linenumber" name="114" href="#114">114</a>     Mockito.when(req.getQueryParameters()).thenReturn(params);
+<a class="jxr_linenumber" name="115" href="#115">115</a>     params.add(TestSearchParameter.COUNTRY.name(), <span class="jxr_string">"FRANCE"</span>);
+<a class="jxr_linenumber" name="116" href="#116">116</a>     SearchRequest&lt;TestSearchParameter&gt; sr = provider.getValue(ctx);
+<a class="jxr_linenumber" name="117" href="#117">117</a>   }
+<a class="jxr_linenumber" name="118" href="#118">118</a> 
+<a class="jxr_linenumber" name="119" href="#119">119</a>   @Test
+<a class="jxr_linenumber" name="120" href="#120">120</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGetInjectable() {
+<a class="jxr_linenumber" name="121" href="#121">121</a>     ComponentContext mockComponentContext = Mockito.mock(ComponentContext.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="122" href="#122">122</a>     Context mockContext = Mockito.mock(Context.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="123" href="#123">123</a> 
+<a class="jxr_linenumber" name="124" href="#124">124</a>     Injectable&lt;SearchRequest&gt; injectable =
+<a class="jxr_linenumber" name="125" href="#125">125</a>       provider.getInjectable(mockComponentContext, mockContext, SearchRequest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="126" href="#126">126</a>     assertNotNull(injectable);
+<a class="jxr_linenumber" name="127" href="#127">127</a> 
+<a class="jxr_linenumber" name="128" href="#128">128</a>     injectable = provider.getInjectable(mockComponentContext, mockContext, String.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="129" href="#129">129</a>     assertNull(injectable);
+<a class="jxr_linenumber" name="130" href="#130">130</a>   }
+<a class="jxr_linenumber" name="131" href="#131">131</a> 
+<a class="jxr_linenumber" name="132" href="#132">132</a>   @Test
+<a class="jxr_linenumber" name="133" href="#133">133</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGetValue() {
+<a class="jxr_linenumber" name="134" href="#134">134</a>     <em class="jxr_comment">// mock context and request</em>
+<a class="jxr_linenumber" name="135" href="#135">135</a>     HttpContext ctx = Mockito.mock(HttpContext.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="136" href="#136">136</a>     HttpRequestContext req = Mockito.mock(HttpRequestContext.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="137" href="#137">137</a>     Mockito.when(ctx.getRequest()).thenReturn(req);
+<a class="jxr_linenumber" name="138" href="#138">138</a> 
+<a class="jxr_linenumber" name="139" href="#139">139</a>     MultivaluedMap&lt;String, String&gt; params = <strong class="jxr_keyword">new</strong> MultivaluedMapImpl();
+<a class="jxr_linenumber" name="140" href="#140">140</a>     Mockito.when(req.getQueryParameters()).thenReturn(params);
+<a class="jxr_linenumber" name="141" href="#141">141</a> 
+<a class="jxr_linenumber" name="142" href="#142">142</a>     <em class="jxr_comment">// test with no params</em>
+<a class="jxr_linenumber" name="143" href="#143">143</a>     assertEquals(DEFAULT_PARAM_OFFSET, provider.getValue(ctx).getOffset());
+<a class="jxr_linenumber" name="144" href="#144">144</a>     assertEquals(DEFAULT_PARAM_LIMIT, provider.getValue(ctx).getLimit());
+<a class="jxr_linenumber" name="145" href="#145">145</a> 
+<a class="jxr_linenumber" name="146" href="#146">146</a>     <em class="jxr_comment">// test with params</em>
+<a class="jxr_linenumber" name="147" href="#147">147</a>     params.add(PARAM_OFFSET, <span class="jxr_string">"200"</span>);
+<a class="jxr_linenumber" name="148" href="#148">148</a>     params.add(PARAM_LIMIT, <span class="jxr_string">"10"</span>);
+<a class="jxr_linenumber" name="149" href="#149">149</a>     params.add(TestSearchParameter.FIRSTNAME.name(), <span class="jxr_string">"Carla"</span>);
+<a class="jxr_linenumber" name="150" href="#150">150</a>     assertEquals(200, provider.getValue(ctx).getOffset());
+<a class="jxr_linenumber" name="151" href="#151">151</a>     assertEquals(10, provider.getValue(ctx).getLimit());
+<a class="jxr_linenumber" name="152" href="#152">152</a>     assertEquals(<span class="jxr_string">"Carla"</span>, provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).iterator().next());
+<a class="jxr_linenumber" name="153" href="#153">153</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
+<a class="jxr_linenumber" name="154" href="#154">154</a> 
+<a class="jxr_linenumber" name="155" href="#155">155</a>     <em class="jxr_comment">// test case insensitive parameter names</em>
+<a class="jxr_linenumber" name="156" href="#156">156</a>     params.clear();
+<a class="jxr_linenumber" name="157" href="#157">157</a>     params.add(<span class="jxr_string">"firstName"</span>, <span class="jxr_string">"Carla"</span>);
+<a class="jxr_linenumber" name="158" href="#158">158</a>     assertEquals(<span class="jxr_string">"Carla"</span>, provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).iterator().next());
+<a class="jxr_linenumber" name="159" href="#159">159</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
+<a class="jxr_linenumber" name="160" href="#160">160</a> 
+<a class="jxr_linenumber" name="161" href="#161">161</a>     <em class="jxr_comment">// test with wrong parameter names</em>
+<a class="jxr_linenumber" name="162" href="#162">162</a>     params.clear();
+<a class="jxr_linenumber" name="163" href="#163">163</a>     params.add(<span class="jxr_string">"coolname"</span>, <span class="jxr_string">"Carla"</span>);
+<a class="jxr_linenumber" name="164" href="#164">164</a>     assertTrue(provider.getValue(ctx).getParameters().isEmpty());
+<a class="jxr_linenumber" name="165" href="#165">165</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.FIRSTNAME).isEmpty());
+<a class="jxr_linenumber" name="166" href="#166">166</a>     assertTrue(provider.getValue(ctx).getParameters().get(TestSearchParameter.LASTNAME).isEmpty());
+<a class="jxr_linenumber" name="167" href="#167">167</a> 
+<a class="jxr_linenumber" name="168" href="#168">168</a>     <em class="jxr_comment">// test with wrong paging params</em>
+<a class="jxr_linenumber" name="169" href="#169">169</a>     params.clear();
+<a class="jxr_linenumber" name="170" href="#170">170</a>     params.add(PARAM_OFFSET, <span class="jxr_string">"twenty"</span>);
+<a class="jxr_linenumber" name="171" href="#171">171</a>     params.add(PARAM_LIMIT, <span class="jxr_string">"-10"</span>);
+<a class="jxr_linenumber" name="172" href="#172">172</a>     params.add(PARAM_FACET, <span class="jxr_string">"f1"</span>);
+<a class="jxr_linenumber" name="173" href="#173">173</a>     params.add(PARAM_FACET, <span class="jxr_string">"f2"</span>);
 <a class="jxr_linenumber" name="174" href="#174">174</a>     assertEquals(DEFAULT_PARAM_OFFSET, provider.getValue(ctx).getOffset());
 <a class="jxr_linenumber" name="175" href="#175">175</a>     assertEquals(DEFAULT_PARAM_LIMIT, provider.getValue(ctx).getLimit());
 <a class="jxr_linenumber" name="176" href="#176">176</a>   }
