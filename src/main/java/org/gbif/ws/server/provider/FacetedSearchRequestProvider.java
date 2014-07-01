@@ -17,6 +17,7 @@ import org.gbif.api.model.common.search.SearchParameter;
 
 import java.lang.reflect.Type;
 import java.util.List;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -25,7 +26,6 @@ import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.spi.inject.InjectableProvider;
 
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MINCOUNT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MULTISELECT;
 
@@ -47,18 +47,14 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
 
     final MultivaluedMap<String, String> params = context.getRequest().getQueryParameters();
 
-    final String facetsOnlyValue = params.getFirst(PARAM_FACETS_ONLY);
-    if (!Strings.isNullOrEmpty(facetsOnlyValue)) {
-      searchRequest.setFacetsOnly(Boolean.parseBoolean(facetsOnlyValue));
-    }
 
-    final String facetMultiSelectValue = params.getFirst(PARAM_FACET_MULTISELECT);
-    if (!Strings.isNullOrEmpty(facetMultiSelectValue)) {
+    final String facetMultiSelectValue = getFirstIgnoringCase(PARAM_FACET_MULTISELECT, params);
+    if (facetMultiSelectValue != null) {
       searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));
     }
 
-    final String facetMinCountValue = params.getFirst(PARAM_FACET_MINCOUNT);
-    if (!Strings.isNullOrEmpty(facetMinCountValue)) {
+    final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);
+    if (facetMinCountValue != null) {
       searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));
     }
 
@@ -73,5 +69,25 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
     }
 
     return request;
+  }
+
+  /**
+   * Get the first parameter value, the parameter is searched in a case-insensitive manner.
+   * First tries with the exact match, then the lowercase and finally the uppercase value of the parameter.
+   */
+  private String getFirstIgnoringCase(String parameter, MultivaluedMap<String, String> params) {
+    String value = params.getFirst(parameter);
+    if (!Strings.isNullOrEmpty(value)) {
+      return value;
+    }
+    value = params.getFirst(parameter.toLowerCase());
+    if (!Strings.isNullOrEmpty(value)) {
+      return value;
+    }
+    value = params.getFirst(parameter.toUpperCase());
+    if (!Strings.isNullOrEmpty(value)) {
+      return value;
+    }
+    return null;
   }
 }

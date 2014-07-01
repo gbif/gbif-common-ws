@@ -20,6 +20,7 @@ import org.gbif.api.util.VocabularyUtils;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map.Entry;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -53,7 +54,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get an injectable.
-   *
+   * 
    * @param ic the injectable context
    * @param context the annotation instance
    * @param type the context instance
@@ -70,7 +71,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get the scope of the injectable provider.
-   *
+   * 
    * @return the scope.
    */
   @Override

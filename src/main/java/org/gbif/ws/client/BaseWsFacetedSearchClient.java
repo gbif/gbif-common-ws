@@ -13,13 +13,13 @@ import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MINCOUNT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MULTISELECT;
 
 
 /**
  * Base web service search client supporting a {@link FacetedSearchRequest}.
- *
+ * 
  * @param <T> type of the response content
  * @param <P> search parameter type
  * @param <R> search request type
@@ -40,8 +40,10 @@ public abstract class BaseWsFacetedSearchClient<T, P extends Enum<?> & SearchPar
     MultivaluedMap<String, String> parameters = super.getParameterFromRequest(searchRequest);
 
     if (searchRequest != null) {
-      parameters.putSingle(PARAM_FACETS_ONLY, Boolean.toString(searchRequest.isFacetsOnly()));
       parameters.putSingle(PARAM_FACET_MULTISELECT, Boolean.toString(searchRequest.isMultiSelectFacets()));
+      if (searchRequest.getFacetMinCount() != null) {
+        parameters.putSingle(PARAM_FACET_MINCOUNT, Integer.toString(searchRequest.getFacetMinCount()));
+      }
       if (searchRequest.getFacets() != null) {
         for (P facet : searchRequest.getFacets()) {
           parameters.add(PARAM_FACET, facet.name());

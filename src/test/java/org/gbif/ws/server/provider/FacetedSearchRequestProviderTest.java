@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MULTISELECT;
 
 import static org.junit.Assert.assertEquals;
@@ -69,12 +68,10 @@ public class FacetedSearchRequestProviderTest {
     params.clear();
     params.add(PARAM_FACET, TestSearchParameter.FIRSTNAME.name());
     params.add(PARAM_FACET, TestSearchParameter.LASTNAME.name());
-    params.add(PARAM_FACETS_ONLY, Boolean.TRUE.toString());
     params.add(PARAM_FACET_MULTISELECT, Boolean.TRUE.toString());
     FacetedSearchRequest<TestSearchParameter> x = (FacetedSearchRequest<TestSearchParameter>) provider.getValue(ctx);
     assertTrue(x.getFacets().contains(TestSearchParameter.FIRSTNAME));
     assertTrue(x.getFacets().contains(TestSearchParameter.LASTNAME));
-    assertTrue(x.isFacetsOnly());
     assertTrue(x.isMultiSelectFacets());
 
     // test with real facets, case insensitive
@@ -89,7 +86,6 @@ public class FacetedSearchRequestProviderTest {
     params.clear();
     params.add(PARAM_FACET, "noname");
     params.add(PARAM_FACET, "bisrtname");
-    params.add(PARAM_FACETS_ONLY, Boolean.TRUE.toString());
     x = (FacetedSearchRequest<TestSearchParameter>) provider.getValue(ctx);
     assertTrue(x.getFacets().isEmpty());
 

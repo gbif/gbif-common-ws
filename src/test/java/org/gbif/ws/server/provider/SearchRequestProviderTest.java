@@ -17,6 +17,7 @@ import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.vocabulary.Country;
 
 import java.util.UUID;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -34,7 +35,6 @@ import static org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_OFF
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_OFFSET;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_FACETS_ONLY;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,10 +44,10 @@ import static org.junit.Assert.assertTrue;
 public class SearchRequestProviderTest {
 
   public enum TestSearchParameter implements SearchParameter {
-    FIRSTNAME (String.class),
-    LASTNAME (String.class),
-    DATASET_KEY (UUID.class),
-    COUNTRY (Country.class);
+    FIRSTNAME(String.class),
+    LASTNAME(String.class),
+    DATASET_KEY(UUID.class),
+    COUNTRY(Country.class);
 
     private final Class<?> type;
 
@@ -94,7 +94,8 @@ public class SearchRequestProviderTest {
     SearchRequest<TestSearchParameter> sr = provider.getValue(ctx);
 
     assertEquals(1, sr.getParameters().get(TestSearchParameter.COUNTRY).size());
-    assertEquals(Country.FRANCE.getIso2LetterCode(), sr.getParameters().get(TestSearchParameter.COUNTRY).iterator().next());
+    assertEquals(Country.FRANCE.getIso2LetterCode(), sr.getParameters().get(TestSearchParameter.COUNTRY).iterator()
+      .next());
 
     assertEquals(1, sr.getParameters().get(TestSearchParameter.DATASET_KEY).size());
     assertEquals(uuid.toString(), sr.getParameters().get(TestSearchParameter.DATASET_KEY).iterator().next());
@@ -170,7 +171,6 @@ public class SearchRequestProviderTest {
     params.add(PARAM_LIMIT, "-10");
     params.add(PARAM_FACET, "f1");
     params.add(PARAM_FACET, "f2");
-    params.add(PARAM_FACETS_ONLY, Boolean.TRUE.toString());
     assertEquals(DEFAULT_PARAM_OFFSET, provider.getValue(ctx).getOffset());
     assertEquals(DEFAULT_PARAM_LIMIT, provider.getValue(ctx).getLimit());
   }

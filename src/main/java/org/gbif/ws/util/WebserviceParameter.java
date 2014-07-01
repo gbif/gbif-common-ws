@@ -11,21 +11,16 @@ public class WebserviceParameter {
   public static final String PARAM_FACET = "facet";
 
   /**
-   * Param name to use for facets only flag.
-   */
-  public static final String PARAM_FACETS_ONLY = "facet_only";
-
-  /**
    * Facet multiselect parameter.
    */
-  public static final String PARAM_FACET_MULTISELECT = "facet_multiselect";
+  public static final String PARAM_FACET_MULTISELECT = "facetMultiselect";
 
   public static final String PARAM_HIGHLIGHT = "hl";
 
   /**
    * Parameter min count of facets, facets with less than this valued sholdn't be included in the response.
    */
-  public static final String PARAM_FACET_MINCOUNT = "facet_mincount";
+  public static final String PARAM_FACET_MINCOUNT = "facetMincount";
 
   /**
    * The query string for searches.
