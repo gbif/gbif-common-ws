@@ -3,9 +3,11 @@ package org.gbif.ws.server.guice;
 import org.gbif.ws.json.JacksonJsonContextResolver;
 import org.gbif.ws.util.PropertiesUtil;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
@@ -94,8 +96,21 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
    */
   protected GbifServletListener(String propertyFileName, String resourcePackages, boolean installAuthenticationFilters,
     @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters) {
-    this(PropertiesUtil.readFromClasspath(propertyFileName), resourcePackages, installAuthenticationFilters,
+    this(readProperties(propertyFileName), resourcePackages, installAuthenticationFilters,
       responseFilters);
+  }
+
+  /**
+   * Hides the checked exception that can be thrown when reading a file.
+   */
+  private static Properties readProperties(String propertyFileName) {
+    Properties properties = null;
+    try {
+      properties = PropertiesUtil.readFromClasspath(propertyFileName);
+    } catch (IOException e) {
+      new IllegalArgumentException("Error reading properties file", e);
+    }
+    return properties;
   }
 
   /**
