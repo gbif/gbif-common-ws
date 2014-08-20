@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import com.google.common.base.Strings;
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Common utilities for dealing with Properties.
- *
+ * 
  * @deprecated use org.gbif.utils.file.properties.PropertiesUtil instead
  */
 @Deprecated
@@ -24,8 +24,9 @@ public class PropertiesUtil {
   /**
    * Reads a property file from the classpath.
    */
-  public static Properties readFromClasspath(String filename) {
-    InputStream inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream(filename);
+  public static Properties readFromClasspath(String filename) throws IOException {
+    Closer closer = Closer.create();
+    InputStream inputStream = closer.register(PropertiesUtil.class.getClassLoader().getResourceAsStream(filename));
     Properties properties = new Properties();
     try {
       properties.load(inputStream);
@@ -34,7 +35,7 @@ public class PropertiesUtil {
     } catch (NullPointerException e) {
       LOG.error("Cannot read property file {}", filename, e);
     } finally {
-      Closeables.closeQuietly(inputStream);
+      closer.close();
     }
     return properties;
   }
@@ -43,6 +44,7 @@ public class PropertiesUtil {
    * Reads a property file from an absolute filepath.
    */
   public static Properties readFromFile(String filepath) throws IOException {
+    Closer closer = Closer.create();
     if (Strings.isNullOrEmpty(filepath)) {
       throw new IOException("No properties file given");
     }
@@ -50,12 +52,12 @@ public class PropertiesUtil {
     if (!pf.exists()) {
       throw new IOException("Cannot find properties file " + filepath);
     }
-    FileReader reader = new FileReader(pf);
+    FileReader reader = closer.register(new FileReader(pf));
     Properties properties = new Properties();
     try {
       properties.load(reader);
     } finally {
-      Closeables.closeQuietly(reader);
+      closer.close();
     }
     return properties;
   }
