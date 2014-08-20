@@ -27,6 +27,7 @@
   <properties>
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.16-SNAPSHOT</gbif-api.version>
+    <gbif-common.version>0.17-SNAPSHOT</gbif-common.version>
     <gbif-httputils.version>0.5</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.60</grizzly-servlet-webserver.version>
     <guava.version>17.0</guava.version>
@@ -159,6 +160,11 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
       <version>${gbif-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common</artifactId>
+      <version>${gbif-common.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

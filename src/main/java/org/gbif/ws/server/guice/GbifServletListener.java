@@ -1,7 +1,7 @@
 package org.gbif.ws.server.guice;
 
+import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.json.JacksonJsonContextResolver;
-import org.gbif.ws.util.PropertiesUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -106,7 +106,7 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   private static Properties readProperties(String propertyFileName) {
     Properties properties = null;
     try {
-      properties = PropertiesUtil.readFromClasspath(propertyFileName);
+      properties = PropertiesUtil.loadProperties(propertyFileName);
     } catch (IOException e) {
       new IllegalArgumentException("Error reading properties file", e);
     }
@@ -128,7 +128,7 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
 
   /**
    * Implement this to return the list of all additional modules needed to be installed.
-   * 
+   *
    * @return a list of modules, never null.
    */
   protected abstract List<Module> getModules(Properties properties);
@@ -136,7 +136,7 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   /**
    * The Jackson JSON configuration needs to know about how to (de)serialize polymorphic classes.
    * Override this method to pass a map of mixIn classes into the Jackson context resolver.
-   * 
+   *
    * @return the mixIn class map. Defaults to an empty map.
    */
   protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {

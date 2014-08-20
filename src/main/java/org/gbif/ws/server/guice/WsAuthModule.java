@@ -1,7 +1,7 @@
 package org.gbif.ws.server.guice;
 
+import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.security.GbifAppAuthService;
-import org.gbif.ws.util.PropertiesUtil;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class WsAuthModule extends PrivateModule {
    */
   public WsAuthModule(String appKeyStoreFilePath) {
     try {
-      Properties props = PropertiesUtil.readFromFile(appKeyStoreFilePath);
+      Properties props = PropertiesUtil.loadProperties(appKeyStoreFilePath);
       authService = new GbifAppAuthService(Maps.fromProperties(props));
     } catch (IOException e) {
       throw new IllegalArgumentException(
