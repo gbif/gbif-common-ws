@@ -8,8 +8,8 @@
 <div class="sourceContainer">
 <pre><span class="sourceLineNo">001</span>package org.gbif.ws.server.guice;<a name="line.1"></a>
 <span class="sourceLineNo">002</span><a name="line.2"></a>
-<span class="sourceLineNo">003</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.3"></a>
-<span class="sourceLineNo">004</span>import org.gbif.ws.util.PropertiesUtil;<a name="line.4"></a>
+<span class="sourceLineNo">003</span>import org.gbif.utils.file.properties.PropertiesUtil;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.4"></a>
 <span class="sourceLineNo">005</span><a name="line.5"></a>
 <span class="sourceLineNo">006</span>import java.io.IOException;<a name="line.6"></a>
 <span class="sourceLineNo">007</span>import java.util.Map;<a name="line.7"></a>
@@ -39,7 +39,7 @@
 <span class="sourceLineNo">031</span>   */<a name="line.31"></a>
 <span class="sourceLineNo">032</span>  public WsAuthModule(String appKeyStoreFilePath) {<a name="line.32"></a>
 <span class="sourceLineNo">033</span>    try {<a name="line.33"></a>
-<span class="sourceLineNo">034</span>      Properties props = PropertiesUtil.readFromFile(appKeyStoreFilePath);<a name="line.34"></a>
+<span class="sourceLineNo">034</span>      Properties props = PropertiesUtil.loadProperties(appKeyStoreFilePath);<a name="line.34"></a>
 <span class="sourceLineNo">035</span>      authService = new GbifAppAuthService(Maps.fromProperties(props));<a name="line.35"></a>
 <span class="sourceLineNo">036</span>    } catch (IOException e) {<a name="line.36"></a>
 <span class="sourceLineNo">037</span>      throw new IllegalArgumentException(<a name="line.37"></a>
