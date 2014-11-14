@@ -1,5 +1,7 @@
 package org.gbif.ws.client;
 
+import org.gbif.ws.json.JacksonJsonContextResolver;
+
 import java.io.IOException;
 import java.util.Locale;
 import javax.annotation.Nullable;
@@ -19,7 +21,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public abstract class BaseWsGetClient<T, K> extends BaseWsClient {
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new JacksonJsonContextResolver().getContext(null);
   protected final Class<T> resourceClass;
 
   /**
