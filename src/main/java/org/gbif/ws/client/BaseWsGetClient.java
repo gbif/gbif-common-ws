@@ -1,11 +1,13 @@
 package org.gbif.ws.client;
 
+import java.io.IOException;
 import java.util.Locale;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
 
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Base client providing a get by key method for a specific entity type T.
@@ -17,6 +19,7 @@ import com.sun.jersey.api.client.filter.ClientFilter;
  */
 public abstract class BaseWsGetClient<T, K> extends BaseWsClient {
 
+  private final ObjectMapper mapper = new ObjectMapper();
   protected final Class<T> resourceClass;
 
   /**
@@ -103,9 +106,20 @@ public abstract class BaseWsGetClient<T, K> extends BaseWsClient {
    * @param path   to POST to
    */
   protected void post(Object entity, String... path) {
-    getResource(path).type(MediaType.APPLICATION_JSON).post(entity);
+    getResource(path).type(MediaType.APPLICATION_JSON).post(toBytes(entity));
   }
 
+  /**
+   * Convert the http entity into a byte array to avoid jackson creating a chunked encoding request!
+   */
+  private byte[] toBytes(Object entity) {
+    try {
+      return mapper.writeValueAsBytes(entity);
+    } catch (IOException e) {
+      log.error("Failed to serialize http entity [{}]", entity);
+      throw new IllegalStateException(e);
+    }
+  }
   /**
    * Executes an http POST passing on a json encoded entity and returning the given class, e.g. an Integer id.
    *
@@ -115,7 +129,7 @@ public abstract class BaseWsGetClient<T, K> extends BaseWsClient {
    * @param <T>         returned class type
    */
   protected <T> T post(Class<T> returnClass, Object entity, String... path) {
-    return getResource(path).type(MediaType.APPLICATION_JSON).post(returnClass, entity);
+    return getResource(path).type(MediaType.APPLICATION_JSON).post(returnClass, toBytes(entity));
   }
 
   /**
@@ -125,7 +139,7 @@ public abstract class BaseWsGetClient<T, K> extends BaseWsClient {
    * @param path   to PUT to
    */
   protected <T> void put(Object entity, String... path) {
-    getResource(path).type(MediaType.APPLICATION_JSON).put(entity);
+    getResource(path).type(MediaType.APPLICATION_JSON).put(toBytes(entity));
   }
 
   /**
