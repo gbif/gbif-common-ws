@@ -123,7 +123,11 @@ public abstract class GbifWsClientModule extends PrivateModule {
   @Provides
   @Singleton
   @Inject
-  public Client providesRegistryJerseyClient(HttpClient client) {
+  public Client providesJerseyClient(HttpClient client) {
+    return buildJerseyClient(client);
+  }
+
+  public static Client buildJerseyClient(HttpClient client) {
     ApacheHttpClient4Handler hch = new ApacheHttpClient4Handler(client, null, false);
 
     ClientConfig clientConfig = new DefaultClientConfig();
