@@ -32,6 +32,8 @@ public final class OccurrencePaths {
 
   public static final String COLLECTION_CODE_PATH = "collectionCode";
 
+  public static final String OCCURRENCE_ID_PATH = "occurrenceId";
+
   public static final String VERBATIM_PATH = "verbatim";
 
   public static final String FRAGMENT_PATH = "fragment";
