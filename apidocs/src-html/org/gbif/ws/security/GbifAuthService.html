@@ -70,226 +70,227 @@
 <span class="sourceLineNo">062</span>  public static final String GBIF_SCHEME = "GBIF";<a name="line.62"></a>
 <span class="sourceLineNo">063</span>  public static final String HEADER_GBIF_USER = "x-gbif-user";<a name="line.63"></a>
 <span class="sourceLineNo">064</span>  public static final String HEADER_ORIGINAL_REQUEST_URL = "x-url";<a name="line.64"></a>
-<span class="sourceLineNo">065</span>  private static final Pattern COLON_PATTERN = Pattern.compile(":");<a name="line.65"></a>
-<span class="sourceLineNo">066</span><a name="line.66"></a>
-<span class="sourceLineNo">067</span>  private final ImmutableMap&lt;String, String&gt; keyStore;<a name="line.67"></a>
-<span class="sourceLineNo">068</span>  private final String appKey;<a name="line.68"></a>
-<span class="sourceLineNo">069</span>  private final ObjectMapper mapper = new JacksonJsonContextResolver().getContext(null);<a name="line.69"></a>
-<span class="sourceLineNo">070</span><a name="line.70"></a>
-<span class="sourceLineNo">071</span>  private GbifAuthService(Map&lt;String, String&gt; appKeys, String appKey) {<a name="line.71"></a>
-<span class="sourceLineNo">072</span>    keyStore = ImmutableMap.copyOf(appKeys);<a name="line.72"></a>
-<span class="sourceLineNo">073</span>    this.appKey = appKey;<a name="line.73"></a>
-<span class="sourceLineNo">074</span>    LOG.info("Initialised appkey store with {} keys", keyStore.size());<a name="line.74"></a>
-<span class="sourceLineNo">075</span>  }<a name="line.75"></a>
-<span class="sourceLineNo">076</span><a name="line.76"></a>
-<span class="sourceLineNo">077</span>  /**<a name="line.77"></a>
-<span class="sourceLineNo">078</span>   * Creates a new GBIF authentication service for applications that need to validate requests<a name="line.78"></a>
-<span class="sourceLineNo">079</span>   * for various application keys. Used by the GBIF webservice apps that require authentication.<a name="line.79"></a>
-<span class="sourceLineNo">080</span>   */<a name="line.80"></a>
-<span class="sourceLineNo">081</span>  public static GbifAuthService multiKeyAuthService(Map&lt;String, String&gt; appKeys) {<a name="line.81"></a>
-<span class="sourceLineNo">082</span>    return new GbifAuthService(appKeys, null);<a name="line.82"></a>
-<span class="sourceLineNo">083</span>  }<a name="line.83"></a>
-<span class="sourceLineNo">084</span><a name="line.84"></a>
-<span class="sourceLineNo">085</span>  /**<a name="line.85"></a>
-<span class="sourceLineNo">086</span>   * Creates a new GBIF authentication service for clients that want to sign requests always using a single<a name="line.86"></a>
-<span class="sourceLineNo">087</span>   * application key. Used by the GBIF portal and other trusted applications that need to proxy a user.<a name="line.87"></a>
-<span class="sourceLineNo">088</span>   */<a name="line.88"></a>
-<span class="sourceLineNo">089</span>  public static GbifAuthService singleKeyAuthService(String appKey, String secret) {<a name="line.89"></a>
-<span class="sourceLineNo">090</span>    LOG.info("Initialising auth service with key {}", appKey);<a name="line.90"></a>
-<span class="sourceLineNo">091</span>    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey);<a name="line.91"></a>
-<span class="sourceLineNo">092</span>  }<a name="line.92"></a>
-<span class="sourceLineNo">093</span><a name="line.93"></a>
-<span class="sourceLineNo">094</span>  /**<a name="line.94"></a>
-<span class="sourceLineNo">095</span>   * Extracts the information to be encrypted from a request and concatenates them into a single String.<a name="line.95"></a>
-<span class="sourceLineNo">096</span>   * When the server receives an authenticated request, it compares the computed request signature<a name="line.96"></a>
-<span class="sourceLineNo">097</span>   * with the signature provided in the request in StringToSign.<a name="line.97"></a>
-<span class="sourceLineNo">098</span>   * For that reason this string may only contain information also available in the exact same form to the server.<a name="line.98"></a>
-<span class="sourceLineNo">099</span>   *<a name="line.99"></a>
-<span class="sourceLineNo">100</span>   * @return unique string for a request<a name="line.100"></a>
-<span class="sourceLineNo">101</span>   *<a name="line.101"></a>
-<span class="sourceLineNo">102</span>   * @see &lt;a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html"&gt;AWS Docs&lt;/a&gt;<a name="line.102"></a>
-<span class="sourceLineNo">103</span>   */<a name="line.103"></a>
-<span class="sourceLineNo">104</span>  private String buildStringToSign(ContainerRequest request) {<a name="line.104"></a>
-<span class="sourceLineNo">105</span>    StringBuilder sb = new StringBuilder();<a name="line.105"></a>
-<span class="sourceLineNo">106</span>    sb.append(request.getMethod());<a name="line.106"></a>
-<span class="sourceLineNo">107</span><a name="line.107"></a>
-<span class="sourceLineNo">108</span>    sb.append("/n");<a name="line.108"></a>
-<span class="sourceLineNo">109</span>    // custom header set by varnish overrides real URI<a name="line.109"></a>
-<span class="sourceLineNo">110</span>    // see http://dev.gbif.org/issues/browse/GBIFCOM-137<a name="line.110"></a>
-<span class="sourceLineNo">111</span>    if (request.getRequestHeaders().containsKey(HEADER_ORIGINAL_REQUEST_URL)) {<a name="line.111"></a>
-<span class="sourceLineNo">112</span>      sb.append(request.getRequestHeaders().getFirst(HEADER_ORIGINAL_REQUEST_URL));<a name="line.112"></a>
-<span class="sourceLineNo">113</span>    } else {<a name="line.113"></a>
-<span class="sourceLineNo">114</span>      sb.append(getCanonicalizedPath(request.getRequestUri()));<a name="line.114"></a>
-<span class="sourceLineNo">115</span>    }<a name="line.115"></a>
-<span class="sourceLineNo">116</span><a name="line.116"></a>
-<span class="sourceLineNo">117</span>    sb.append("/n");<a name="line.117"></a>
-<span class="sourceLineNo">118</span>    sb.append(request.getHeaderValue(HEADER_CONTENT_TYPE));<a name="line.118"></a>
-<span class="sourceLineNo">119</span><a name="line.119"></a>
-<span class="sourceLineNo">120</span>    // include md5 hash if existing (only for PUT/POST with content)<a name="line.120"></a>
-<span class="sourceLineNo">121</span>    if (request.getRequestHeaders().containsKey(HEADER_CONTENT_MD5)) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>      sb.append("/n");<a name="line.122"></a>
-<span class="sourceLineNo">123</span>      sb.append(request.getHeaderValue(HEADER_CONTENT_MD5));<a name="line.123"></a>
-<span class="sourceLineNo">124</span>    }<a name="line.124"></a>
-<span class="sourceLineNo">125</span><a name="line.125"></a>
-<span class="sourceLineNo">126</span>    sb.append("/n");<a name="line.126"></a>
-<span class="sourceLineNo">127</span>    sb.append(request.getHeaderValue(HEADER_GBIF_USER));<a name="line.127"></a>
-<span class="sourceLineNo">128</span><a name="line.128"></a>
-<span class="sourceLineNo">129</span>    return sb.toString();<a name="line.129"></a>
-<span class="sourceLineNo">130</span>  }<a name="line.130"></a>
-<span class="sourceLineNo">131</span><a name="line.131"></a>
-<span class="sourceLineNo">132</span>  /**<a name="line.132"></a>
-<span class="sourceLineNo">133</span>   * Build the string to be signed for a client request by extracting header information from the request.<a name="line.133"></a>
-<span class="sourceLineNo">134</span>   * For PUT/POST requests that contain a body content it is required that the Content-MD5 header<a name="line.134"></a>
-<span class="sourceLineNo">135</span>   * is already present on the request instance!<a name="line.135"></a>
-<span class="sourceLineNo">136</span>   */<a name="line.136"></a>
-<span class="sourceLineNo">137</span>  private String buildStringToSign(ClientRequest request) {<a name="line.137"></a>
-<span class="sourceLineNo">138</span>    StringBuilder sb = new StringBuilder();<a name="line.138"></a>
-<span class="sourceLineNo">139</span>    sb.append(request.getMethod());<a name="line.139"></a>
-<span class="sourceLineNo">140</span><a name="line.140"></a>
-<span class="sourceLineNo">141</span>    sb.append("/n");<a name="line.141"></a>
-<span class="sourceLineNo">142</span>    sb.append(getCanonicalizedPath(request.getURI()));<a name="line.142"></a>
-<span class="sourceLineNo">143</span><a name="line.143"></a>
-<span class="sourceLineNo">144</span>    sb.append("/n");<a name="line.144"></a>
-<span class="sourceLineNo">145</span>    sb.append(request.getHeaders().getFirst(HEADER_CONTENT_TYPE));<a name="line.145"></a>
-<span class="sourceLineNo">146</span><a name="line.146"></a>
-<span class="sourceLineNo">147</span>    // include md5 hash if existing (only for PUT/POST with content)<a name="line.147"></a>
-<span class="sourceLineNo">148</span>    if (request.getHeaders().containsKey(HEADER_CONTENT_MD5)) {<a name="line.148"></a>
-<span class="sourceLineNo">149</span>      sb.append("/n");<a name="line.149"></a>
-<span class="sourceLineNo">150</span>      sb.append(request.getHeaders().getFirst(HEADER_CONTENT_MD5));<a name="line.150"></a>
-<span class="sourceLineNo">151</span>    }<a name="line.151"></a>
-<span class="sourceLineNo">152</span><a name="line.152"></a>
-<span class="sourceLineNo">153</span>    sb.append("/n");<a name="line.153"></a>
-<span class="sourceLineNo">154</span>    sb.append(request.getHeaders().getFirst(HEADER_GBIF_USER));<a name="line.154"></a>
-<span class="sourceLineNo">155</span><a name="line.155"></a>
-<span class="sourceLineNo">156</span>    return sb.toString();<a name="line.156"></a>
-<span class="sourceLineNo">157</span>  }<a name="line.157"></a>
-<span class="sourceLineNo">158</span><a name="line.158"></a>
-<span class="sourceLineNo">159</span>  /**<a name="line.159"></a>
-<span class="sourceLineNo">160</span>   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters<a name="line.160"></a>
-<span class="sourceLineNo">161</span>   */<a name="line.161"></a>
-<span class="sourceLineNo">162</span>  private String getCanonicalizedPath(URI uri) {<a name="line.162"></a>
-<span class="sourceLineNo">163</span>    return uri.normalize().getPath();<a name="line.163"></a>
-<span class="sourceLineNo">164</span>  }<a name="line.164"></a>
-<span class="sourceLineNo">165</span><a name="line.165"></a>
-<span class="sourceLineNo">166</span>  private String buildAuthHeader(String applicationKey, String signature) {<a name="line.166"></a>
-<span class="sourceLineNo">167</span>    return GBIF_SCHEME + " " + applicationKey + ":" + signature;<a name="line.167"></a>
-<span class="sourceLineNo">168</span>  }<a name="line.168"></a>
-<span class="sourceLineNo">169</span><a name="line.169"></a>
-<span class="sourceLineNo">170</span>  private String buildSignature(String stringToSign, String secretKey) {<a name="line.170"></a>
-<span class="sourceLineNo">171</span>    try {<a name="line.171"></a>
-<span class="sourceLineNo">172</span>      Mac mac = Mac.getInstance(ALGORITHM);<a name="line.172"></a>
-<span class="sourceLineNo">173</span>      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);<a name="line.173"></a>
-<span class="sourceLineNo">174</span>      mac.init(secret);<a name="line.174"></a>
-<span class="sourceLineNo">175</span>      byte[] digest = mac.doFinal(stringToSign.getBytes());<a name="line.175"></a>
-<span class="sourceLineNo">176</span><a name="line.176"></a>
-<span class="sourceLineNo">177</span>      return new String(Base64.encode(digest), "ASCII");<a name="line.177"></a>
-<span class="sourceLineNo">178</span><a name="line.178"></a>
-<span class="sourceLineNo">179</span>    } catch (NoSuchAlgorithmException e) {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>      throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);<a name="line.180"></a>
-<span class="sourceLineNo">181</span>    } catch (UnsupportedEncodingException e) {<a name="line.181"></a>
-<span class="sourceLineNo">182</span>      throw new RuntimeException("Unsupported character encoding " + CHAR_ENCODING, e);<a name="line.182"></a>
-<span class="sourceLineNo">183</span>    } catch (InvalidKeyException e) {<a name="line.183"></a>
-<span class="sourceLineNo">184</span>      throw new RuntimeException("Invalid secret key " + secretKey, e);<a name="line.184"></a>
-<span class="sourceLineNo">185</span>    }<a name="line.185"></a>
-<span class="sourceLineNo">186</span>  }<a name="line.186"></a>
-<span class="sourceLineNo">187</span><a name="line.187"></a>
-<span class="sourceLineNo">188</span>  /**<a name="line.188"></a>
-<span class="sourceLineNo">189</span>   * Signs a request by adding a Content-MD5 and Authorization header.<a name="line.189"></a>
-<span class="sourceLineNo">190</span>   * For PUT/POST requests that contain a body entity the Content-MD5 header is created using the same<a name="line.190"></a>
-<span class="sourceLineNo">191</span>   * JSON mapper for serialization as the clients use.<a name="line.191"></a>
-<span class="sourceLineNo">192</span>   *<a name="line.192"></a>
-<span class="sourceLineNo">193</span>   * Other format than JSON are not supported currently !!!<a name="line.193"></a>
-<span class="sourceLineNo">194</span>   */<a name="line.194"></a>
-<span class="sourceLineNo">195</span>  public void signRequest(String username, ClientRequest request) {<a name="line.195"></a>
-<span class="sourceLineNo">196</span>    Preconditions.checkNotNull(appKey, "To sign request a single application key is required");<a name="line.196"></a>
-<span class="sourceLineNo">197</span>    // first add custom GBIF headers so we can use them to build the string to sign<a name="line.197"></a>
-<span class="sourceLineNo">198</span><a name="line.198"></a>
-<span class="sourceLineNo">199</span>    // the proxied username<a name="line.199"></a>
-<span class="sourceLineNo">200</span>    request.getHeaders().putSingle(HEADER_GBIF_USER, username);<a name="line.200"></a>
-<span class="sourceLineNo">201</span>    // the canonical path header<a name="line.201"></a>
-<span class="sourceLineNo">202</span>    request.getHeaders().putSingle(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getURI()));<a name="line.202"></a>
-<span class="sourceLineNo">203</span>    // adds content md5<a name="line.203"></a>
-<span class="sourceLineNo">204</span>    if (request.getEntity() != null) {<a name="line.204"></a>
-<span class="sourceLineNo">205</span>      request.getHeaders().putSingle(HEADER_CONTENT_MD5, buildContentMD5(request.getEntity()));<a name="line.205"></a>
-<span class="sourceLineNo">206</span>    }<a name="line.206"></a>
-<span class="sourceLineNo">207</span><a name="line.207"></a>
-<span class="sourceLineNo">208</span>    // build the unique string to sign<a name="line.208"></a>
-<span class="sourceLineNo">209</span>    final String stringToSign = buildStringToSign(request);<a name="line.209"></a>
-<span class="sourceLineNo">210</span>    // find private key for this app<a name="line.210"></a>
-<span class="sourceLineNo">211</span>    final String secretKey = getPrivateKey(appKey);<a name="line.211"></a>
-<span class="sourceLineNo">212</span>    if (secretKey == null) {<a name="line.212"></a>
-<span class="sourceLineNo">213</span>      LOG.warn("Skip signing request with unknown application key: {}", appKey);<a name="line.213"></a>
-<span class="sourceLineNo">214</span>      return;<a name="line.214"></a>
-<span class="sourceLineNo">215</span>    }<a name="line.215"></a>
-<span class="sourceLineNo">216</span>    // sign<a name="line.216"></a>
-<span class="sourceLineNo">217</span>    String signature = buildSignature(stringToSign, secretKey);<a name="line.217"></a>
-<span class="sourceLineNo">218</span>    // build authorization header string<a name="line.218"></a>
-<span class="sourceLineNo">219</span>    String header = buildAuthHeader(appKey, signature);<a name="line.219"></a>
-<span class="sourceLineNo">220</span>    // add authorization header<a name="line.220"></a>
-<span class="sourceLineNo">221</span>    LOG.debug("Adding authentication header to request {} for proxied user {} : {}", request.getURI(), username, header);<a name="line.221"></a>
-<span class="sourceLineNo">222</span>    request.getHeaders().putSingle(HEADER_AUTHORIZATION, header);<a name="line.222"></a>
-<span class="sourceLineNo">223</span>  }<a name="line.223"></a>
-<span class="sourceLineNo">224</span><a name="line.224"></a>
-<span class="sourceLineNo">225</span>  private String buildContentMD5(Object entity) {<a name="line.225"></a>
-<span class="sourceLineNo">226</span>    try {<a name="line.226"></a>
-<span class="sourceLineNo">227</span>      MessageDigest instance = MessageDigest.getInstance("MD5");<a name="line.227"></a>
-<span class="sourceLineNo">228</span>      return new String(Base64.encode(instance.digest(mapper.writeValueAsBytes(entity))), "ASCII");<a name="line.228"></a>
-<span class="sourceLineNo">229</span><a name="line.229"></a>
-<span class="sourceLineNo">230</span>    } catch (IOException e) {<a name="line.230"></a>
-<span class="sourceLineNo">231</span>      LOG.error("Failed to serialize http entity [{}]", entity);<a name="line.231"></a>
-<span class="sourceLineNo">232</span>      throw new RuntimeException(e);<a name="line.232"></a>
-<span class="sourceLineNo">233</span><a name="line.233"></a>
-<span class="sourceLineNo">234</span>    } catch (NoSuchAlgorithmException e) {<a name="line.234"></a>
-<span class="sourceLineNo">235</span>      LOG.error("MD5 algorithm not found");<a name="line.235"></a>
-<span class="sourceLineNo">236</span>      throw new RuntimeException(e);<a name="line.236"></a>
-<span class="sourceLineNo">237</span>    }<a name="line.237"></a>
-<span class="sourceLineNo">238</span>  }<a name="line.238"></a>
-<span class="sourceLineNo">239</span><a name="line.239"></a>
-<span class="sourceLineNo">240</span>  public boolean isValidRequest(ContainerRequest request) {<a name="line.240"></a>
-<span class="sourceLineNo">241</span>    // parse auth header<a name="line.241"></a>
-<span class="sourceLineNo">242</span>    final String authHeader = request.getHeaderValue(HEADER_AUTHORIZATION);<a name="line.242"></a>
-<span class="sourceLineNo">243</span>    if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME + " ")) {<a name="line.243"></a>
-<span class="sourceLineNo">244</span>      LOG.info(HEADER_AUTHORIZATION + " header is no GBIF scheme");<a name="line.244"></a>
-<span class="sourceLineNo">245</span>      return false;<a name="line.245"></a>
-<span class="sourceLineNo">246</span>    }<a name="line.246"></a>
-<span class="sourceLineNo">247</span><a name="line.247"></a>
-<span class="sourceLineNo">248</span>    String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);<a name="line.248"></a>
-<span class="sourceLineNo">249</span>    if (values.length &lt; 2) {<a name="line.249"></a>
-<span class="sourceLineNo">250</span>      LOG.warn("Invalid syntax for application key and signature: {}", authHeader);<a name="line.250"></a>
-<span class="sourceLineNo">251</span>      return false;<a name="line.251"></a>
-<span class="sourceLineNo">252</span>    }<a name="line.252"></a>
-<span class="sourceLineNo">253</span><a name="line.253"></a>
-<span class="sourceLineNo">254</span>    final String appKey = values[0];<a name="line.254"></a>
-<span class="sourceLineNo">255</span>    final String signatureFound = values[1];<a name="line.255"></a>
-<span class="sourceLineNo">256</span>    if (appKey == null || signatureFound == null) {<a name="line.256"></a>
-<span class="sourceLineNo">257</span>      LOG.warn("Authentication header missing applicationKey or signature: {}", authHeader);<a name="line.257"></a>
-<span class="sourceLineNo">258</span>      return false;<a name="line.258"></a>
-<span class="sourceLineNo">259</span>    }<a name="line.259"></a>
-<span class="sourceLineNo">260</span><a name="line.260"></a>
-<span class="sourceLineNo">261</span>    String secretKey = getPrivateKey(appKey);<a name="line.261"></a>
-<span class="sourceLineNo">262</span>    if (secretKey == null) {<a name="line.262"></a>
-<span class="sourceLineNo">263</span>      LOG.warn("Unknown application key: {}", appKey);<a name="line.263"></a>
-<span class="sourceLineNo">264</span>      return false;<a name="line.264"></a>
-<span class="sourceLineNo">265</span>    }<a name="line.265"></a>
-<span class="sourceLineNo">266</span>    //<a name="line.266"></a>
-<span class="sourceLineNo">267</span>    String stringToSign = buildStringToSign(request);<a name="line.267"></a>
-<span class="sourceLineNo">268</span>    // sign<a name="line.268"></a>
-<span class="sourceLineNo">269</span>    String signature = buildSignature(stringToSign, secretKey);<a name="line.269"></a>
-<span class="sourceLineNo">270</span>    // compare signatures<a name="line.270"></a>
-<span class="sourceLineNo">271</span>    if (signatureFound.equals(signature)) {<a name="line.271"></a>
-<span class="sourceLineNo">272</span>      LOG.debug("Trusted application with matching signatures");<a name="line.272"></a>
-<span class="sourceLineNo">273</span>      return true;<a name="line.273"></a>
-<span class="sourceLineNo">274</span><a name="line.274"></a>
-<span class="sourceLineNo">275</span>    }<a name="line.275"></a>
-<span class="sourceLineNo">276</span>    LOG.info("Invalid signature: {}", authHeader);<a name="line.276"></a>
-<span class="sourceLineNo">277</span>    return false;<a name="line.277"></a>
-<span class="sourceLineNo">278</span>  }<a name="line.278"></a>
-<span class="sourceLineNo">279</span><a name="line.279"></a>
-<span class="sourceLineNo">280</span>  private String getPrivateKey(String appKey) {<a name="line.280"></a>
-<span class="sourceLineNo">281</span>    return keyStore.get(appKey);<a name="line.281"></a>
-<span class="sourceLineNo">282</span>  }<a name="line.282"></a>
-<span class="sourceLineNo">283</span><a name="line.283"></a>
-<span class="sourceLineNo">284</span>}<a name="line.284"></a>
+<span class="sourceLineNo">065</span>  private static final char NEWLINE = '\n';<a name="line.65"></a>
+<span class="sourceLineNo">066</span>  private static final Pattern COLON_PATTERN = Pattern.compile(":");<a name="line.66"></a>
+<span class="sourceLineNo">067</span><a name="line.67"></a>
+<span class="sourceLineNo">068</span>  private final ImmutableMap&lt;String, String&gt; keyStore;<a name="line.68"></a>
+<span class="sourceLineNo">069</span>  private final String appKey;<a name="line.69"></a>
+<span class="sourceLineNo">070</span>  private final ObjectMapper mapper = new JacksonJsonContextResolver().getContext(null);<a name="line.70"></a>
+<span class="sourceLineNo">071</span><a name="line.71"></a>
+<span class="sourceLineNo">072</span>  private GbifAuthService(Map&lt;String, String&gt; appKeys, String appKey) {<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    keyStore = ImmutableMap.copyOf(appKeys);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    this.appKey = appKey;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    LOG.info("Initialised appkey store with {} keys", keyStore.size());<a name="line.75"></a>
+<span class="sourceLineNo">076</span>  }<a name="line.76"></a>
+<span class="sourceLineNo">077</span><a name="line.77"></a>
+<span class="sourceLineNo">078</span>  /**<a name="line.78"></a>
+<span class="sourceLineNo">079</span>   * Creates a new GBIF authentication service for applications that need to validate requests<a name="line.79"></a>
+<span class="sourceLineNo">080</span>   * for various application keys. Used by the GBIF webservice apps that require authentication.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>   */<a name="line.81"></a>
+<span class="sourceLineNo">082</span>  public static GbifAuthService multiKeyAuthService(Map&lt;String, String&gt; appKeys) {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    return new GbifAuthService(appKeys, null);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>  }<a name="line.84"></a>
+<span class="sourceLineNo">085</span><a name="line.85"></a>
+<span class="sourceLineNo">086</span>  /**<a name="line.86"></a>
+<span class="sourceLineNo">087</span>   * Creates a new GBIF authentication service for clients that want to sign requests always using a single<a name="line.87"></a>
+<span class="sourceLineNo">088</span>   * application key. Used by the GBIF portal and other trusted applications that need to proxy a user.<a name="line.88"></a>
+<span class="sourceLineNo">089</span>   */<a name="line.89"></a>
+<span class="sourceLineNo">090</span>  public static GbifAuthService singleKeyAuthService(String appKey, String secret) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>    LOG.info("Initialising auth service with key {}", appKey);<a name="line.91"></a>
+<span class="sourceLineNo">092</span>    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey);<a name="line.92"></a>
+<span class="sourceLineNo">093</span>  }<a name="line.93"></a>
+<span class="sourceLineNo">094</span><a name="line.94"></a>
+<span class="sourceLineNo">095</span>  /**<a name="line.95"></a>
+<span class="sourceLineNo">096</span>   * Extracts the information to be encrypted from a request and concatenates them into a single String.<a name="line.96"></a>
+<span class="sourceLineNo">097</span>   * When the server receives an authenticated request, it compares the computed request signature<a name="line.97"></a>
+<span class="sourceLineNo">098</span>   * with the signature provided in the request in StringToSign.<a name="line.98"></a>
+<span class="sourceLineNo">099</span>   * For that reason this string may only contain information also available in the exact same form to the server.<a name="line.99"></a>
+<span class="sourceLineNo">100</span>   *<a name="line.100"></a>
+<span class="sourceLineNo">101</span>   * @return unique string for a request<a name="line.101"></a>
+<span class="sourceLineNo">102</span>   *<a name="line.102"></a>
+<span class="sourceLineNo">103</span>   * @see &lt;a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html"&gt;AWS Docs&lt;/a&gt;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>   */<a name="line.104"></a>
+<span class="sourceLineNo">105</span>  private String buildStringToSign(ContainerRequest request) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>    StringBuilder sb = new StringBuilder();<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    sb.append(request.getMethod());<a name="line.107"></a>
+<span class="sourceLineNo">108</span><a name="line.108"></a>
+<span class="sourceLineNo">109</span>    sb.append(NEWLINE);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    // custom header set by varnish overrides real URI<a name="line.110"></a>
+<span class="sourceLineNo">111</span>    // see http://dev.gbif.org/issues/browse/GBIFCOM-137<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    if (request.getRequestHeaders().containsKey(HEADER_ORIGINAL_REQUEST_URL)) {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>      sb.append(request.getRequestHeaders().getFirst(HEADER_ORIGINAL_REQUEST_URL));<a name="line.113"></a>
+<span class="sourceLineNo">114</span>    } else {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>      sb.append(getCanonicalizedPath(request.getRequestUri()));<a name="line.115"></a>
+<span class="sourceLineNo">116</span>    }<a name="line.116"></a>
+<span class="sourceLineNo">117</span><a name="line.117"></a>
+<span class="sourceLineNo">118</span>    sb.append(NEWLINE);<a name="line.118"></a>
+<span class="sourceLineNo">119</span>    sb.append(request.getHeaderValue(HEADER_CONTENT_TYPE));<a name="line.119"></a>
+<span class="sourceLineNo">120</span><a name="line.120"></a>
+<span class="sourceLineNo">121</span>    // include md5 hash if existing (only for PUT/POST with content)<a name="line.121"></a>
+<span class="sourceLineNo">122</span>    if (request.getRequestHeaders().containsKey(HEADER_CONTENT_MD5)) {<a name="line.122"></a>
+<span class="sourceLineNo">123</span>      sb.append(NEWLINE);<a name="line.123"></a>
+<span class="sourceLineNo">124</span>      sb.append(request.getHeaderValue(HEADER_CONTENT_MD5));<a name="line.124"></a>
+<span class="sourceLineNo">125</span>    }<a name="line.125"></a>
+<span class="sourceLineNo">126</span><a name="line.126"></a>
+<span class="sourceLineNo">127</span>    sb.append(NEWLINE);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>    sb.append(request.getHeaderValue(HEADER_GBIF_USER));<a name="line.128"></a>
+<span class="sourceLineNo">129</span><a name="line.129"></a>
+<span class="sourceLineNo">130</span>    return sb.toString();<a name="line.130"></a>
+<span class="sourceLineNo">131</span>  }<a name="line.131"></a>
+<span class="sourceLineNo">132</span><a name="line.132"></a>
+<span class="sourceLineNo">133</span>  /**<a name="line.133"></a>
+<span class="sourceLineNo">134</span>   * Build the string to be signed for a client request by extracting header information from the request.<a name="line.134"></a>
+<span class="sourceLineNo">135</span>   * For PUT/POST requests that contain a body content it is required that the Content-MD5 header<a name="line.135"></a>
+<span class="sourceLineNo">136</span>   * is already present on the request instance!<a name="line.136"></a>
+<span class="sourceLineNo">137</span>   */<a name="line.137"></a>
+<span class="sourceLineNo">138</span>  private String buildStringToSign(ClientRequest request) {<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    StringBuilder sb = new StringBuilder();<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    sb.append(request.getMethod());<a name="line.140"></a>
+<span class="sourceLineNo">141</span><a name="line.141"></a>
+<span class="sourceLineNo">142</span>    sb.append(NEWLINE);<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    sb.append(getCanonicalizedPath(request.getURI()));<a name="line.143"></a>
+<span class="sourceLineNo">144</span><a name="line.144"></a>
+<span class="sourceLineNo">145</span>    sb.append(NEWLINE);<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    sb.append(request.getHeaders().getFirst(HEADER_CONTENT_TYPE));<a name="line.146"></a>
+<span class="sourceLineNo">147</span><a name="line.147"></a>
+<span class="sourceLineNo">148</span>    // include md5 hash if existing (only for PUT/POST with content)<a name="line.148"></a>
+<span class="sourceLineNo">149</span>    if (request.getHeaders().containsKey(HEADER_CONTENT_MD5)) {<a name="line.149"></a>
+<span class="sourceLineNo">150</span>      sb.append(NEWLINE);<a name="line.150"></a>
+<span class="sourceLineNo">151</span>      sb.append(request.getHeaders().getFirst(HEADER_CONTENT_MD5));<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    }<a name="line.152"></a>
+<span class="sourceLineNo">153</span><a name="line.153"></a>
+<span class="sourceLineNo">154</span>    sb.append(NEWLINE);<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    sb.append(request.getHeaders().getFirst(HEADER_GBIF_USER));<a name="line.155"></a>
+<span class="sourceLineNo">156</span><a name="line.156"></a>
+<span class="sourceLineNo">157</span>    return sb.toString();<a name="line.157"></a>
+<span class="sourceLineNo">158</span>  }<a name="line.158"></a>
+<span class="sourceLineNo">159</span><a name="line.159"></a>
+<span class="sourceLineNo">160</span>  /**<a name="line.160"></a>
+<span class="sourceLineNo">161</span>   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters<a name="line.161"></a>
+<span class="sourceLineNo">162</span>   */<a name="line.162"></a>
+<span class="sourceLineNo">163</span>  private String getCanonicalizedPath(URI uri) {<a name="line.163"></a>
+<span class="sourceLineNo">164</span>    return uri.normalize().getPath();<a name="line.164"></a>
+<span class="sourceLineNo">165</span>  }<a name="line.165"></a>
+<span class="sourceLineNo">166</span><a name="line.166"></a>
+<span class="sourceLineNo">167</span>  private String buildAuthHeader(String applicationKey, String signature) {<a name="line.167"></a>
+<span class="sourceLineNo">168</span>    return GBIF_SCHEME + " " + applicationKey + ":" + signature;<a name="line.168"></a>
+<span class="sourceLineNo">169</span>  }<a name="line.169"></a>
+<span class="sourceLineNo">170</span><a name="line.170"></a>
+<span class="sourceLineNo">171</span>  private String buildSignature(String stringToSign, String secretKey) {<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    try {<a name="line.172"></a>
+<span class="sourceLineNo">173</span>      Mac mac = Mac.getInstance(ALGORITHM);<a name="line.173"></a>
+<span class="sourceLineNo">174</span>      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);<a name="line.174"></a>
+<span class="sourceLineNo">175</span>      mac.init(secret);<a name="line.175"></a>
+<span class="sourceLineNo">176</span>      byte[] digest = mac.doFinal(stringToSign.getBytes());<a name="line.176"></a>
+<span class="sourceLineNo">177</span><a name="line.177"></a>
+<span class="sourceLineNo">178</span>      return new String(Base64.encode(digest), "ASCII");<a name="line.178"></a>
+<span class="sourceLineNo">179</span><a name="line.179"></a>
+<span class="sourceLineNo">180</span>    } catch (NoSuchAlgorithmException e) {<a name="line.180"></a>
+<span class="sourceLineNo">181</span>      throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);<a name="line.181"></a>
+<span class="sourceLineNo">182</span>    } catch (UnsupportedEncodingException e) {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>      throw new RuntimeException("Unsupported character encoding " + CHAR_ENCODING, e);<a name="line.183"></a>
+<span class="sourceLineNo">184</span>    } catch (InvalidKeyException e) {<a name="line.184"></a>
+<span class="sourceLineNo">185</span>      throw new RuntimeException("Invalid secret key " + secretKey, e);<a name="line.185"></a>
+<span class="sourceLineNo">186</span>    }<a name="line.186"></a>
+<span class="sourceLineNo">187</span>  }<a name="line.187"></a>
+<span class="sourceLineNo">188</span><a name="line.188"></a>
+<span class="sourceLineNo">189</span>  /**<a name="line.189"></a>
+<span class="sourceLineNo">190</span>   * Signs a request by adding a Content-MD5 and Authorization header.<a name="line.190"></a>
+<span class="sourceLineNo">191</span>   * For PUT/POST requests that contain a body entity the Content-MD5 header is created using the same<a name="line.191"></a>
+<span class="sourceLineNo">192</span>   * JSON mapper for serialization as the clients use.<a name="line.192"></a>
+<span class="sourceLineNo">193</span>   *<a name="line.193"></a>
+<span class="sourceLineNo">194</span>   * Other format than JSON are not supported currently !!!<a name="line.194"></a>
+<span class="sourceLineNo">195</span>   */<a name="line.195"></a>
+<span class="sourceLineNo">196</span>  public void signRequest(String username, ClientRequest request) {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>    Preconditions.checkNotNull(appKey, "To sign request a single application key is required");<a name="line.197"></a>
+<span class="sourceLineNo">198</span>    // first add custom GBIF headers so we can use them to build the string to sign<a name="line.198"></a>
+<span class="sourceLineNo">199</span><a name="line.199"></a>
+<span class="sourceLineNo">200</span>    // the proxied username<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    request.getHeaders().putSingle(HEADER_GBIF_USER, username);<a name="line.201"></a>
+<span class="sourceLineNo">202</span>    // the canonical path header<a name="line.202"></a>
+<span class="sourceLineNo">203</span>    request.getHeaders().putSingle(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getURI()));<a name="line.203"></a>
+<span class="sourceLineNo">204</span>    // adds content md5<a name="line.204"></a>
+<span class="sourceLineNo">205</span>    if (request.getEntity() != null) {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>      request.getHeaders().putSingle(HEADER_CONTENT_MD5, buildContentMD5(request.getEntity()));<a name="line.206"></a>
+<span class="sourceLineNo">207</span>    }<a name="line.207"></a>
+<span class="sourceLineNo">208</span><a name="line.208"></a>
+<span class="sourceLineNo">209</span>    // build the unique string to sign<a name="line.209"></a>
+<span class="sourceLineNo">210</span>    final String stringToSign = buildStringToSign(request);<a name="line.210"></a>
+<span class="sourceLineNo">211</span>    // find private key for this app<a name="line.211"></a>
+<span class="sourceLineNo">212</span>    final String secretKey = getPrivateKey(appKey);<a name="line.212"></a>
+<span class="sourceLineNo">213</span>    if (secretKey == null) {<a name="line.213"></a>
+<span class="sourceLineNo">214</span>      LOG.warn("Skip signing request with unknown application key: {}", appKey);<a name="line.214"></a>
+<span class="sourceLineNo">215</span>      return;<a name="line.215"></a>
+<span class="sourceLineNo">216</span>    }<a name="line.216"></a>
+<span class="sourceLineNo">217</span>    // sign<a name="line.217"></a>
+<span class="sourceLineNo">218</span>    String signature = buildSignature(stringToSign, secretKey);<a name="line.218"></a>
+<span class="sourceLineNo">219</span>    // build authorization header string<a name="line.219"></a>
+<span class="sourceLineNo">220</span>    String header = buildAuthHeader(appKey, signature);<a name="line.220"></a>
+<span class="sourceLineNo">221</span>    // add authorization header<a name="line.221"></a>
+<span class="sourceLineNo">222</span>    LOG.debug("Adding authentication header to request {} for proxied user {} : {}", request.getURI(), username, header);<a name="line.222"></a>
+<span class="sourceLineNo">223</span>    request.getHeaders().putSingle(HEADER_AUTHORIZATION, header);<a name="line.223"></a>
+<span class="sourceLineNo">224</span>  }<a name="line.224"></a>
+<span class="sourceLineNo">225</span><a name="line.225"></a>
+<span class="sourceLineNo">226</span>  private String buildContentMD5(Object entity) {<a name="line.226"></a>
+<span class="sourceLineNo">227</span>    try {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>      MessageDigest instance = MessageDigest.getInstance("MD5");<a name="line.228"></a>
+<span class="sourceLineNo">229</span>      return new String(Base64.encode(instance.digest(mapper.writeValueAsBytes(entity))), "ASCII");<a name="line.229"></a>
+<span class="sourceLineNo">230</span><a name="line.230"></a>
+<span class="sourceLineNo">231</span>    } catch (IOException e) {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>      LOG.error("Failed to serialize http entity [{}]", entity);<a name="line.232"></a>
+<span class="sourceLineNo">233</span>      throw new RuntimeException(e);<a name="line.233"></a>
+<span class="sourceLineNo">234</span><a name="line.234"></a>
+<span class="sourceLineNo">235</span>    } catch (NoSuchAlgorithmException e) {<a name="line.235"></a>
+<span class="sourceLineNo">236</span>      LOG.error("MD5 algorithm not found");<a name="line.236"></a>
+<span class="sourceLineNo">237</span>      throw new RuntimeException(e);<a name="line.237"></a>
+<span class="sourceLineNo">238</span>    }<a name="line.238"></a>
+<span class="sourceLineNo">239</span>  }<a name="line.239"></a>
+<span class="sourceLineNo">240</span><a name="line.240"></a>
+<span class="sourceLineNo">241</span>  public boolean isValidRequest(ContainerRequest request) {<a name="line.241"></a>
+<span class="sourceLineNo">242</span>    // parse auth header<a name="line.242"></a>
+<span class="sourceLineNo">243</span>    final String authHeader = request.getHeaderValue(HEADER_AUTHORIZATION);<a name="line.243"></a>
+<span class="sourceLineNo">244</span>    if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME + " ")) {<a name="line.244"></a>
+<span class="sourceLineNo">245</span>      LOG.info(HEADER_AUTHORIZATION + " header is no GBIF scheme");<a name="line.245"></a>
+<span class="sourceLineNo">246</span>      return false;<a name="line.246"></a>
+<span class="sourceLineNo">247</span>    }<a name="line.247"></a>
+<span class="sourceLineNo">248</span><a name="line.248"></a>
+<span class="sourceLineNo">249</span>    String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);<a name="line.249"></a>
+<span class="sourceLineNo">250</span>    if (values.length &lt; 2) {<a name="line.250"></a>
+<span class="sourceLineNo">251</span>      LOG.warn("Invalid syntax for application key and signature: {}", authHeader);<a name="line.251"></a>
+<span class="sourceLineNo">252</span>      return false;<a name="line.252"></a>
+<span class="sourceLineNo">253</span>    }<a name="line.253"></a>
+<span class="sourceLineNo">254</span><a name="line.254"></a>
+<span class="sourceLineNo">255</span>    final String appKey = values[0];<a name="line.255"></a>
+<span class="sourceLineNo">256</span>    final String signatureFound = values[1];<a name="line.256"></a>
+<span class="sourceLineNo">257</span>    if (appKey == null || signatureFound == null) {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>      LOG.warn("Authentication header missing applicationKey or signature: {}", authHeader);<a name="line.258"></a>
+<span class="sourceLineNo">259</span>      return false;<a name="line.259"></a>
+<span class="sourceLineNo">260</span>    }<a name="line.260"></a>
+<span class="sourceLineNo">261</span><a name="line.261"></a>
+<span class="sourceLineNo">262</span>    String secretKey = getPrivateKey(appKey);<a name="line.262"></a>
+<span class="sourceLineNo">263</span>    if (secretKey == null) {<a name="line.263"></a>
+<span class="sourceLineNo">264</span>      LOG.warn("Unknown application key: {}", appKey);<a name="line.264"></a>
+<span class="sourceLineNo">265</span>      return false;<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    }<a name="line.266"></a>
+<span class="sourceLineNo">267</span>    //<a name="line.267"></a>
+<span class="sourceLineNo">268</span>    String stringToSign = buildStringToSign(request);<a name="line.268"></a>
+<span class="sourceLineNo">269</span>    // sign<a name="line.269"></a>
+<span class="sourceLineNo">270</span>    String signature = buildSignature(stringToSign, secretKey);<a name="line.270"></a>
+<span class="sourceLineNo">271</span>    // compare signatures<a name="line.271"></a>
+<span class="sourceLineNo">272</span>    if (signatureFound.equals(signature)) {<a name="line.272"></a>
+<span class="sourceLineNo">273</span>      LOG.debug("Trusted application with matching signatures");<a name="line.273"></a>
+<span class="sourceLineNo">274</span>      return true;<a name="line.274"></a>
+<span class="sourceLineNo">275</span><a name="line.275"></a>
+<span class="sourceLineNo">276</span>    }<a name="line.276"></a>
+<span class="sourceLineNo">277</span>    LOG.info("Invalid signature: {}", authHeader);<a name="line.277"></a>
+<span class="sourceLineNo">278</span>    return false;<a name="line.278"></a>
+<span class="sourceLineNo">279</span>  }<a name="line.279"></a>
+<span class="sourceLineNo">280</span><a name="line.280"></a>
+<span class="sourceLineNo">281</span>  private String getPrivateKey(String appKey) {<a name="line.281"></a>
+<span class="sourceLineNo">282</span>    return keyStore.get(appKey);<a name="line.282"></a>
+<span class="sourceLineNo">283</span>  }<a name="line.283"></a>
+<span class="sourceLineNo">284</span><a name="line.284"></a>
+<span class="sourceLineNo">285</span>}<a name="line.285"></a>
 
 
 
