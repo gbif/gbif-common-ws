@@ -62,6 +62,7 @@ public class GbifAuthService {
   public static final String GBIF_SCHEME = "GBIF";
   public static final String HEADER_GBIF_USER = "x-gbif-user";
   public static final String HEADER_ORIGINAL_REQUEST_URL = "x-url";
+  private static final char NEWLINE = '\n';
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
 
   private final ImmutableMap<String, String> keyStore;
@@ -105,7 +106,7 @@ public class GbifAuthService {
     StringBuilder sb = new StringBuilder();
     sb.append(request.getMethod());
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     // custom header set by varnish overrides real URI
     // see http://dev.gbif.org/issues/browse/GBIFCOM-137
     if (request.getRequestHeaders().containsKey(HEADER_ORIGINAL_REQUEST_URL)) {
@@ -114,16 +115,16 @@ public class GbifAuthService {
       sb.append(getCanonicalizedPath(request.getRequestUri()));
     }
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     sb.append(request.getHeaderValue(HEADER_CONTENT_TYPE));
 
     // include md5 hash if existing (only for PUT/POST with content)
     if (request.getRequestHeaders().containsKey(HEADER_CONTENT_MD5)) {
-      sb.append("/n");
+      sb.append(NEWLINE);
       sb.append(request.getHeaderValue(HEADER_CONTENT_MD5));
     }
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     sb.append(request.getHeaderValue(HEADER_GBIF_USER));
 
     return sb.toString();
@@ -138,19 +139,19 @@ public class GbifAuthService {
     StringBuilder sb = new StringBuilder();
     sb.append(request.getMethod());
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     sb.append(getCanonicalizedPath(request.getURI()));
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     sb.append(request.getHeaders().getFirst(HEADER_CONTENT_TYPE));
 
     // include md5 hash if existing (only for PUT/POST with content)
     if (request.getHeaders().containsKey(HEADER_CONTENT_MD5)) {
-      sb.append("/n");
+      sb.append(NEWLINE);
       sb.append(request.getHeaders().getFirst(HEADER_CONTENT_MD5));
     }
 
-    sb.append("/n");
+    sb.append(NEWLINE);
     sb.append(request.getHeaders().getFirst(HEADER_GBIF_USER));
 
     return sb.toString();
