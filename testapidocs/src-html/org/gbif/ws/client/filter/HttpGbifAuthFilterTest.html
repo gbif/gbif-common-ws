@@ -8,8 +8,8 @@
 <div class="sourceContainer">
 <pre><span class="sourceLineNo">001</span>package org.gbif.ws.client.filter;<a name="line.1"></a>
 <span class="sourceLineNo">002</span><a name="line.2"></a>
-<span class="sourceLineNo">003</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.3"></a>
-<span class="sourceLineNo">004</span>import org.gbif.ws.security.GbifAppAuthServiceTest;<a name="line.4"></a>
+<span class="sourceLineNo">003</span>import org.gbif.ws.security.GbifAuthService;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.ws.security.GbifAuthServiceTest;<a name="line.4"></a>
 <span class="sourceLineNo">005</span><a name="line.5"></a>
 <span class="sourceLineNo">006</span>import java.io.IOException;<a name="line.6"></a>
 <span class="sourceLineNo">007</span>import java.net.URI;<a name="line.7"></a>
@@ -65,41 +65,39 @@
 <span class="sourceLineNo">057</span>    execute();<a name="line.57"></a>
 <span class="sourceLineNo">058</span><a name="line.58"></a>
 <span class="sourceLineNo">059</span>    // no principal set, expect no headers<a name="line.59"></a>
-<span class="sourceLineNo">060</span>    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));<a name="line.60"></a>
-<span class="sourceLineNo">061</span>    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));<a name="line.61"></a>
-<span class="sourceLineNo">062</span>    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));<a name="line.62"></a>
-<span class="sourceLineNo">063</span>    assertNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));<a name="line.63"></a>
-<span class="sourceLineNo">064</span>  }<a name="line.64"></a>
-<span class="sourceLineNo">065</span><a name="line.65"></a>
-<span class="sourceLineNo">066</span>  // we need to run the filter but also the added adapter!<a name="line.66"></a>
-<span class="sourceLineNo">067</span>  private void execute() throws IOException {<a name="line.67"></a>
-<span class="sourceLineNo">068</span>    GbifAppAuthService authService = new GbifAppAuthService(GbifAppAuthServiceTest.buildAppKeyMap());<a name="line.68"></a>
-<span class="sourceLineNo">069</span>    HttpGbifAuthFilter filter = new HttpGbifAuthFilter(GbifAppAuthServiceTest.APPKEY, authService, pp);<a name="line.69"></a>
-<span class="sourceLineNo">070</span>    try {<a name="line.70"></a>
-<span class="sourceLineNo">071</span>      filter.handle(mockRequest);<a name="line.71"></a>
-<span class="sourceLineNo">072</span>    } catch (NullPointerException e) {<a name="line.72"></a>
-<span class="sourceLineNo">073</span>      // expected as the filter is not initialised with a client setting the next filter head<a name="line.73"></a>
-<span class="sourceLineNo">074</span>    }<a name="line.74"></a>
-<span class="sourceLineNo">075</span>  }<a name="line.75"></a>
-<span class="sourceLineNo">076</span><a name="line.76"></a>
-<span class="sourceLineNo">077</span>  @Test<a name="line.77"></a>
-<span class="sourceLineNo">078</span>  public void testHandleWithPrincipal() throws Exception {<a name="line.78"></a>
-<span class="sourceLineNo">079</span>    pp.setPrincipal("Søren");<a name="line.79"></a>
-<span class="sourceLineNo">080</span><a name="line.80"></a>
-<span class="sourceLineNo">081</span>    execute();<a name="line.81"></a>
-<span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>    // principal set, expect headers<a name="line.83"></a>
-<span class="sourceLineNo">084</span>    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));<a name="line.84"></a>
-<span class="sourceLineNo">085</span>    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));<a name="line.85"></a>
-<span class="sourceLineNo">086</span>    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));<a name="line.86"></a>
-<span class="sourceLineNo">087</span>    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));<a name="line.87"></a>
-<span class="sourceLineNo">088</span><a name="line.88"></a>
-<span class="sourceLineNo">089</span>    assertEquals("Søren", headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));<a name="line.89"></a>
-<span class="sourceLineNo">090</span>    assertTrue(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION).toString()<a name="line.90"></a>
-<span class="sourceLineNo">091</span>      .startsWith("GBIF " + GbifAppAuthServiceTest.APPKEY));<a name="line.91"></a>
-<span class="sourceLineNo">092</span>  }<a name="line.92"></a>
-<span class="sourceLineNo">093</span><a name="line.93"></a>
-<span class="sourceLineNo">094</span>}<a name="line.94"></a>
+<span class="sourceLineNo">060</span>    assertNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    assertNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    assertNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));<a name="line.62"></a>
+<span class="sourceLineNo">063</span>  }<a name="line.63"></a>
+<span class="sourceLineNo">064</span><a name="line.64"></a>
+<span class="sourceLineNo">065</span>  // we need to run the filter but also the added adapter!<a name="line.65"></a>
+<span class="sourceLineNo">066</span>  private void execute() throws IOException {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    GbifAuthService authService = GbifAuthService.singleKeyAuthService(GbifAuthServiceTest.APPKEY, GbifAuthServiceTest.APPSECRET);<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    HttpGbifAuthFilter filter = new HttpGbifAuthFilter(authService, pp);<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    try {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>      filter.handle(mockRequest);<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    } catch (NullPointerException e) {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>      // expected as the filter is not initialised with a client setting the next filter head<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    }<a name="line.73"></a>
+<span class="sourceLineNo">074</span>  }<a name="line.74"></a>
+<span class="sourceLineNo">075</span><a name="line.75"></a>
+<span class="sourceLineNo">076</span>  @Test<a name="line.76"></a>
+<span class="sourceLineNo">077</span>  public void testHandleWithPrincipal() throws Exception {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    pp.setPrincipal("Søren");<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>    execute();<a name="line.80"></a>
+<span class="sourceLineNo">081</span><a name="line.81"></a>
+<span class="sourceLineNo">082</span>    // principal set, expect headers<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    assertNotNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    assertNotNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    assertNotNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));<a name="line.85"></a>
+<span class="sourceLineNo">086</span><a name="line.86"></a>
+<span class="sourceLineNo">087</span>    assertEquals("Søren", headers.getFirst(GbifAuthService.HEADER_GBIF_USER));<a name="line.87"></a>
+<span class="sourceLineNo">088</span>    assertTrue(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION).toString()<a name="line.88"></a>
+<span class="sourceLineNo">089</span>      .startsWith("GBIF " + GbifAuthServiceTest.APPKEY));<a name="line.89"></a>
+<span class="sourceLineNo">090</span>  }<a name="line.90"></a>
+<span class="sourceLineNo">091</span><a name="line.91"></a>
+<span class="sourceLineNo">092</span>}<a name="line.92"></a>
 
 
 

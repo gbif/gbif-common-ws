@@ -8,8 +8,8 @@
 <div id="overview"><a href="../../../../../../testapidocs/org/gbif/ws/client/filter/HttpGbifAuthFilterTest.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.gbif.ws.client.filter;
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAppAuthService;
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAppAuthServiceTest;
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthService;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthServiceTest;
 <a class="jxr_linenumber" name="L5" href="#L5">5</a>   
 <a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
 <a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.net.URI;
@@ -65,41 +65,39 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>      execute();
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>      <em class="jxr_comment">// no principal set, expect no headers</em>
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>      assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      assertNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>    }
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>    <em class="jxr_comment">// we need to run the filter but also the added adapter!</em>
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> execute() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      GbifAppAuthService authService = <strong class="jxr_keyword">new</strong> GbifAppAuthService(GbifAppAuthServiceTest.buildAppKeyMap());
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      HttpGbifAuthFilter filter = <strong class="jxr_keyword">new</strong> HttpGbifAuthFilter(GbifAppAuthServiceTest.APPKEY, authService, pp);
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>        filter.handle(mockRequest);
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>      } <strong class="jxr_keyword">catch</strong> (NullPointerException e) {
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>        <em class="jxr_comment">// expected as the filter is not initialised with a client setting the next filter head</em>
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      }
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>    }
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>    @Test
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHandleWithPrincipal() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>      pp.setPrincipal(<span class="jxr_string">"Søren"</span>);
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>      execute();
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>  
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <em class="jxr_comment">// principal set, expect headers</em>
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>      assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>      assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>      assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>      assertEquals(<span class="jxr_string">"Søren"</span>, headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>      assertTrue(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION).toString()
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>        .startsWith(<span class="jxr_string">"GBIF "</span> + GbifAppAuthServiceTest.APPKEY));
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>    }
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>  }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      assertNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      assertNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      assertNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>    <em class="jxr_comment">// we need to run the filter but also the added adapter!</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> execute() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      GbifAuthService authService = GbifAuthService.singleKeyAuthService(GbifAuthServiceTest.APPKEY, GbifAuthServiceTest.APPSECRET);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      HttpGbifAuthFilter filter = <strong class="jxr_keyword">new</strong> HttpGbifAuthFilter(authService, pp);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>        filter.handle(mockRequest);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      } <strong class="jxr_keyword">catch</strong> (NullPointerException e) {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>        <em class="jxr_comment">// expected as the filter is not initialised with a client setting the next filter head</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>    }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>    @Test
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHandleWithPrincipal() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      pp.setPrincipal(<span class="jxr_string">"Søren"</span>);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      execute();
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <em class="jxr_comment">// principal set, expect headers</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      assertNotNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      assertNotNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      assertNotNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      assertEquals(<span class="jxr_string">"Søren"</span>, headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      assertTrue(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION).toString()
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>        .startsWith(<span class="jxr_string">"GBIF "</span> + GbifAuthServiceTest.APPKEY));
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>    }
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2015 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>

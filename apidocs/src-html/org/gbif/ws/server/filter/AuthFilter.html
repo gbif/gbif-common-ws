@@ -11,7 +11,7 @@
 <span class="sourceLineNo">003</span>import org.gbif.api.model.common.User;<a name="line.3"></a>
 <span class="sourceLineNo">004</span>import org.gbif.api.model.common.UserPrincipal;<a name="line.4"></a>
 <span class="sourceLineNo">005</span>import org.gbif.api.service.common.UserService;<a name="line.5"></a>
-<span class="sourceLineNo">006</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.6"></a>
+<span class="sourceLineNo">006</span>import org.gbif.ws.security.GbifAuthService;<a name="line.6"></a>
 <span class="sourceLineNo">007</span><a name="line.7"></a>
 <span class="sourceLineNo">008</span>import java.security.Principal;<a name="line.8"></a>
 <span class="sourceLineNo">009</span>import java.util.UUID;<a name="line.9"></a>
@@ -106,14 +106,14 @@
 <span class="sourceLineNo">098</span><a name="line.98"></a>
 <span class="sourceLineNo">099</span>  private static final Pattern COLON_PATTERN = Pattern.compile(":");<a name="line.99"></a>
 <span class="sourceLineNo">100</span>  private final UserService userService;<a name="line.100"></a>
-<span class="sourceLineNo">101</span>  private final GbifAppAuthService authService;<a name="line.101"></a>
+<span class="sourceLineNo">101</span>  private final GbifAuthService authService;<a name="line.101"></a>
 <span class="sourceLineNo">102</span><a name="line.102"></a>
 <span class="sourceLineNo">103</span>  @Context<a name="line.103"></a>
 <span class="sourceLineNo">104</span>  private UriInfo uriInfo;<a name="line.104"></a>
-<span class="sourceLineNo">105</span>  private static final String GBIF_SCHEME_PREFIX = GbifAppAuthService.GBIF_SCHEME + " ";<a name="line.105"></a>
+<span class="sourceLineNo">105</span>  private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + " ";<a name="line.105"></a>
 <span class="sourceLineNo">106</span><a name="line.106"></a>
 <span class="sourceLineNo">107</span>  @Inject<a name="line.107"></a>
-<span class="sourceLineNo">108</span>  public AuthFilter(UserService userService, GbifAppAuthService authService) {<a name="line.108"></a>
+<span class="sourceLineNo">108</span>  public AuthFilter(UserService userService, GbifAuthService authService) {<a name="line.108"></a>
 <span class="sourceLineNo">109</span>    this.userService = userService;<a name="line.109"></a>
 <span class="sourceLineNo">110</span>    this.authService = authService;<a name="line.110"></a>
 <span class="sourceLineNo">111</span>  }<a name="line.111"></a>
@@ -185,9 +185,9 @@
 <span class="sourceLineNo">177</span>  }<a name="line.177"></a>
 <span class="sourceLineNo">178</span><a name="line.178"></a>
 <span class="sourceLineNo">179</span>  private Authorizer gbifAuthentication(ContainerRequest request) {<a name="line.179"></a>
-<span class="sourceLineNo">180</span>    String username = request.getHeaderValue(GbifAppAuthService.HEADER_GBIF_USER);<a name="line.180"></a>
+<span class="sourceLineNo">180</span>    String username = request.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);<a name="line.180"></a>
 <span class="sourceLineNo">181</span>    if (Strings.isNullOrEmpty(username)) {<a name="line.181"></a>
-<span class="sourceLineNo">182</span>      LOG.warn("Missing gbif username header {}", GbifAppAuthService.HEADER_GBIF_USER);<a name="line.182"></a>
+<span class="sourceLineNo">182</span>      LOG.warn("Missing gbif username header {}", GbifAuthService.HEADER_GBIF_USER);<a name="line.182"></a>
 <span class="sourceLineNo">183</span>      throw new WebApplicationException(Response.Status.BAD_REQUEST);<a name="line.183"></a>
 <span class="sourceLineNo">184</span>    }<a name="line.184"></a>
 <span class="sourceLineNo">185</span>    if (!authService.isValidRequest(request)) {<a name="line.185"></a>
@@ -195,8 +195,8 @@
 <span class="sourceLineNo">187</span>      throw new WebApplicationException(Response.Status.UNAUTHORIZED);<a name="line.187"></a>
 <span class="sourceLineNo">188</span>    }<a name="line.188"></a>
 <span class="sourceLineNo">189</span><a name="line.189"></a>
-<span class="sourceLineNo">190</span>    LOG.debug("Authenticating user {} via scheme {}", username, GbifAppAuthService.GBIF_SCHEME);<a name="line.190"></a>
-<span class="sourceLineNo">191</span>    return new Authorizer(username, GbifAppAuthService.GBIF_SCHEME);<a name="line.191"></a>
+<span class="sourceLineNo">190</span>    LOG.debug("Authenticating user {} via scheme {}", username, GbifAuthService.GBIF_SCHEME);<a name="line.190"></a>
+<span class="sourceLineNo">191</span>    return new Authorizer(username, GbifAuthService.GBIF_SCHEME);<a name="line.191"></a>
 <span class="sourceLineNo">192</span>  }<a name="line.192"></a>
 <span class="sourceLineNo">193</span><a name="line.193"></a>
 <span class="sourceLineNo">194</span>}<a name="line.194"></a>

@@ -11,8 +11,8 @@
 <span class="sourceLineNo">003</span>import org.gbif.api.model.common.User;<a name="line.3"></a>
 <span class="sourceLineNo">004</span>import org.gbif.api.service.common.UserService;<a name="line.4"></a>
 <span class="sourceLineNo">005</span>import org.gbif.api.vocabulary.UserRole;<a name="line.5"></a>
-<span class="sourceLineNo">006</span>import org.gbif.ws.security.GbifAppAuthService;<a name="line.6"></a>
-<span class="sourceLineNo">007</span>import org.gbif.ws.security.GbifAppAuthServiceTest;<a name="line.7"></a>
+<span class="sourceLineNo">006</span>import org.gbif.ws.security.GbifAuthService;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.gbif.ws.security.GbifAuthServiceTest;<a name="line.7"></a>
 <span class="sourceLineNo">008</span><a name="line.8"></a>
 <span class="sourceLineNo">009</span>import java.io.UnsupportedEncodingException;<a name="line.9"></a>
 <span class="sourceLineNo">010</span>import java.util.UUID;<a name="line.10"></a>
@@ -88,7 +88,7 @@
 <span class="sourceLineNo">080</span>    when(mockRequest.getMethod()).thenReturn("POST");<a name="line.80"></a>
 <span class="sourceLineNo">081</span>    setMockAuth(null);<a name="line.81"></a>
 <span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>    GbifAppAuthService authService = new GbifAppAuthService(GbifAppAuthServiceTest.buildAppKeyMap());<a name="line.83"></a>
+<span class="sourceLineNo">083</span>    GbifAuthService authService = GbifAuthService.multiKeyAuthService(GbifAuthServiceTest.buildAppKeyMap());<a name="line.83"></a>
 <span class="sourceLineNo">084</span>    filter = new AuthFilter(userService, authService);<a name="line.84"></a>
 <span class="sourceLineNo">085</span>  }<a name="line.85"></a>
 <span class="sourceLineNo">086</span><a name="line.86"></a>
