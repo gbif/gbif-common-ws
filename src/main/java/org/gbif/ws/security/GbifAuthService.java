@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -21,6 +20,7 @@ import com.google.inject.Singleton;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.spi.container.ContainerRequest;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,17 +29,22 @@ import org.slf4j.LoggerFactory;
  * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST http requests
  * using a private key. It uses the standard Http Authorization Header to transport the following information:
  * Authorization: GBIF applicationKey:Signature
- * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey and a unique signature
- * for the very request which is generated using a fixed set of request attributes which are then encrypted by
- * a standard HMAC-SHA1 algorithm.
+ *
+ * <br/>
+ * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)
+ * and a unique signature for the very request which is generated using a fixed set of request attributes
+ * which are then encrypted by a standard HMAC-SHA1 algorithm.
+ *
+ * <br/>
  * A POST request with a GBIF header would look like this:
+ *
  * <pre>
  * POST /dataset HTTP/1.1
  * Host: johnsmith.s3.amazonaws.com
  * Date: Mon, 26 Mar 2007 19:37:58 +0000
  * x-gbif-user: trobertson
- * Content-MD5: 12NnTPXtoDX8k2g6QQ/2hw==
- * Authorization: GBIF admin:frJIUN8DYpKDtOLCwo//yllqDzg=
+ * Content-MD5: LiFThEP4Pj2TODQXa/oFPg==
+ * Authorization: GBIF gbif.portal:frJIUN8DYpKDtOLCwo//yllqDzg=
  * </pre>
  *
  * When signing an http request in addition to the Authentication header some additional custom headers are added
@@ -48,6 +53,7 @@ import org.slf4j.LoggerFactory;
  * x-gbif-user is added to transport a proxied user in which the application is acting.
  * <br/>
  * Content-MD5 is added if a body entity exists.
+ * See Concent-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
  */
 @Singleton
 public class GbifAuthService {
@@ -168,6 +174,12 @@ public class GbifAuthService {
     return GBIF_SCHEME + " " + applicationKey + ":" + signature;
   }
 
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 signature of the passed in string with the given secret key.
+   * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
+   * @param stringToSign the string to be signed
+   * @param secretKey the secret key to use in the
+   */
   private String buildSignature(String stringToSign, String secretKey) {
     try {
       Mac mac = Mac.getInstance(ALGORITHM);
@@ -223,17 +235,18 @@ public class GbifAuthService {
     request.getHeaders().putSingle(HEADER_AUTHORIZATION, header);
   }
 
+  /**
+   * Generates the Base64 encoded 128 bit MD5 digest of the entire content string suitable for the
+   * Content-MD5 header value.
+   * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
+   */
   private String buildContentMD5(Object entity) {
     try {
-      MessageDigest instance = MessageDigest.getInstance("MD5");
-      return new String(Base64.encode(instance.digest(mapper.writeValueAsBytes(entity))), "ASCII");
+      byte[] content = mapper.writeValueAsBytes(entity);
+      return new String(Base64.encode(DigestUtils.md5(content)), "ASCII");
 
     } catch (IOException e) {
       LOG.error("Failed to serialize http entity [{}]", entity);
-      throw new RuntimeException(e);
-
-    } catch (NoSuchAlgorithmException e) {
-      LOG.error("MD5 algorithm not found");
       throw new RuntimeException(e);
     }
   }
