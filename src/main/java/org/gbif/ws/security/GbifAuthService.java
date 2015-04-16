@@ -131,8 +131,8 @@ public class GbifAuthService {
 
   /**
    * Build the string to be signed for a client request by extracting header information from the request.
-   * For PUT/POST requests that contain a body content, e.g. json, it is required that the Content-MD5 header
-   * is already present!
+   * For PUT/POST requests that contain a body content it is required that the Content-MD5 header
+   * is already present on the request instance!
    */
   private String buildStringToSign(ClientRequest request) {
     StringBuilder sb = new StringBuilder();
@@ -186,8 +186,11 @@ public class GbifAuthService {
   }
 
   /**
-   * Warning: For PUT/POST requests that contain a body content, e.g. json, it is required that the Content-MD5 header
-   * is already present on the request!
+   * Signs a request by adding a Content-MD5 and Authorization header.
+   * For PUT/POST requests that contain a body entity the Content-MD5 header is created using the same
+   * JSON mapper for serialization as the clients use.
+   *
+   * Other format than JSON are not supported currently !!!
    */
   public void signRequest(String username, ClientRequest request) {
     Preconditions.checkNotNull(appKey, "To sign request a single application key is required");
