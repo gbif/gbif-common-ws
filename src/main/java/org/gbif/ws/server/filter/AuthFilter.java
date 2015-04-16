@@ -3,7 +3,7 @@ package org.gbif.ws.server.filter;
 import org.gbif.api.model.common.User;
 import org.gbif.api.model.common.UserPrincipal;
 import org.gbif.api.service.common.UserService;
-import org.gbif.ws.security.GbifAppAuthService;
+import org.gbif.ws.security.GbifAuthService;
 
 import java.security.Principal;
 import java.util.UUID;
@@ -98,14 +98,14 @@ public class AuthFilter implements ContainerRequestFilter {
 
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
   private final UserService userService;
-  private final GbifAppAuthService authService;
+  private final GbifAuthService authService;
 
   @Context
   private UriInfo uriInfo;
-  private static final String GBIF_SCHEME_PREFIX = GbifAppAuthService.GBIF_SCHEME + " ";
+  private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + " ";
 
   @Inject
-  public AuthFilter(UserService userService, GbifAppAuthService authService) {
+  public AuthFilter(UserService userService, GbifAuthService authService) {
     this.userService = userService;
     this.authService = authService;
   }
@@ -177,9 +177,9 @@ public class AuthFilter implements ContainerRequestFilter {
   }
 
   private Authorizer gbifAuthentication(ContainerRequest request) {
-    String username = request.getHeaderValue(GbifAppAuthService.HEADER_GBIF_USER);
+    String username = request.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);
     if (Strings.isNullOrEmpty(username)) {
-      LOG.warn("Missing gbif username header {}", GbifAppAuthService.HEADER_GBIF_USER);
+      LOG.warn("Missing gbif username header {}", GbifAuthService.HEADER_GBIF_USER);
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
     if (!authService.isValidRequest(request)) {
@@ -187,8 +187,8 @@ public class AuthFilter implements ContainerRequestFilter {
       throw new WebApplicationException(Response.Status.UNAUTHORIZED);
     }
 
-    LOG.debug("Authenticating user {} via scheme {}", username, GbifAppAuthService.GBIF_SCHEME);
-    return new Authorizer(username, GbifAppAuthService.GBIF_SCHEME);
+    LOG.debug("Authenticating user {} via scheme {}", username, GbifAuthService.GBIF_SCHEME);
+    return new Authorizer(username, GbifAuthService.GBIF_SCHEME);
   }
 
 }

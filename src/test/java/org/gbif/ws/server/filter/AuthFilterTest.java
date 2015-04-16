@@ -3,8 +3,8 @@ package org.gbif.ws.server.filter;
 import org.gbif.api.model.common.User;
 import org.gbif.api.service.common.UserService;
 import org.gbif.api.vocabulary.UserRole;
-import org.gbif.ws.security.GbifAppAuthService;
-import org.gbif.ws.security.GbifAppAuthServiceTest;
+import org.gbif.ws.security.GbifAuthService;
+import org.gbif.ws.security.GbifAuthServiceTest;
 
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
@@ -80,7 +80,7 @@ public class AuthFilterTest {
     when(mockRequest.getMethod()).thenReturn("POST");
     setMockAuth(null);
 
-    GbifAppAuthService authService = new GbifAppAuthService(GbifAppAuthServiceTest.buildAppKeyMap());
+    GbifAuthService authService = GbifAuthService.multiKeyAuthService(GbifAuthServiceTest.buildAppKeyMap());
     filter = new AuthFilter(userService, authService);
   }
 

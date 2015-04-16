@@ -2,7 +2,7 @@ package org.gbif.ws.client.guice;
 
 import org.gbif.ws.client.filter.HttpGbifAuthFilter;
 import org.gbif.ws.client.filter.SimplePrincipalProvider;
-import org.gbif.ws.security.GbifAppAuthService;
+import org.gbif.ws.security.GbifAuthService;
 
 import java.util.Properties;
 
@@ -40,20 +40,18 @@ public class GbifApplicationAuthModule extends AbstractModule {
   public static final String PROPERTY_APP_SECRET = "application.secret";
 
   private final SimplePrincipalProvider pp = new SimplePrincipalProvider();
-  private final GbifAppAuthService authService;
-  private final String applicationID;
+  private final GbifAuthService authService;
 
   /**
-   * Creates a new authentication guice module for a trusted application with its id and secret key.
-   * The proxied user will be set to match the application ID.
+   * Creates a new authentication guice module for a trusted application with its public and secret key.
+   * The proxied user will be set to match the application key.
    *
-   * @param appId        the trusted application id
+   * @param appKey       the trusted application public key
    * @param appSecretKey the secret key issued for this application
    */
-  public GbifApplicationAuthModule(String appId, String appSecretKey) {
-    applicationID = appId;
-    authService = new GbifAppAuthService(appId, appSecretKey);
-    pp.setPrincipal(appId);
+  public GbifApplicationAuthModule(String appKey, String appSecretKey) {
+    authService = GbifAuthService.singleKeyAuthService(appKey, appSecretKey);
+    pp.setPrincipal(appKey);
   }
 
   /**
@@ -70,8 +68,8 @@ public class GbifApplicationAuthModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(SimplePrincipalProvider.class).toInstance(pp);
-    bind(GbifAppAuthService.class).toInstance(authService);
-    HttpGbifAuthFilter authFilter = new HttpGbifAuthFilter(applicationID, authService, pp);
+    bind(GbifAuthService.class).toInstance(authService);
+    HttpGbifAuthFilter authFilter = new HttpGbifAuthFilter(authService, pp);
     bind(ClientFilter.class).toInstance(authFilter);
   }
 

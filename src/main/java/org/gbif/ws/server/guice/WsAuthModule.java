@@ -1,7 +1,7 @@
 package org.gbif.ws.server.guice;
 
 import org.gbif.utils.file.properties.PropertiesUtil;
-import org.gbif.ws.security.GbifAppAuthService;
+import org.gbif.ws.security.GbifAuthService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -17,13 +17,13 @@ import com.google.inject.PrivateModule;
 public class WsAuthModule extends PrivateModule {
 
   public static final String PROPERTY_APPKEY_FILEPATH = "appkeys.file";
-  private final GbifAppAuthService authService;
+  private final GbifAuthService authService;
 
   /**
    * @param keys map of applicaiton keys to secrets
    */
   public WsAuthModule(Map<String, String> keys) {
-    this.authService = new GbifAppAuthService(keys);
+    this.authService = GbifAuthService.multiKeyAuthService(keys);
   }
 
   /**
@@ -32,7 +32,7 @@ public class WsAuthModule extends PrivateModule {
   public WsAuthModule(String appKeyStoreFilePath) {
     try {
       Properties props = PropertiesUtil.loadProperties(appKeyStoreFilePath);
-      authService = new GbifAppAuthService(Maps.fromProperties(props));
+      authService = GbifAuthService.multiKeyAuthService(Maps.fromProperties(props));
     } catch (IOException e) {
       throw new IllegalArgumentException(
         "Property file path to application keys does not exist: " + appKeyStoreFilePath, e);
@@ -48,7 +48,7 @@ public class WsAuthModule extends PrivateModule {
 
   @Override
   protected void configure() {
-    bind(GbifAppAuthService.class).toInstance(authService);
-    expose(GbifAppAuthService.class);
+    bind(GbifAuthService.class).toInstance(authService);
+    expose(GbifAuthService.class);
   }
 }

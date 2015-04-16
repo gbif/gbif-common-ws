@@ -1,7 +1,7 @@
 package org.gbif.ws.client.filter;
 
-import org.gbif.ws.security.GbifAppAuthService;
-import org.gbif.ws.security.GbifAppAuthServiceTest;
+import org.gbif.ws.security.GbifAuthService;
+import org.gbif.ws.security.GbifAuthServiceTest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -57,16 +57,15 @@ public class HttpGbifAuthFilterTest {
     execute();
 
     // no principal set, expect no headers
-    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));
-    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));
-    assertNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-    assertNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));
+    assertNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));
+    assertNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+    assertNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));
   }
 
   // we need to run the filter but also the added adapter!
   private void execute() throws IOException {
-    GbifAppAuthService authService = new GbifAppAuthService(GbifAppAuthServiceTest.buildAppKeyMap());
-    HttpGbifAuthFilter filter = new HttpGbifAuthFilter(GbifAppAuthServiceTest.APPKEY, authService, pp);
+    GbifAuthService authService = GbifAuthService.singleKeyAuthService(GbifAuthServiceTest.APPKEY, GbifAuthServiceTest.APPSECRET);
+    HttpGbifAuthFilter filter = new HttpGbifAuthFilter(authService, pp);
     try {
       filter.handle(mockRequest);
     } catch (NullPointerException e) {
@@ -81,14 +80,13 @@ public class HttpGbifAuthFilterTest {
     execute();
 
     // principal set, expect headers
-    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_CONTENT_HASH));
-    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_DATE));
-    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-    assertNotNull(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION));
+    assertNotNull(headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+    assertNotNull(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION));
+    assertNotNull(headers.getFirst(GbifAuthService.HEADER_CONTENT_MD5));
 
-    assertEquals("Søren", headers.getFirst(GbifAppAuthService.HEADER_GBIF_USER));
-    assertTrue(headers.getFirst(GbifAppAuthService.HEADER_AUTHORIZATION).toString()
-      .startsWith("GBIF " + GbifAppAuthServiceTest.APPKEY));
+    assertEquals("Søren", headers.getFirst(GbifAuthService.HEADER_GBIF_USER));
+    assertTrue(headers.getFirst(GbifAuthService.HEADER_AUTHORIZATION).toString()
+      .startsWith("GBIF " + GbifAuthServiceTest.APPKEY));
   }
 
 }

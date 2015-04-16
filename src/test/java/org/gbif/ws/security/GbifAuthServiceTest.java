@@ -18,11 +18,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.gbif.ws.security.GbifAppAuthService.HEADER_AUTHORIZATION;
-import static org.gbif.ws.security.GbifAppAuthService.HEADER_CONTENT_TYPE;
-import static org.gbif.ws.security.GbifAppAuthService.HEADER_GBIF_CONTENT_HASH;
-import static org.gbif.ws.security.GbifAppAuthService.HEADER_GBIF_DATE;
-import static org.gbif.ws.security.GbifAppAuthService.HEADER_GBIF_USER;
+import static org.gbif.ws.security.GbifAuthService.HEADER_AUTHORIZATION;
+import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_TYPE;
+import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_MD5;
+import static org.gbif.ws.security.GbifAuthService.HEADER_GBIF_USER;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,18 +31,16 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GbifAppAuthServiceTest {
+public class GbifAuthServiceTest {
 
   public static final String APPKEY = "appKey";
-  private static final String APPSECRET = "fghj56g66b676DFG";
+  public static final String APPSECRET = "fghj56g66b676DFG";
 
   public static Map<String, String> buildAppKeyMap() {
     Map<String, String> map = Maps.newHashMap();
     map.put(APPKEY, APPSECRET);
     return map;
   }
-
-  GbifAppAuthService service = new GbifAppAuthService(buildAppKeyMap());
 
   @Mock
   ContainerRequest containerRequest;
@@ -161,16 +158,18 @@ public class GbifAppAuthServiceTest {
     when(containerRequest.getRequestHeaders()).thenReturn(new HeaderWrapper(headers));
     when(containerRequest.getHeaderValue(eq(HEADER_AUTHORIZATION))).thenCallRealMethod();
     when(containerRequest.getHeaderValue(eq(HEADER_CONTENT_TYPE))).thenCallRealMethod();
+    when(containerRequest.getHeaderValue(eq(HEADER_CONTENT_MD5))).thenCallRealMethod();
+    when(containerRequest.getHeaderValue(eq(HEADER_GBIF_USER))).thenCallRealMethod();
 
   }
 
   @Test
   public void testSignRequest() throws Exception {
 
-    service.signRequest("appKey", "heinz", mockRequest);
+    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
+    service.signRequest("heinz", mockRequest);
 
-    assertNotNull(headers.getFirst(HEADER_GBIF_CONTENT_HASH));
-    assertNotNull(headers.getFirst(HEADER_GBIF_DATE));
+    assertNotNull(headers.getFirst(HEADER_CONTENT_MD5));
     assertEquals("heinz", headers.getFirst(HEADER_GBIF_USER));
     assertTrue(headers.getFirst(HEADER_AUTHORIZATION).toString().startsWith("GBIF appKey:"));
   }
@@ -178,11 +177,13 @@ public class GbifAppAuthServiceTest {
   @Test
   public void testIsValid() throws Exception {
 
-    service.signRequest("appKey", "heinz", mockRequest);
+    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
+
+    service.signRequest("heinz", mockRequest);
 
     assertTrue(service.isValidRequest(containerRequest));
 
-    headers.putSingle(HEADER_GBIF_CONTENT_HASH, 73);
+    headers.putSingle(HEADER_CONTENT_MD5, 73);
     assertFalse(service.isValidRequest(containerRequest));
   }
 
