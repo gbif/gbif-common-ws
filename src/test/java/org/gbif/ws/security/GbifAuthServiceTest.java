@@ -70,7 +70,7 @@ public class GbifAuthServiceTest {
 
     @Override
     public String getFirst(String key) {
-      return (String) map.getFirst(key);
+      return map.getFirst(key).toString();
     }
 
     @Override
@@ -185,7 +185,7 @@ public class GbifAuthServiceTest {
 
     assertTrue(service.isValidRequest(containerRequest));
 
-    headers.putSingle(HEADER_CONTENT_MD5, 73);
+    headers.putSingle(HEADER_CONTENT_MD5, "73");
     assertFalse(service.isValidRequest(containerRequest));
   }
 

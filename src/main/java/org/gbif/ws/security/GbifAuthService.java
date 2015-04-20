@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -110,8 +111,8 @@ public class GbifAuthService {
    */
   private String buildStringToSign(ContainerRequest request) {
     StringBuilder sb = new StringBuilder();
-    sb.append(request.getMethod());
 
+    sb.append(request.getMethod());
     sb.append(NEWLINE);
     // custom header set by varnish overrides real URI
     // see http://dev.gbif.org/issues/browse/GBIFCOM-137
@@ -121,17 +122,9 @@ public class GbifAuthService {
       sb.append(getCanonicalizedPath(request.getRequestUri()));
     }
 
-    sb.append(NEWLINE);
-    sb.append(request.getHeaderValue(HEADER_CONTENT_TYPE));
-
-    // include md5 hash if existing (only for PUT/POST with content)
-    if (request.getRequestHeaders().containsKey(HEADER_CONTENT_MD5)) {
-      sb.append(NEWLINE);
-      sb.append(request.getHeaderValue(HEADER_CONTENT_MD5));
-    }
-
-    sb.append(NEWLINE);
-    sb.append(request.getHeaderValue(HEADER_GBIF_USER));
+    appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_TYPE, false);
+    appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_MD5, true);
+    appendHeader(sb, request.getRequestHeaders(), HEADER_GBIF_USER, true);
 
     return sb.toString();
   }
@@ -145,24 +138,23 @@ public class GbifAuthService {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
-
     sb.append(NEWLINE);
     sb.append(getCanonicalizedPath(request.getURI()));
 
-    appendHeader(sb, request, HEADER_CONTENT_TYPE, false);
-    appendHeader(sb, request, HEADER_CONTENT_MD5, true);
-    appendHeader(sb, request, HEADER_GBIF_USER, true);
+    appendHeader(sb, request.getHeaders(), HEADER_CONTENT_TYPE, false);
+    appendHeader(sb, request.getHeaders(), HEADER_CONTENT_MD5, true);
+    appendHeader(sb, request.getHeaders(), HEADER_GBIF_USER, true);
 
     return sb.toString();
   }
 
-  private void appendHeader(StringBuilder sb, ClientRequest request, String header, boolean caseSensitive) {
-    if (request.getHeaders().containsKey(header)) {
+  private void appendHeader(StringBuilder sb, MultivaluedMap<String, ?> request, String header, boolean caseSensitive) {
+    if (request.containsKey(header)) {
       sb.append(NEWLINE);
       if (caseSensitive) {
-        sb.append(request.getHeaders().getFirst(header));
+        sb.append(request.getFirst(header));
       } else {
-        sb.append(request.getHeaders().getFirst(header).toString().toLowerCase());
+        sb.append(request.getFirst(header).toString().toLowerCase());
       }
     }
   }
