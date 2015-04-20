@@ -143,25 +143,28 @@ public class GbifAuthService {
    */
   private String buildStringToSign(ClientRequest request) {
     StringBuilder sb = new StringBuilder();
+
     sb.append(request.getMethod());
 
     sb.append(NEWLINE);
     sb.append(getCanonicalizedPath(request.getURI()));
 
-    sb.append(NEWLINE);
-    sb.append(request.getHeaders().getFirst(HEADER_CONTENT_TYPE));
+    appendHeader(sb, request, HEADER_CONTENT_TYPE, false);
+    appendHeader(sb, request, HEADER_CONTENT_MD5, true);
+    appendHeader(sb, request, HEADER_GBIF_USER, true);
 
-    // include md5 hash if existing (only for PUT/POST with content)
-    if (request.getHeaders().containsKey(HEADER_CONTENT_MD5)) {
-      sb.append(NEWLINE);
-      sb.append(request.getHeaders().getFirst(HEADER_CONTENT_MD5));
-    }
-
-    sb.append(NEWLINE);
-    sb.append(request.getHeaders().getFirst(HEADER_GBIF_USER));
-
-    //System.out.println(sb.toString());
     return sb.toString();
+  }
+
+  private void appendHeader(StringBuilder sb, ClientRequest request, String header, boolean caseSensitive) {
+    if (request.getHeaders().containsKey(header)) {
+      sb.append(NEWLINE);
+      if (caseSensitive) {
+        sb.append(request.getHeaders().getFirst(header));
+      } else {
+        sb.append(request.getHeaders().getFirst(header).toString().toLowerCase());
+      }
+    }
   }
 
   /**
@@ -221,6 +224,7 @@ public class GbifAuthService {
 
     // build the unique string to sign
     final String stringToSign = buildStringToSign(request);
+    System.out.println(stringToSign);
     // find private key for this app
     final String secretKey = getPrivateKey(appKey);
     if (secretKey == null) {
