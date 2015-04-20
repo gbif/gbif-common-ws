@@ -160,6 +160,7 @@ public class GbifAuthService {
     sb.append(NEWLINE);
     sb.append(request.getHeaders().getFirst(HEADER_GBIF_USER));
 
+    //System.out.println(sb.toString());
     return sb.toString();
   }
 
@@ -288,6 +289,7 @@ public class GbifAuthService {
 
     }
     LOG.info("Invalid signature: {}", authHeader);
+    LOG.debug("StringToSign: {}", stringToSign);
     return false;
   }
 

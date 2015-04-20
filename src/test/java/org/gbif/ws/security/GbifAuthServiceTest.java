@@ -9,7 +9,9 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.net.MediaType;
 import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.client.impl.ClientRequestImpl;
 import com.sun.jersey.core.header.OutBoundHeaders;
 import com.sun.jersey.spi.container.ContainerRequest;
 import org.junit.Before;
@@ -19,8 +21,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.gbif.ws.security.GbifAuthService.HEADER_AUTHORIZATION;
-import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_TYPE;
 import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_MD5;
+import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_TYPE;
 import static org.gbif.ws.security.GbifAuthService.HEADER_GBIF_USER;
 
 import static org.junit.Assert.assertEquals;
@@ -142,7 +144,7 @@ public class GbifAuthServiceTest {
 
   @Before
   public void initMocks() throws Exception {
-    URI uri = new URI("http://www.gbif.org/dataset");
+    URI uri = new URI("http://api.gbif.org/v1/dataset");
     when(mockRequest.getURI()).thenReturn(uri);
     when(containerRequest.getRequestUri()).thenReturn(uri);
     when(containerRequest.getAbsolutePath()).thenReturn(uri);
@@ -185,6 +187,30 @@ public class GbifAuthServiceTest {
 
     headers.putSingle(HEADER_CONTENT_MD5, 73);
     assertFalse(service.isValidRequest(containerRequest));
+  }
+
+  /**
+   * This is a demo test only showing the signed headers and the usage to other implementots.
+   */
+  @Test
+  public void testSignRealRequest() throws Exception {
+    Object data = "this is no json";
+    ClientRequest req = new ClientRequestImpl(URI.create("http://api.gbif-dev.org/v1/organization"), "POST", data);
+    req.getHeaders().putSingle(HEADER_CONTENT_TYPE, MediaType.JSON_UTF_8);
+    GbifAuthService service = GbifAuthService.singleKeyAuthService("test", "123456");
+    service.signRequest("bko", req);
+    show(req);
+  }
+
+  private void show(ClientRequest req) {
+    System.out.println("");
+    System.out.println(req.getMethod());
+    System.out.println(req.getURI());
+    for (Map.Entry<String, List<Object>> x : req.getHeaders().entrySet()) {
+      for (Object v : x.getValue()) {
+        System.out.println(x.getKey() + ": " + v);
+      }
+    }
   }
 
 }
