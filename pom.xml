@@ -10,7 +10,7 @@
 
   <groupId>org.gbif</groupId>
   <artifactId>gbif-common-ws</artifactId>
-  <version>0.20-SNAPSHOT</version>
+  <version>0.21-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GBIF Common Web service</name>
