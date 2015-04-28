@@ -4,6 +4,7 @@ org.gbif.ws.client.guice
 org.gbif.ws.client.interceptor
 org.gbif.ws.json
 org.gbif.ws.paths
+org.gbif.ws.response
 org.gbif.ws.security
 org.gbif.ws.server.filter
 org.gbif.ws.server.guice
