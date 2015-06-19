@@ -1,0 +1,33 @@
+-classpath
+'/var/lib/jenkins/jobs/gbif-common-ws/workspace/target/classes:/var/lib/jenkins/.m2/repository/com/sun/xml/bind/jaxb-impl/2.2.3-1/jaxb-impl-2.2.3-1.jar:/var/lib/jenkins/.m2/repository/org/gbif/dwc-api/1.8/dwc-api-1.8.jar:/var/lib/jenkins/.m2/repository/org/codehaus/jettison/jettison/1.1/jettison-1.1.jar:/var/lib/jenkins/.m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar:/var/lib/jenkins/.m2/repository/commons-io/commons-io/2.4/commons-io-2.4.jar:/var/lib/jenkins/.m2/repository/javax/inject/javax.inject/1/javax.inject-1.jar:/var/lib/jenkins/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar:/var/lib/jenkins/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/jersey-server/1.18.3/jersey-server-1.18.3.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/jersey-servlet/1.18.3/jersey-servlet-1.18.3.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/jersey-json/1.18.3/jersey-json-1.18.3.jar:/var/lib/jenkins/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar:/var/lib/jenkins/.m2/repository/com/google/inject/extensions/guice-servlet/3.0/guice-servlet-3.0.jar:/var/lib/jenkins/.m2/repository/org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar:/var/lib/jenkins/.m2/repository/org/apache/httpcomponents/httpclient/4.3.6/httpclient-4.3.6.jar:/var/lib/jenkins/.m2/repository/org/slf4j/slf4j-api/1.7.10/slf4j-api-1.7.10.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/contribs/jersey-guice/1.18.3/jersey-guice-1.18.3.jar:/var/lib/jenkins/.m2/repository/com/google/guava/guava/18.0/guava-18.0.jar:/var/lib/jenkins/.m2/repository/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar:/var/lib/jenkins/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar:/var/lib/jenkins/.m2/repository/org/gbif/gbif-common/0.18-SNAPSHOT/gbif-common-0.18-SNAPSHOT.jar:/var/lib/jenkins/.m2/repository/com/google/inject/guice/3.0/guice-3.0.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/contribs/jersey-apache-client4/1.18.3/jersey-apache-client4-1.18.3.jar:/var/lib/jenkins/.m2/repository/org/codehaus/jackson/jackson-mapper-asl/1.9.12/jackson-mapper-asl-1.9.12.jar:/var/lib/jenkins/.m2/repository/javax/xml/stream/stax-api/1.0-2/stax-api-1.0-2.jar:/var/lib/jenkins/.m2/repository/com/vividsolutions/jts/1.13/jts-1.13.jar:/var/lib/jenkins/.m2/repository/commons-codec/commons-codec/1.6/commons-codec-1.6.jar:/var/lib/jenkins/.m2/repository/org/gbif/gbif-httputils/0.7-SNAPSHOT/gbif-httputils-0.7-SNAPSHOT.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/jersey-client/1.18.3/jersey-client-1.18.3.jar:/var/lib/jenkins/.m2/repository/org/codehaus/jackson/jackson-jaxrs/1.9.12/jackson-jaxrs-1.9.12.jar:/var/lib/jenkins/.m2/repository/com/sun/jersey/jersey-core/1.18.3/jersey-core-1.18.3.jar:/var/lib/jenkins/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.9.2/jackson-core-asl-1.9.2.jar:/var/lib/jenkins/.m2/repository/org/codehaus/jackson/jackson-xc/1.9.2/jackson-xc-1.9.2.jar:/var/lib/jenkins/.m2/repository/com/google/code/findbugs/jsr305/3.0.0/jsr305-3.0.0.jar:/var/lib/jenkins/.m2/repository/javax/validation/validation-api/1.1.0.Final/validation-api-1.1.0.Final.jar:/var/lib/jenkins/.m2/repository/org/gbif/gbif-api/0.23-SNAPSHOT/gbif-api-0.23-SNAPSHOT.jar'
+-encoding
+'UTF-8'
+-protected
+-quiet
+-sourcepath
+'/var/lib/jenkins/jobs/gbif-common-ws/workspace/src/main/java:/var/lib/jenkins/jobs/gbif-common-ws/workspace/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2015 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/var/lib/jenkins/jobs/gbif-common-ws/workspace/target/site/apidocs'
+-docencoding
+'UTF-8'
+-docfilessubdirs
+-doctitle
+'GBIF Common Web service 0.23-SNAPSHOT API'
+-link
+'http://freemarker.org/docs/api'
+-link
+'http://docs.guava-libraries.googlecode.com/git/javadoc'
+-link
+'http://findbugs.sourceforge.net/api'
+-linkoffline
+'http://docs.oracle.com/javase/7/docs/api' '/var/lib/jenkins/jobs/gbif-common-ws/workspace/target/javadoc-bundle-options'
+-linksource
+-use
+-version
+-windowtitle
+'GBIF Common Web service 0.23-SNAPSHOT API'
