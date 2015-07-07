@@ -5,10 +5,9 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>23-SNAPSHOT</version>
+    <version>23</version>
   </parent>
 
-  <groupId>org.gbif</groupId>
   <artifactId>gbif-common-ws</artifactId>
   <version>0.23-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -28,9 +27,9 @@
     <jdkLevel>1.7</jdkLevel>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.23-SNAPSHOT</gbif-api.version>
-    <gbif-common.version>0.18-SNAPSHOT</gbif-common.version>
-    <gbif-httputils.version>0.7-SNAPSHOT</gbif-httputils.version>
+    <gbif-api.version>0.24</gbif-api.version>
+    <gbif-common.version>0.18</gbif-common.version>
+    <gbif-httputils.version>0.7</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <guava.version>18.0</guava.version>
     <guice.version>3.0</guice.version>
