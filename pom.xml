@@ -27,7 +27,7 @@
     <jdkLevel>1.7</jdkLevel>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.24</gbif-api.version>
+    <gbif-api.version>0.27</gbif-api.version>
     <gbif-common.version>0.18</gbif-common.version>
     <gbif-httputils.version>0.7</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
