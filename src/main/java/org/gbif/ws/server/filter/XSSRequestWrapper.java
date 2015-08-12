@@ -43,6 +43,9 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
     return stripXSS(super.getHeader(name));
   }
 
-
+  @Override
+  public String getQueryString() {
+    return stripXSS(super.getQueryString());
+  }
 }
 
