@@ -8,55 +8,68 @@
 <div id="overview"><a href="../../../../../apidocs/org/gbif/ws/util/XSSUtil.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.gbif.ws.util;
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.regex.Pattern;
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * Class with utility methods for XSS filtering.</em>
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/gbif/ws/util/XSSUtil.html">XSSUtil</a> {
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>    <strong class="jxr_keyword">private</strong> <a href="../../../../org/gbif/ws/util/XSSUtil.html">XSSUtil</a>() {
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <em class="jxr_comment">// empty private constructor</em>
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>    }
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String NULL_CHAR = <span class="jxr_string">"\0"</span>;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Pattern[] PATTERNS = <strong class="jxr_keyword">new</strong> Pattern[] {
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <em class="jxr_comment">// Avoid anything in a &lt;script&gt; type of expression</em>
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>      Pattern.compile(<span class="jxr_string">"&lt;script&gt;(.*?)&lt;/script&gt;"</span>, Pattern.CASE_INSENSITIVE),
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <em class="jxr_comment">// Avoid anything in a src='...' type of expression</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>      Pattern.compile(<span class="jxr_string">"src[\r\n]*=[\r\n]*&#92;&#92;\'(.*?)&#92;&#92;\'"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>      Pattern.compile(<span class="jxr_string">"src[\r\n]*=[\r\n]*&#92;&#92;\&quot;(.*?)&#92;&#92;\&quot;"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <em class="jxr_comment">// Remove any lonesome &lt;/script&gt; tag</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>      Pattern.compile(<span class="jxr_string">"&lt;/script&gt;"</span>, Pattern.CASE_INSENSITIVE),
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <em class="jxr_comment">// Remove any lonesome &lt;script ...&gt; tag</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>      Pattern.compile(<span class="jxr_string">"&lt;script(.*?)&gt;"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <em class="jxr_comment">// Avoid eval(...) expressions</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>      Pattern.compile(<span class="jxr_string">"eval&#92;&#92;((.*?)&#92;&#92;)"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <em class="jxr_comment">// Avoid expression(...) expressions</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>      Pattern.compile(<span class="jxr_string">"expression&#92;&#92;((.*?)&#92;&#92;)"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <em class="jxr_comment">// Avoid javascript:... expressions</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      Pattern.compile(<span class="jxr_string">"javascript:"</span>, Pattern.CASE_INSENSITIVE),
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <em class="jxr_comment">// Avoid vbscript:... expressions</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>      Pattern.compile(<span class="jxr_string">"vbscript:"</span>, Pattern.CASE_INSENSITIVE),
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <em class="jxr_comment">// Avoid onload= expressions</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>      Pattern.compile(<span class="jxr_string">"onload(.*?)="</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>    };
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String stripXSS(String value) {
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>        <em class="jxr_comment">// Avoid null characters</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>        value = value.replaceAll(NULL_CHAR, <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>        <em class="jxr_comment">// Remove all sections that match a pattern</em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>        <strong class="jxr_keyword">for</strong> (Pattern scriptPattern : PATTERNS) {
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          value = scriptPattern.matcher(value).replaceAll(<span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>        }
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      }
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">return</strong> value;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>    }
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  }
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.regex.Matcher;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.regex.Pattern;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * Class with utility methods for XSS filtering.</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/gbif/ws/util/XSSUtil.html">XSSUtil</a> {
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(XSSUtil.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>    <strong class="jxr_keyword">private</strong> <a href="../../../../org/gbif/ws/util/XSSUtil.html">XSSUtil</a>() {
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <em class="jxr_comment">// empty private constructor</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>    }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String NULL_CHAR = <span class="jxr_string">"\0"</span>;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Pattern[] PATTERNS = <strong class="jxr_keyword">new</strong> Pattern[] {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <em class="jxr_comment">// Avoid anything in a &lt;script&gt; type of expression</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      Pattern.compile(<span class="jxr_string">"&lt;script&gt;(.*?)&lt;/script&gt;"</span>, Pattern.CASE_INSENSITIVE),
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <em class="jxr_comment">// Avoid anything in a src='...' type of expression</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      Pattern.compile(<span class="jxr_string">"src[\r\n]*=[\r\n]*&#92;&#92;\'(.*?)&#92;&#92;\'"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      Pattern.compile(<span class="jxr_string">"src[\r\n]*=[\r\n]*&#92;&#92;\&quot;(.*?)&#92;&#92;\&quot;"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_comment">// Remove any lonesome &lt;/script&gt; tag</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      Pattern.compile(<span class="jxr_string">"&lt;/script&gt;"</span>, Pattern.CASE_INSENSITIVE),
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <em class="jxr_comment">// Remove any lonesome &lt;script ...&gt; tag</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      Pattern.compile(<span class="jxr_string">"&lt;script(.*?)&gt;"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_comment">// Avoid eval(...) expressions</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      Pattern.compile(<span class="jxr_string">"eval&#92;&#92;((.*?)&#92;&#92;)"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <em class="jxr_comment">// Avoid expression(...) expressions</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      Pattern.compile(<span class="jxr_string">"expression&#92;&#92;((.*?)&#92;&#92;)"</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <em class="jxr_comment">// Avoid javascript:... expressions</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      Pattern.compile(<span class="jxr_string">"javascript:"</span>, Pattern.CASE_INSENSITIVE),
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <em class="jxr_comment">// Avoid vbscript:... expressions</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      Pattern.compile(<span class="jxr_string">"vbscript:"</span>, Pattern.CASE_INSENSITIVE),
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <em class="jxr_comment">// Avoid onload= expressions</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      Pattern.compile(<span class="jxr_string">"onload(.*?)="</span>, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>    };
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String stripXSS(String value) {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>        <em class="jxr_comment">// Avoid null characters</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>        value = value.replaceAll(NULL_CHAR, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>        <em class="jxr_comment">// Remove all sections that match a pattern</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>        <strong class="jxr_keyword">boolean</strong> found = false;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>        <strong class="jxr_keyword">for</strong> (Pattern scriptPattern : PATTERNS) {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>            Matcher matcher = scriptPattern.matcher(value);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>            <strong class="jxr_keyword">if</strong> (matcher.find()) {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              found = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              value = matcher.replaceAll(<span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>            }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>        }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>        <strong class="jxr_keyword">if</strong> (found) {
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          LOG.warn(<span class="jxr_string">"Malicious XSS script found: {}"</span>, value);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>        }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      }
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">return</strong> value;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2015 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
