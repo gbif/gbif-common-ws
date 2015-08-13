@@ -10,13 +10,14 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(value = Parameterized.class)
 public class XSSUtilTest {
+  // decoded request, header, or parameter
+  private String value;
+  // true if request contains XSS, or false otherwise
+  private boolean containsXSS;
 
-  private String request;
-  private String updatedRequest;
-
-  public XSSUtilTest(String request, String updatedRequest) {
-    this.request = request;
-    this.updatedRequest = updatedRequest;
+  public XSSUtilTest(String value, boolean containsXSS) {
+    this.value = value;
+    this.containsXSS = containsXSS;
   }
 
   /**
@@ -25,13 +26,17 @@ public class XSSUtilTest {
   @Parameterized.Parameters
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][] {
-      {"http://localhost:8090/ipt/about.do?request_locale=\"'><script>alert(6227)</script>&email=\"'><script>alert(6227)</script>&password=\"'><script>alert(6227)</script>&login-submit=\"'><script>alert(6227)</script>", "http://localhost:8090/ipt/about.do?request_locale=\"'>&email=\"'>&password=\"'>&login-submit=\"'>"},
-      {"http://www.gbif.org/dataset/search?q=\"><script>prompt('XSSPOSED')</script>", "http://www.gbif.org/dataset/search?q=\">"},
-      {"http://www.gbif.org/index.php?name=<script>window.onload = function() {var link=document.getElementsByTagName(\"a\");link[0].href=\"http://not-real-xssattackexamples.com/\";}</script>", "http://www.gbif.org/index.php?name="}});
+      // contain xss
+      {"http://localhost:8090/ipt/about.do?request_locale=\"'><script>alert(6227)</script>&email=\"'><script>alert(6227)</script>&password=\"'><script>alert(6227)</script>&login-submit=\"'><script>alert(6227)</script>", true},
+      {"http://www.gbif.org/dataset/search?q=\"><script>prompt('XSSPOSED')</script>", true},
+      {"http://www.gbif.org/index.php?name=<script>window.onload = function() {var link=document.getElementsByTagName(\"a\");link[0].href=\"http://not-real-xssattackexamples.com/\";}</script>", true},
+      // do not contain xss
+      {"http://www.gbif.org/ipt", false},
+      {"http://api.gbif.org/v1/occurrence/search?year=1800", false}});
   }
 
   @Test
-  public void testStripXSS() {
-    assertEquals(updatedRequest, XSSUtil.stripXSS(request));
+  public void testContainsXSS() {
+    assertEquals(containsXSS, XSSUtil.containsXSS(value));
   }
 }

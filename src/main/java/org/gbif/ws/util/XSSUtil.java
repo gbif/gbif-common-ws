@@ -39,43 +39,28 @@ public class XSSUtil {
     Pattern.compile("onload(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
   };
 
-
+  /**
+   * Method tests whether a string contains malicious XSS script or not.
+   *
+   * @param value decoded string to test
+   *
+   * @return true if string matches at least one XSS pattern, or false otherwise
+   */
   public static boolean containsXSS(String value) {
-      if (value != null) {
-
-          // Avoid null characters
-          value = value.replaceAll(NULL_CHAR, "");
-
-          // Remove all sections that match a pattern
-          for (Pattern scriptPattern : PATTERNS) {
-              Matcher matcher = scriptPattern.matcher(value);
-              if (matcher.find()) {
-                  return true;
-              }
-          }
-      }
-      return false;
-  }
-
-  public static String stripXSS(String value) {
     if (value != null) {
 
       // Avoid null characters
       value = value.replaceAll(NULL_CHAR, "");
 
       // Remove all sections that match a pattern
-      boolean found = false;
       for (Pattern scriptPattern : PATTERNS) {
-          Matcher matcher = scriptPattern.matcher(value);
-          if (matcher.find()) {
-            found = true;
-            value = matcher.replaceAll("");
-          }
-      }
-      if (found) {
-        LOG.warn("Malicious XSS script found: {}", value);
+        Matcher matcher = scriptPattern.matcher(value);
+        if (matcher.find()) {
+          LOG.warn("Malicious XSS script found: {}", value);
+          return true;
+        }
       }
     }
-    return value;
+    return false;
   }
 }
