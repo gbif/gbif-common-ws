@@ -41,10 +41,12 @@ public class XSSFilter implements Filter {
         }
       }
       // test for xss in querystring
+      // note: servlet container does not decode querystring when creating HttpServletRequest object
       if (XSSUtil.containsXSS(httpReq.getQueryString())) {
         respond400(response);
       }
       // test for xss in parameters
+      // note: servlet container decodes parameter strings when creating HttpServletRequest object
       Enumeration<String> params =  httpReq.getParameterNames();
       while(params.hasMoreElements()) {
         if (XSSUtil.containsXSS(httpReq.getParameter(params.nextElement()))) {
