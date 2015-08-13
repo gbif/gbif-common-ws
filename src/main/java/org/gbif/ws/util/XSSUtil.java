@@ -40,6 +40,23 @@ public class XSSUtil {
   };
 
 
+  public static boolean containsXSS(String value) {
+      if (value != null) {
+
+          // Avoid null characters
+          value = value.replaceAll(NULL_CHAR, "");
+
+          // Remove all sections that match a pattern
+          for (Pattern scriptPattern : PATTERNS) {
+              Matcher matcher = scriptPattern.matcher(value);
+              if (matcher.find()) {
+                  return true;
+              }
+          }
+      }
+      return false;
+  }
+
   public static String stripXSS(String value) {
     if (value != null) {
 
