@@ -65,12 +65,21 @@
 <span class="sourceLineNo">057</span>    chain.doFilter(request, response);<a name="line.57"></a>
 <span class="sourceLineNo">058</span>  }<a name="line.58"></a>
 <span class="sourceLineNo">059</span><a name="line.59"></a>
-<span class="sourceLineNo">060</span>  private void respond400(ServletResponse response) throws IOException {<a name="line.60"></a>
-<span class="sourceLineNo">061</span>    HttpServletResponse resp = (HttpServletResponse) response;<a name="line.61"></a>
-<span class="sourceLineNo">062</span>    resp.sendError(400);<a name="line.62"></a>
-<span class="sourceLineNo">063</span>  }<a name="line.63"></a>
-<span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>}<a name="line.65"></a>
+<span class="sourceLineNo">060</span>  /**<a name="line.60"></a>
+<span class="sourceLineNo">061</span>   * Sends a 400 error response, provided the response hasn't already been committed.<a name="line.61"></a>
+<span class="sourceLineNo">062</span>   *<a name="line.62"></a>
+<span class="sourceLineNo">063</span>   * @param response response<a name="line.63"></a>
+<span class="sourceLineNo">064</span>   *<a name="line.64"></a>
+<span class="sourceLineNo">065</span>   * @throws IOException if there is a problem committing response<a name="line.65"></a>
+<span class="sourceLineNo">066</span>   */<a name="line.66"></a>
+<span class="sourceLineNo">067</span>  private void respond400(ServletResponse response) throws IOException {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    HttpServletResponse resp = (HttpServletResponse) response;<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    if (!resp.isCommitted()) {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>      resp.sendError(400);<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    }<a name="line.71"></a>
+<span class="sourceLineNo">072</span>  }<a name="line.72"></a>
+<span class="sourceLineNo">073</span><a name="line.73"></a>
+<span class="sourceLineNo">074</span>}<a name="line.74"></a>
 
 
 
