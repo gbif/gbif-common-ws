@@ -57,9 +57,18 @@ public class XSSFilter implements Filter {
     chain.doFilter(request, response);
   }
 
+  /**
+   * Sends a 400 error response, provided the response hasn't already been committed.
+   *
+   * @param response response
+   *
+   * @throws IOException if there is a problem committing response
+   */
   private void respond400(ServletResponse response) throws IOException {
     HttpServletResponse resp = (HttpServletResponse) response;
-    resp.sendError(400);
+    if (!resp.isCommitted()) {
+      resp.sendError(400);
+    }
   }
 
 }
