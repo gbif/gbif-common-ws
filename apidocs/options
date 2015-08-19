@@ -17,7 +17,7 @@
 'UTF-8'
 -docfilessubdirs
 -doctitle
-'GBIF Common Web service 0.26-SNAPSHOT API'
+'GBIF Common Web service 0.25-SNAPSHOT API'
 -link
 'http://freemarker.org/docs/api'
 -link
@@ -30,4 +30,4 @@
 -use
 -version
 -windowtitle
-'GBIF Common Web service 0.26-SNAPSHOT API'
+'GBIF Common Web service 0.25-SNAPSHOT API'
