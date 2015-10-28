@@ -1,9 +1,12 @@
 # gbif-common-ws
 
 The gbif-common-ws shared library provides:
- * [Jersey](https://jersey.java.net/) 1 custom [Providers](https://jersey.java.net/documentation/latest/message-body-workers.html), [Filters](https://jersey.java.net/documentation/latest/filters-and-interceptors.html) and [ExceptionMapper](https://jersey.java.net/nonav/apidocs/1.18/jersey/javax/ws/rs/ext/ExceptionMapper.html)
- * Customized [JacksonJsonContextResolver](https://github.com/gbif/gbif-common-ws/blob/master/src/main/java/org/gbif/ws/json/JacksonJsonContextResolver.java)
- * Base for Client accessing Web Service using Jersey [WebResource](https://jersey.java.net/nonav/apidocs/1.19/jersey/com/sun/jersey/api/client/WebResource.html)
+ * [Jersey](https://jersey.java.net/) 1 custom [Providers](https://jersey.java.net/documentation/latest/message-body-workers.html) for common API classes (e.g. Pageable, Locale, Country ...)
+ * Jersey custom [Filters](https://jersey.java.net/documentation/latest/filters-and-interceptors.html) for things like JSONP, CORS, security ...
+ * Jersey custom [ExceptionMapper](https://jersey.java.net/nonav/apidocs/1.18/jersey/javax/ws/rs/ext/ExceptionMapper.html) to map exceptions to proper HTTP response status
+ * Customized [JacksonJsonContextResolver](https://github.com/gbif/gbif-common-ws/blob/master/src/main/java/org/gbif/ws/json/JacksonJsonContextResolver.java) that ignores *null* values
+ * Base classes for GBIF Web Services (server)
+ * Base classes for GBIF Web Client accessing Web Service using Jersey [WebResource](https://jersey.java.net/nonav/apidocs/1.19/jersey/com/sun/jersey/api/client/WebResource.html)
  * Guice modules for Web Service server and clients
 
 ## To build the project
