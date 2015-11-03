@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Global Biodiversity Information Facility (GBIF)
+ * Copyright 2011 - 2015 Global Biodiversity Information Facility (GBIF)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,15 @@ public class ExtraMediaTypes {
 
   public static final String APPLICATION_JAVASCRIPT = "application/javascript";
   public static final MediaType APPLICATION_JAVASCRIPT_TYPE = new MediaType("application", "javascript");
+
+  /**
+   * Darwin Core archive media type with underlying zip structure.
+   * Use carefully, it's an unregistered media type, in most of the cases it is more appropriate to return a simple
+   * application/zip
+   * http://www.iana.org/assignments/media-types/media-types.xhtml
+   * Currently used for experimenting in OAI-PMH DublinCore resources.
+   */
+  public final static String APPLICATION_DWCA = "application/dwca+zip";
 
   private ExtraMediaTypes() {
     throw new UnsupportedOperationException("Can't initialize class");
