@@ -9,6 +9,7 @@ import java.security.Principal;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -24,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Server filter that looks for a http BasicAuthentication with user accounts based on drupal
+ * Server filter that looks for a http BasicAuthentication with user accounts based on a {@link UserService}
  * or GBIF trusted application schema and populates the security context in case of non GET requests.
  *
  * In a REST environment GET requests will not modify any resources, so authentication can be ignored in the GBIF case
@@ -103,9 +104,18 @@ public class AuthFilter implements ContainerRequestFilter {
   @Context
   private UriInfo uriInfo;
   private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + " ";
+  private static final String BASIC_SCHEME_PREFIX = "Basic ";
 
+  /**
+   * AuthFilter constructor
+   * In case {@link GbifAuthService} is not provided, this class will reject all authentications
+   * on the GBIF scheme prefix.
+   *
+   * @param userService
+   * @param authService nullable GbifAuthService
+   */
   @Inject
-  public AuthFilter(UserService userService, GbifAuthService authService) {
+  public AuthFilter(@NotNull UserService userService, @Nullable GbifAuthService authService) {
     this.userService = userService;
     this.authService = authService;
   }
@@ -134,9 +144,8 @@ public class AuthFilter implements ContainerRequestFilter {
     String authentication = request.getHeaderValue(ContainerRequest.AUTHORIZATION);
     if (authentication != null) {
 
-      if (authentication.startsWith("Basic ")) {
-        return basicAuthentication(authentication.substring("Basic ".length()));
-
+      if (authentication.startsWith(BASIC_SCHEME_PREFIX)) {
+        return basicAuthentication(authentication.substring(BASIC_SCHEME_PREFIX.length()));
       } else if (authentication.startsWith(GBIF_SCHEME_PREFIX)) {
         return gbifAuthentication(request);
       }
@@ -181,6 +190,10 @@ public class AuthFilter implements ContainerRequestFilter {
     if (Strings.isNullOrEmpty(username)) {
       LOG.warn("Missing gbif username header {}", GbifAuthService.HEADER_GBIF_USER);
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
+    }
+    if (authService == null){
+      LOG.warn("No GbifAuthService defined.");
+      throw new WebApplicationException(Response.Status.UNAUTHORIZED);
     }
     if (!authService.isValidRequest(request)) {
       LOG.warn("Invalid GBIF authenticated request");
