@@ -134,12 +134,12 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   protected abstract List<Module> getModules(Properties properties);
 
   /**
-   * The Jackson JSON configuration needs to know about how to (de)serialize polymorphic classes.
    * Override this method to pass a map of mixIn classes into the Jackson context resolver.
+   * For example, the Jackson JSON configuration may need to know about how to (de)serialize polymorphic classes.
    *
    * @return the mixIn class map. Defaults to an empty map.
    */
-  protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {
+  protected Map<Class<?>, Class<?>> getMixIns() {
     return Maps.newHashMap();
   }
 
@@ -148,7 +148,7 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
     if (injector == null) {
 
       // configure jsonMixIns
-      JacksonJsonContextResolver.addMixIns(getPolymorphicClassMap());
+      JacksonJsonContextResolver.addMixIns(getMixIns());
 
       List<Module> modules = getModules(properties);
       modules.add(new WsJerseyModule(resourcePackages, installAuth, responseFilters, requestFilters));
