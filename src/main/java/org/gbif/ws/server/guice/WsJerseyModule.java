@@ -3,9 +3,6 @@ package org.gbif.ws.server.guice;
 import org.gbif.ws.json.JacksonJsonContextResolver;
 import org.gbif.ws.server.filter.AuthFilter;
 import org.gbif.ws.server.filter.AuthResponseFilter;
-import org.gbif.ws.server.filter.CreatedResponseFilter;
-import org.gbif.ws.server.filter.CrossDomainResponseFilter;
-import org.gbif.ws.server.filter.JsonpResponseFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 import org.gbif.ws.server.interceptor.NullToNotFound;
 import org.gbif.ws.server.interceptor.NullToNotFoundInterceptor;
@@ -36,6 +33,8 @@ import com.sun.jersey.spi.container.ResourceFilters;
 /**
  * A basic jersey {@link JerseyServletModule} for JSON, JSONP etc.
  * All providers found in org.gbif.ws.server.provider will be automatically added.
+ *
+ * @see WsJerseyModuleConfiguration
  */
 public class WsJerseyModule extends JerseyServletModule {
 
@@ -53,7 +52,7 @@ public class WsJerseyModule extends JerseyServletModule {
   /**
    * Creates the module, optionally installing authentication filters and customising the
    * responses.
-   * 
+   *
    * @param resourcePackages To scan for the Jersey resources
    * @param installAuth Controls whether the GBIF default AuthFilter should be configured
    * @param responseFilters Optionally controlling the response
@@ -66,7 +65,7 @@ public class WsJerseyModule extends JerseyServletModule {
   /**
    * Creates the module, optionally installing authentication filters and customising the
    * responses and/or the requests.
-   * 
+   *
    * @param resourcePackages To scan for the Jersey resources
    * @param installAuth Controls whether the authentication filter should be configured
    * @param responseFilters To customise the response if necessary
@@ -147,103 +146,6 @@ public class WsJerseyModule extends JerseyServletModule {
     serve("/*").with(GuiceContainer.class, params);
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(NullToNotFound.class), new NullToNotFoundInterceptor());
-  }
-
-  /**
-   * WsJerseyModule configuration class with fluent interface.
-   * Default response filters represent filters that will be added in front of other response filters, including
-   * authentication filter.
-   */
-  public static class WsJerseyModuleConfiguration {
-
-    private String resourcePackages;
-    private Boolean installAuthenticationFilter;
-
-    private List<Class<? extends ContainerResponseFilter>> defaultResponseFilters = Lists.newArrayList();
-    private List<Class<? extends ContainerResponseFilter>> responseFilters = Lists.newArrayList();
-    private List<Class<? extends ContainerRequestFilter>> requestFilters = Lists.newLinkedList();
-
-    /**
-     * Build WsJerseyModuleConfiguration with default configuration values.
-     *
-     */
-    public WsJerseyModuleConfiguration(){
-      defaultResponseFilters.add(JsonpResponseFilter.class);
-      defaultResponseFilters.add(CreatedResponseFilter.class);
-      defaultResponseFilters.add(CrossDomainResponseFilter.class);
-    }
-
-    /**
-     * To scan for the Jersey resources.
-     *
-     * @param resourcePackages
-     * @return
-     */
-    public WsJerseyModuleConfiguration resourcePackages(String resourcePackages){
-      this.resourcePackages = resourcePackages;
-      return this;
-    }
-
-    /**
-     * Controls whether the GBIF default AuthFilter should be installed.
-     *
-     * @param installAuthenticationFilter
-     * @return
-     */
-    public WsJerseyModuleConfiguration installAuthenticationFilter(boolean installAuthenticationFilter){
-      this.installAuthenticationFilter = installAuthenticationFilter;
-      return this;
-    }
-
-    public WsJerseyModuleConfiguration responseFilters(@Nullable List<Class<? extends ContainerResponseFilter>> responseFilters){
-      if(responseFilters != null) {
-        this.responseFilters.addAll(responseFilters);
-      }
-      return this;
-    }
-
-    public WsJerseyModuleConfiguration requestFilters(@Nullable List<Class<? extends ContainerRequestFilter>> requestFilters){
-      if(requestFilters != null) {
-        this.requestFilters.addAll(requestFilters);
-      }
-      return this;
-    }
-
-    /**
-     * Replaces the defaultResponseFilters to be used by the WsJerseyModule.
-     * defaultResponseFilters represent filters that will be added in front of other response filters, including
-     * authentication filter.
-     *
-     * @param defaultResponseFilters
-     * @return
-     */
-    public WsJerseyModuleConfiguration replaceDefaultResponseFilters(List<Class<? extends ContainerResponseFilter>> defaultResponseFilters){
-      this.defaultResponseFilters.clear();
-      if(defaultResponseFilters != null) {
-        this.defaultResponseFilters.addAll(defaultResponseFilters);
-      }
-      return this;
-    }
-
-    public String getResourcePackages() {
-      return resourcePackages;
-    }
-
-    public Boolean isInstallAuthenticationFilter() {
-      return installAuthenticationFilter;
-    }
-
-    public List<Class<? extends ContainerResponseFilter>> getDefaultResponseFilters() {
-      return defaultResponseFilters;
-    }
-
-    public List<Class<? extends ContainerResponseFilter>> getResponseFilters() {
-      return responseFilters;
-    }
-
-    public List<Class<? extends ContainerRequestFilter>> getRequestFilters() {
-      return requestFilters;
-    }
   }
 
 }
