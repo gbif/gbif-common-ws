@@ -39,42 +39,43 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   private Injector injector;
 
   /**
-   * @param properties The properties to load
-   * @param resourcePackages packages to scan for jersey resources,
-   *        for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
    * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
-   *        UserService to be installed by one of the additional modules.
+   *                                     UserService to be installed by one of the additional modules.
    */
   protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters) {
     this(properties, resourcePackages, installAuthenticationFilters, null);
   }
 
   /**
-   * @param properties The properties to load
-   * @param resourcePackages packages to scan for jersey resources,
-   *        for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
    * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
-   *        UserService to be installed by one of the additional modules.
-   * @param responseFilters A list of response filters that are applied to the requests.
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
    */
   protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters,
-    @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters) {
+                                @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters) {
     this(properties, resourcePackages, installAuthenticationFilters, responseFilters, null);
   }
 
   /**
-   * @param properties The properties to load
-   * @param resourcePackages packages to scan for jersey resources,
-   *        for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
    * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
-   *        UserService to be installed by one of the additional modules.
-   * @param responseFilters A list of response filters that are applied to the requests.
-   * @param requestFilters A list of request filters that are applied to the requests. Note: read constructor
-   *        documentation on {@link WsJerseyModule}
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
+   * @param requestFilters               A list of request filters that are applied to the requests. Note: read
+   *                                     constructor
+   *                                     documentation on {@link WsJerseyModule}
    */
   protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters,
-    @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters,
-    @Nullable List<Class<? extends ContainerRequestFilter>> requestFilters) {
+                                @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters,
+                                @Nullable List<Class<? extends ContainerRequestFilter>> requestFilters) {
     this.properties = properties;
     this.resourcePackages = resourcePackages;
     this.installAuth = installAuthenticationFilters;
@@ -87,17 +88,17 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   }
 
   /**
-   * @param propertyFileName Fully qualified filename that must be on the classpath
-   * @param resourcePackages packages to scan for jersey resources,
-   *        for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
+   * @param propertyFileName             Fully qualified filename that must be on the classpath
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
    * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
-   *        UserService to be installed by one of the additional modules.
-   * @param responseFilters A list of response filters that are applied to the requests.
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
    */
   protected GbifServletListener(String propertyFileName, String resourcePackages, boolean installAuthenticationFilters,
-    @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters) {
+                                @Nullable List<Class<? extends ContainerResponseFilter>> responseFilters) {
     this(readProperties(propertyFileName), resourcePackages, installAuthenticationFilters,
-      responseFilters);
+            responseFilters);
   }
 
   /**
@@ -114,14 +115,14 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
   }
 
   /**
-   * @param propertyFileName Fully qualified filename that must be on the classpath
-   * @param resourcePackages packages to scan for jersey resources,
-   *        for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
+   * @param propertyFileName             Fully qualified filename that must be on the classpath
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example "org.gbif.registry.ws,org.gbif.registry.common.ws"
    * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
-   *        UserService to be installed by one of the additional modules.
+   *                                     UserService to be installed by one of the additional modules.
    */
   protected GbifServletListener(String propertyFileName, String resourcePackages,
-    boolean installAuthenticationFilters) {
+                                boolean installAuthenticationFilters) {
     this(propertyFileName, resourcePackages, installAuthenticationFilters, null);
   }
 
@@ -143,15 +144,29 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
     return Maps.newHashMap();
   }
 
+  /**
+   * Override this method to use a custom WsJerseyModuleConfiguration.
+   *
+   * @return the WsJerseyModuleConfiguration to use to instantiate WsJerseyModule.
+   */
+  protected WsJerseyModule.WsJerseyModuleConfiguration getWsJerseyModuleConfiguration() {
+    WsJerseyModule.WsJerseyModuleConfiguration config = new WsJerseyModule.WsJerseyModuleConfiguration();
+    return config
+            .resourcePackages(resourcePackages)
+            .installAuthenticationFilter(installAuth)
+            .responseFilters(responseFilters)
+            .requestFilters(requestFilters);
+  }
+
   @Override
   protected synchronized Injector getInjector() {
     if (injector == null) {
 
-      // configure jsonMixIns
+      // configure Jackson MixIns
       JacksonJsonContextResolver.addMixIns(getMixIns());
 
       List<Module> modules = getModules(properties);
-      modules.add(new WsJerseyModule(resourcePackages, installAuth, responseFilters, requestFilters));
+      modules.add(new WsJerseyModule(getWsJerseyModuleConfiguration()));
 
       injector = Guice.createInjector(modules);
     }
