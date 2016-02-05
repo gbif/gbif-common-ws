@@ -1,7 +1,9 @@
 package org.gbif.ws.client;
 
 import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.ws.json.JacksonJsonContextResolver;
 
+import java.io.IOException;
 import java.util.Locale;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
@@ -10,6 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.google.common.base.Joiner;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ public abstract class BaseWsClient {
   // Jersey client resource used for the remote communication.
   protected final WebResource resource;
   protected final Logger log = LoggerFactory.getLogger(getClass());
+  private final ObjectMapper mapper = new JacksonJsonContextResolver().getContext(null);
 
   public BaseWsClient(WebResource resource) {
     this.resource = resource;
@@ -179,5 +183,90 @@ public abstract class BaseWsClient {
    */
   protected <T> T get(GenericType<T> gt, Pageable page, WebResource resource) {
     return applyPage(resource, page).type(MediaType.APPLICATION_JSON).get(gt);
+  }
+
+  /**
+   * Convert the http entity into a byte array to avoid jackson creating a chunked encoding request!
+   */
+  protected byte[] toBytes(Object entity) {
+    try {
+      return mapper.writeValueAsBytes(entity);
+    } catch (IOException e) {
+      log.error("Failed to serialize http entity [{}]", entity);
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * Executes an http POST passing on a json encoded entity.
+   *
+   * @param entity to POST
+   * @param path   to POST to
+   */
+  protected void post(Object entity, String... path) {
+    getResource(path).type(MediaType.APPLICATION_JSON).post(toBytes(entity));
+  }
+
+  /**
+   * Executes an http POST passing on a json encoded entity.
+   *
+   * @param gt     the generic type of the returned resource.
+   * @param entity to POST
+   * @param path   to POST to
+   */
+  protected <T> T post(GenericType<T> gt, Object entity, String... path) {
+    return getResource(path).type(MediaType.APPLICATION_JSON).post(gt, toBytes(entity));
+  }
+
+  /**
+   * Executes an http POST passing on a json encoded entity.
+   *
+   * @param cl     the class of the returned resource.
+   * @param entity to POST
+   * @param path   to POST to
+   */
+  protected <T> T post(Class<T> cl, Object entity, String... path) {
+    return getResource(path).type(MediaType.APPLICATION_JSON).post(cl, toBytes(entity));
+  }
+
+  /**
+   * Executes an http PUT passing on a json encoded entity.
+   *
+   * @param entity to PUT
+   * @param path   to PUT to
+   */
+  protected void put(Object entity, String... path) {
+    getResource(path).type(MediaType.APPLICATION_JSON).put(toBytes(entity));
+  }
+
+  /**
+   * Executes an http PUT passing on a json encoded entity.
+   *
+   * @param gt     the generic type of the returned resource.
+   * @param entity to PUT
+   * @param path   to PUT to
+   */
+  protected <T> T put(GenericType<T> gt, Object entity, String... path) {
+    return getResource(path).type(MediaType.APPLICATION_JSON).put(gt, toBytes(entity));
+  }
+
+  /**
+   * Executes an http PUT passing on a json encoded entity.
+   *
+   * @param cl     the class of the returned resource.
+   * @param entity to PUT
+   * @param path   to PUT to
+   */
+  protected <T> T put(Class<T> cl, Object entity, String... path) {
+    return getResource(path).type(MediaType.APPLICATION_JSON).put(cl, toBytes(entity));
+  }
+
+  /**
+   * Executes an http DELETE.
+   *
+   * @param path to DELETE to
+   */
+  protected void delete(String... path) {
+    getResource(path).type(MediaType.APPLICATION_JSON).delete();
   }
 }
