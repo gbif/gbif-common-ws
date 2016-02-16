@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
-  <version>0.28-SNAPSHOT</version>
+  <version>0.29-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GBIF Common Web service</name>
