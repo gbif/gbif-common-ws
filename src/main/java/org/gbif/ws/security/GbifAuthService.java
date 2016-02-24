@@ -216,7 +216,6 @@ public class GbifAuthService {
 
     // build the unique string to sign
     final String stringToSign = buildStringToSign(request);
-    System.out.println(stringToSign);
     // find private key for this app
     final String secretKey = getPrivateKey(appKey);
     if (secretKey == null) {
