@@ -23,6 +23,11 @@ public class WebserviceParameter {
   public static final String PARAM_FACET_MINCOUNT = "facetMincount";
 
   /**
+   * spellCheck parameter.
+   */
+  public static final String PARAM_SPELLCHECK = "spellcheck";
+
+  /**
    * The query string for searches.
    * Repeated in SearchConstants, couldnt resolve dependencies.
    */

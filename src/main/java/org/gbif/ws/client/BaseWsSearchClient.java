@@ -18,11 +18,12 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import static org.gbif.ws.util.WebserviceParameter.DEFAULT_SEARCH_PARAM_VALUE;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
 
 
 /**
  * Base web service search client supporting the basic {@link SearchRequest}.
- * 
+ *
  * @param <T> type of the response content
  * @param <P> search parameter type
  * @param <R> search request type
@@ -43,7 +44,7 @@ public abstract class BaseWsSearchClient<T, P extends Enum<?> & SearchParameter,
 
   /**
    * Generic search operation.
-   * 
+   *
    * @param searchRequest to issue the search operation. If null matches everything
    * @return a SearchResponse object with the operation result.
    */
@@ -54,7 +55,7 @@ public abstract class BaseWsSearchClient<T, P extends Enum<?> & SearchParameter,
   /**
    * Transforms the attributes of the {@link SearchRequest} parameter into a map of parameters.
    * The output of this method is intended to be used with the operation WebResource.queryParams(parameters).
-   * 
+   *
    * @return a {@link MultivaluedMap} containing the HTTP parameters taken from the {@link SearchRequest} object.
    */
   protected MultivaluedMap<String, String> getParameterFromRequest(@Nullable R searchRequest) {
@@ -76,6 +77,7 @@ public abstract class BaseWsSearchClient<T, P extends Enum<?> & SearchParameter,
       }
       parameters.putSingle(PARAM_QUERY_STRING, searchParamValue);
       parameters.putSingle(PARAM_HIGHLIGHT, Boolean.toString(searchRequest.isHighlight()));
+      parameters.putSingle(PARAM_SPELLCHECK, Boolean.toString(searchRequest.isSpellcheck()));
 
       Multimap<P, String> requestParameters = searchRequest.getParameters();
       if (requestParameters != null) {

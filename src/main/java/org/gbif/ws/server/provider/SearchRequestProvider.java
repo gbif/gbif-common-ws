@@ -35,6 +35,7 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
 
 /**
  * Provider class that transforms a set of HTTP parameters into a SearchRequest class instance.
@@ -54,7 +55,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get an injectable.
-   * 
+   *
    * @param ic the injectable context
    * @param context the annotation instance
    * @param type the context instance
@@ -71,7 +72,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   /**
    * Get the scope of the injectable provider.
-   * 
+   *
    * @return the scope.
    */
   @Override
@@ -105,13 +106,20 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     final MultivaluedMap<String, String> params = context.getRequest().getQueryParameters();
     final String q = params.getFirst(PARAM_QUERY_STRING);
     final String highlightValue = params.getFirst(PARAM_HIGHLIGHT);
+    final String spellCheck = params.getFirst(PARAM_SPELLCHECK);
 
     if (!Strings.isNullOrEmpty(q)) {
       searchRequest.setQ(q);
     }
+
     if (!Strings.isNullOrEmpty(highlightValue)) {
       searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));
     }
+
+    if (!Strings.isNullOrEmpty(spellCheck)) {
+      searchRequest.setSpellcheck(Boolean.parseBoolean(spellCheck));
+    }
+
     // find search parameter enum based filters
     setSearchParams(searchRequest, params);
 
@@ -122,11 +130,11 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
    * Removes all empty and null parameters from the list.
    * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
    */
-  private List<String> removeEmptyParameters(List<String> parameters) {
+  private static List<String> removeEmptyParameters(List<String> parameters) {
     List<String> cleanParameters = Lists.newArrayList();
     for (String param : parameters) {
       final String cleanParam = Strings.nullToEmpty(param).trim();
-      if (cleanParam.length() > 0) {
+      if (!cleanParam.isEmpty()) {
         cleanParameters.add(cleanParam);
       }
     }
