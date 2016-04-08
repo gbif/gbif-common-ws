@@ -48,6 +48,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
   private final Class<P> searchParameterClass;
   private final Class<RT> requestType;
+  private static final int NON_SPELL_CHECK_COUNT = -1;
 
   public SearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass) {
     this.requestType = requestType;
@@ -124,6 +125,8 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
     if (!Strings.isNullOrEmpty(spellCheckCount)) {
       searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));
+    } else {
+      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);
     }
 
     // find search parameter enum based filters
