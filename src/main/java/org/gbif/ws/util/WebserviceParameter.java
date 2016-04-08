@@ -25,7 +25,12 @@ public class WebserviceParameter {
   /**
    * spellCheck parameter.
    */
-  public static final String PARAM_SPELLCHECK = "spellcheck";
+  public static final String PARAM_SPELLCHECK = "spellCheck";
+
+  /**
+   * spellCheckCount parameter.
+   */
+  public static final String PARAM_SPELLCHECK_COUNT = "spellCheckCount";
 
   /**
    * The query string for searches.

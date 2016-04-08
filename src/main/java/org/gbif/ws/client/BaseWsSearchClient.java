@@ -19,7 +19,7 @@ import static org.gbif.ws.util.WebserviceParameter.DEFAULT_SEARCH_PARAM_VALUE;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
-
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
 
 /**
  * Base web service search client supporting the basic {@link SearchRequest}.
@@ -77,7 +77,8 @@ public abstract class BaseWsSearchClient<T, P extends Enum<?> & SearchParameter,
       }
       parameters.putSingle(PARAM_QUERY_STRING, searchParamValue);
       parameters.putSingle(PARAM_HIGHLIGHT, Boolean.toString(searchRequest.isHighlight()));
-      parameters.putSingle(PARAM_SPELLCHECK, Boolean.toString(searchRequest.isSpellcheck()));
+      parameters.putSingle(PARAM_SPELLCHECK, Boolean.toString(searchRequest.isSpellCheck()));
+      parameters.putSingle(PARAM_SPELLCHECK_COUNT,Integer.toString(searchRequest.getSpellCheckCount()));
 
       Multimap<P, String> requestParameters = searchRequest.getParameters();
       if (requestParameters != null) {

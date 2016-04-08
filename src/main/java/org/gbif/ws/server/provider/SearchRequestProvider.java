@@ -36,6 +36,7 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
 
 /**
  * Provider class that transforms a set of HTTP parameters into a SearchRequest class instance.
@@ -107,6 +108,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     final String q = params.getFirst(PARAM_QUERY_STRING);
     final String highlightValue = params.getFirst(PARAM_HIGHLIGHT);
     final String spellCheck = params.getFirst(PARAM_SPELLCHECK);
+    final String spellCheckCount = params.getFirst(PARAM_SPELLCHECK_COUNT);
 
     if (!Strings.isNullOrEmpty(q)) {
       searchRequest.setQ(q);
@@ -117,7 +119,11 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     }
 
     if (!Strings.isNullOrEmpty(spellCheck)) {
-      searchRequest.setSpellcheck(Boolean.parseBoolean(spellCheck));
+      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));
+    }
+
+    if (!Strings.isNullOrEmpty(spellCheckCount)) {
+      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));
     }
 
     // find search parameter enum based filters
@@ -133,7 +139,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   private static List<String> removeEmptyParameters(List<String> parameters) {
     List<String> cleanParameters = Lists.newArrayList();
     for (String param : parameters) {
-      final String cleanParam = Strings.nullToEmpty(param).trim();
+      String cleanParam = Strings.nullToEmpty(param).trim();
       if (!cleanParam.isEmpty()) {
         cleanParameters.add(cleanParam);
       }
