@@ -22,7 +22,6 @@
     <developerConnection>scm:git:git@github.com:gbif/gbif-common-ws.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-  
 
   <distributionManagement>
     <site>
@@ -36,7 +35,7 @@
 
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.38</gbif-api.version>
-    <gbif-common.version>0.23</gbif-common.version>
+    <gbif-common.version>0.26</gbif-common.version>
     <gbif-httputils.version>0.9</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.64</grizzly-servlet-webserver.version>
     <guava.version>18.0</guava.version>
