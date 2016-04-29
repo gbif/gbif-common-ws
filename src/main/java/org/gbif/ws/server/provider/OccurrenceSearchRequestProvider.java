@@ -27,7 +27,7 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 
 @Provider
 @Singleton
-public class OccurrenceSearchRequestProvider extends SearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
+public class OccurrenceSearchRequestProvider extends FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
   implements InjectableProvider<Context, Type> {
 
   public OccurrenceSearchRequestProvider() {
