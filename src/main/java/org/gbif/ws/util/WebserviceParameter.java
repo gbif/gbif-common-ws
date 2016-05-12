@@ -15,6 +15,10 @@ public class WebserviceParameter {
    */
   public static final String PARAM_FACET_MULTISELECT = "facetMultiselect";
 
+  public static final String PARAM_FACET_LIMIT = "facetLimit";
+
+  public static final String PARAM_FACET_OFFSET = "facetOffset";
+
   public static final String PARAM_HIGHLIGHT = "hl";
 
   /**
