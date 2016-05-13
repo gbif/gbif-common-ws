@@ -78,8 +78,8 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
         P p = findSearchParam(f);
         if (p != null) {
           searchRequest.addFacets(p);
-          String pFacetOffset = getFirstIgnoringCase(p.name() + '.' + PARAM_FACET_OFFSET, params);
-          String pFacetLimit = getFirstIgnoringCase(p.name() + '.' + PARAM_FACET_LIMIT, params);
+          String pFacetOffset = getFirstIgnoringCase(f + '.' + PARAM_FACET_OFFSET, params);
+          String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);
           if (pFacetLimit != null) {
             if (pFacetOffset != null) {
               searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
