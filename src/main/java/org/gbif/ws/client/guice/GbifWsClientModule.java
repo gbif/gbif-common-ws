@@ -44,9 +44,9 @@ public abstract class GbifWsClientModule extends PrivateModule {
 
     // Used for each of i) getting a connection from the pool, establishing a connection and the
     // socket timeout
-    public static String HTTP_TIMEOUT = "httpTimeout";
-    public static String MAX_HTTP_CONNECTIONS = "maxHttpConnections";
-    public static String MAX_HTTP_CONNECTIONS_PER_ROUTE = "maxHttpConnectionsPerRoute";
+    public static final String HTTP_TIMEOUT = "httpTimeout";
+    public static final String MAX_HTTP_CONNECTIONS = "maxHttpConnections";
+    public static final String MAX_HTTP_CONNECTIONS_PER_ROUTE = "maxHttpConnectionsPerRoute";
   }
 
   private final Properties properties;
@@ -89,7 +89,7 @@ public abstract class GbifWsClientModule extends PrivateModule {
   /**
    * The Jackson JSON configuration needs to know about how to (de)serialize polymorphic classes.
    * Override this method to pass a map of mixIn classes into the Jackson context resolver.
-   * 
+   *
    * @return the mixIn class map. Defaults to an empty map.
    */
   protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {

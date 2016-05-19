@@ -7,10 +7,13 @@ import java.io.InputStream;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
+/**
+ * Utility class that validates response statuses and extract the input stream from a HTTP response.
+ */
 public class InputStreamUtils {
 
   private InputStreamUtils() {
-
+    //empty constructor
   }
 
   /**
@@ -22,14 +25,15 @@ public class InputStreamUtils {
 
     final ClientResponse response = resource.get(ClientResponse.class);
 
-    if (response.getStatus() == 404) {
+    if (response.getStatus() == ClientResponse.Status.NOT_FOUND.getStatusCode()) {
       response.close();
       return null;
     }
 
-    if (response.getStatus() != 200) {
+    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
       response.close();
-      throw new ServiceUnavailableException("HTTP " + response.getStatus() + ": " + response.getClientResponseStatus().getReasonPhrase());
+      throw new ServiceUnavailableException("HTTP " + response.getStatus() + ": " +
+                                            response.getStatusInfo().getReasonPhrase());
     }
 
     return response.getEntityInputStream();

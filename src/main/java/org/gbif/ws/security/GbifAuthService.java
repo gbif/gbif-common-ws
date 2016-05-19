@@ -16,6 +16,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.client.ClientRequest;
@@ -109,7 +110,7 @@ public class GbifAuthService {
    *
    * @see <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html">AWS Docs</a>
    */
-  private String buildStringToSign(ContainerRequest request) {
+  private static String buildStringToSign(ContainerRequest request) {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
@@ -134,7 +135,7 @@ public class GbifAuthService {
    * For PUT/POST requests that contain a body content it is required that the Content-MD5 header
    * is already present on the request instance!
    */
-  private String buildStringToSign(ClientRequest request) {
+  private static String buildStringToSign(ClientRequest request) {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
@@ -148,7 +149,7 @@ public class GbifAuthService {
     return sb.toString();
   }
 
-  private void appendHeader(StringBuilder sb, MultivaluedMap<String, ?> request, String header, boolean caseSensitive) {
+  private static void appendHeader(StringBuilder sb, MultivaluedMap<String, ?> request, String header, boolean caseSensitive) {
     if (request.containsKey(header)) {
       sb.append(NEWLINE);
       if (caseSensitive) {
@@ -162,12 +163,12 @@ public class GbifAuthService {
   /**
    * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
    */
-  private String getCanonicalizedPath(URI uri) {
+  private static String getCanonicalizedPath(URI uri) {
     return uri.normalize().getPath();
   }
 
-  private String buildAuthHeader(String applicationKey, String signature) {
-    return GBIF_SCHEME + " " + applicationKey + ":" + signature;
+  private static String buildAuthHeader(String applicationKey, String signature) {
+    return GBIF_SCHEME + " " + applicationKey + ':' + signature;
   }
 
   /**
@@ -243,7 +244,7 @@ public class GbifAuthService {
 
     } catch (IOException e) {
       LOG.error("Failed to serialize http entity [{}]", entity);
-      throw new RuntimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 

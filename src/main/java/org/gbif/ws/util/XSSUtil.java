@@ -50,13 +50,13 @@ public class XSSUtil {
     if (value != null) {
 
       // Avoid null characters
-      value = NULL_CHAR.matcher(value).replaceAll("");
+      String cleanValue = NULL_CHAR.matcher(value).replaceAll("");
 
       // Remove all sections that match a pattern
       for (Pattern scriptPattern : PATTERNS) {
-        Matcher matcher = scriptPattern.matcher(value);
+        Matcher matcher = scriptPattern.matcher(cleanValue);
         if (matcher.find()) {
-          LOG.warn("Malicious XSS script found: {}", value);
+          LOG.warn("Malicious XSS script found: {}", cleanValue);
           return true;
         }
       }

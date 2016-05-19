@@ -17,6 +17,9 @@ package org.gbif.ws.util;
 
 import javax.ws.rs.core.MediaType;
 
+/**
+ * Extra media types used in Http responses.
+ */
 public class ExtraMediaTypes {
 
   public static final String APPLICATION_JAVASCRIPT = "application/javascript";

@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.inject.Singleton;
-
 /**
  * Request filter that detects XSS in paramater, header or querystring values and responds with a 400 bad request in such cases.
  */
@@ -33,35 +32,38 @@ public class XSSFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     if (request instanceof HttpServletRequest) {
-      HttpServletRequest httpReq = (HttpServletRequest) request;
+      HttpServletRequest httpRequest = (HttpServletRequest) request;
       // test for xss in headers
-      Enumeration<String> headers =  httpReq.getHeaderNames();
-      while(headers.hasMoreElements()) {
-        if (XSSUtil.containsXSS(httpReq.getHeader(headers.nextElement()))) {
-          respondBadRequest(response);
-        }
-      }
+      checkParams(httpRequest.getHeaderNames(),httpRequest,response);
+
       // test for xss in querystring
       // note: servlet container does not decode querystring when creating HttpServletRequest object
-      if (XSSUtil.containsXSS(httpReq.getQueryString())) {
+      if (XSSUtil.containsXSS(httpRequest.getQueryString())) {
         respondBadRequest(response);
       }
       // test for xss in parameters
       // note: servlet container decodes parameter strings when creating HttpServletRequest object
-      Enumeration<String> params =  httpReq.getParameterNames();
-      while(params.hasMoreElements()) {
-        if (XSSUtil.containsXSS(httpReq.getParameter(params.nextElement()))) {
-          respondBadRequest(response);
-        }
-      }
+      checkParams(httpRequest.getParameterNames(),httpRequest,response);
     }
     chain.doFilter(request, response);
   }
 
   /**
-   * Sends a 400 error response, provided the response hasn't already been committed.
+   * Utility method that validates a enumeration of http parameters.
+   */
+  private static void checkParams(Enumeration<String> params, HttpServletRequest request,
+                                          ServletResponse response) throws IOException {
+    while(params.hasMoreElements()) {
+      if (XSSUtil.containsXSS(request.getParameter(params.nextElement()))) {
+        respondBadRequest(response);
+      }
+    }
+  }
+
+  /**
+   * Sends a Response.StatusCode.BAD_REQUEST error response, provided the response hasn't already been committed.
    *
-   * @param response response
+   * @param response response that will contain the error
    *
    * @throws IOException if there is a problem committing response
    */
