@@ -16,7 +16,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingException> {
 
   @Override
-  public Response toResponse(JsonMappingException e) {
-    return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(e.getMessage()).build();
+  public Response toResponse(JsonMappingException exception) {
+    return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(exception.getMessage()).build();
   }
 }

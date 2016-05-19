@@ -288,8 +288,8 @@ public class GbifAuthService {
     return false;
   }
 
-  private String getPrivateKey(String appKey) {
-    return keyStore.get(appKey);
+  private String getPrivateKey(String applicationKey) {
+    return keyStore.get(applicationKey);
   }
 
 }

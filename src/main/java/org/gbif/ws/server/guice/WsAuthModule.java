@@ -23,7 +23,7 @@ public class WsAuthModule extends PrivateModule {
    * @param keys map of applicaiton keys to secrets
    */
   public WsAuthModule(Map<String, String> keys) {
-    this.authService = GbifAuthService.multiKeyAuthService(keys);
+    authService = GbifAuthService.multiKeyAuthService(keys);
   }
 
   /**

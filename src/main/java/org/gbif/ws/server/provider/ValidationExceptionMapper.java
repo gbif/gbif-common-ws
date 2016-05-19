@@ -21,13 +21,13 @@ import org.slf4j.LoggerFactory;
 public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
 
   private static final int HTTP_CODE = 422;
-  private static Logger LOG = LoggerFactory.getLogger(ValidationExceptionMapper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ValidationExceptionMapper.class);
 
   @Override
-  public Response toResponse(ConstraintViolationException e) {
-    LOG.error(e.getMessage(), e);
+  public Response toResponse(ConstraintViolationException exception) {
+    LOG.error(exception.getMessage(), exception);
     ImmutableList.Builder<String> b = ImmutableList.builder();
-    for (ConstraintViolation<?> cv : e.getConstraintViolations()) {
+    for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
       LOG.debug("Validation of [{}] failed: {}", cv.getPropertyPath(), cv.getMessage());
       b.add(String.format("Validation of [%s] failed: %s", cv.getPropertyPath(), cv.getMessage()));
     }

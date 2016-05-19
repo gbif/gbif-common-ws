@@ -15,7 +15,7 @@ import com.google.inject.Singleton;
 public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentException> {
 
   @Override
-  public Response toResponse(IllegalArgumentException e) {
-    return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(e.getMessage()).build();
+  public Response toResponse(IllegalArgumentException exception) {
+    return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(exception.getMessage()).build();
   }
 }

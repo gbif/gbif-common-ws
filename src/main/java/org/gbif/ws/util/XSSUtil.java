@@ -16,7 +16,7 @@ public class XSSUtil {
     // empty private constructor
   }
 
-  private static final String NULL_CHAR = "\0";
+  private static final Pattern NULL_CHAR = Pattern.compile("\0");
   private static final Pattern[] PATTERNS = new Pattern[] {
     // Avoid anything in a <script> type of expression
     Pattern.compile("<script>(.*?)</script>", Pattern.CASE_INSENSITIVE),
@@ -50,7 +50,7 @@ public class XSSUtil {
     if (value != null) {
 
       // Avoid null characters
-      value = value.replaceAll(NULL_CHAR, "");
+      value = NULL_CHAR.matcher(value).replaceAll("");
 
       // Remove all sections that match a pattern
       for (Pattern scriptPattern : PATTERNS) {

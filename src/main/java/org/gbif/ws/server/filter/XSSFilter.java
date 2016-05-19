@@ -1,5 +1,6 @@
 package org.gbif.ws.server.filter;
 
+import org.gbif.api.model.common.messaging.Response;
 import org.gbif.ws.util.XSSUtil;
 
 import java.io.IOException;
@@ -37,20 +38,20 @@ public class XSSFilter implements Filter {
       Enumeration<String> headers =  httpReq.getHeaderNames();
       while(headers.hasMoreElements()) {
         if (XSSUtil.containsXSS(httpReq.getHeader(headers.nextElement()))) {
-          respond400(response);
+          respondBadRequest(response);
         }
       }
       // test for xss in querystring
       // note: servlet container does not decode querystring when creating HttpServletRequest object
       if (XSSUtil.containsXSS(httpReq.getQueryString())) {
-        respond400(response);
+        respondBadRequest(response);
       }
       // test for xss in parameters
       // note: servlet container decodes parameter strings when creating HttpServletRequest object
       Enumeration<String> params =  httpReq.getParameterNames();
       while(params.hasMoreElements()) {
         if (XSSUtil.containsXSS(httpReq.getParameter(params.nextElement()))) {
-          respond400(response);
+          respondBadRequest(response);
         }
       }
     }
@@ -64,10 +65,10 @@ public class XSSFilter implements Filter {
    *
    * @throws IOException if there is a problem committing response
    */
-  private void respond400(ServletResponse response) throws IOException {
+  private static void respondBadRequest(ServletResponse response) throws IOException {
     HttpServletResponse resp = (HttpServletResponse) response;
     if (!resp.isCommitted()) {
-      resp.sendError(400);
+      resp.sendError(Response.StatusCode.BAD_REQUEST.getCode());
     }
   }
 

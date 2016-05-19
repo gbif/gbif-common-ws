@@ -49,6 +49,8 @@ public class LocaleProvider extends AbstractHttpContextInjectable<Locale> implem
 
   private static final String LANGUAGE_PARAM = "language";
 
+  private static final String ANY_LANGUAGE = "*";
+
   @Override
   public Injectable<Locale> getInjectable(ComponentContext ic, Context a, Type c) {
     if (c.equals(Locale.class)) {
@@ -83,7 +85,7 @@ public class LocaleProvider extends AbstractHttpContextInjectable<Locale> implem
     final List<Locale> locales = c.getRequest().getAcceptableLanguages();
     for (Locale loc : locales) {
       // ignore accept any language value: * and non iso 2 letter codes
-      if (!Strings.isNullOrEmpty(loc.getLanguage()) && !loc.getLanguage().equalsIgnoreCase("*")
+      if (!Strings.isNullOrEmpty(loc.getLanguage()) && !ANY_LANGUAGE.equalsIgnoreCase(loc.getLanguage())
           && loc.getLanguage().length() == 2) {
         return loc;
       }

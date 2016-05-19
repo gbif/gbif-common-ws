@@ -29,7 +29,7 @@ public class ExtraMediaTypes {
    * http://www.iana.org/assignments/media-types/media-types.xhtml
    * Currently used for experimenting in OAI-PMH DublinCore resources.
    */
-  public final static String APPLICATION_DWCA = "application/dwca+zip";
+  public static final String APPLICATION_DWCA = "application/dwca+zip";
 
   private ExtraMediaTypes() {
     throw new UnsupportedOperationException("Can't initialize class");

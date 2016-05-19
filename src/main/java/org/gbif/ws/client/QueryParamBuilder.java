@@ -60,11 +60,11 @@ public class QueryParamBuilder {
   /**
    * Creates a query parameter builder from an existing parameter map.
    *
-   * @param params map of query parameters.
+   * @param fromParams map of query parameters.
    */
-  public static QueryParamBuilder create(Map<String, String> params) {
+  public static QueryParamBuilder create(Map<String, String> fromParams) {
     QueryParamBuilder builder = new QueryParamBuilder();
-    for (Map.Entry<String, String> kvp : params.entrySet()) {
+    for (Map.Entry<String, String> kvp : fromParams.entrySet()) {
       builder.queryParam(kvp.getKey(), kvp.getValue());
     }
     return builder;

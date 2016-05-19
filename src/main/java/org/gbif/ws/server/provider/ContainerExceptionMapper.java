@@ -20,23 +20,24 @@ import com.sun.jersey.api.container.ContainerException;
 public class ContainerExceptionMapper implements ExceptionMapper<ContainerException> {
   @Context
   private final Providers providers;
-  
+
   public ContainerExceptionMapper(@Context Providers providers) {
     this.providers = providers;
   }
 
   @Override
-  public Response toResponse(ContainerException e) {
-    Throwable cause = e.getCause();
-    if (e.getCause() != null) {
+  public Response toResponse(ContainerException exception) {
+    Throwable cause = exception.getCause();
+    if (exception.getCause() != null) {
       @SuppressWarnings("unchecked")
-      ExceptionMapper<Throwable> em = (ExceptionMapper<Throwable>) providers.getExceptionMapper(cause.getClass());  
+      ExceptionMapper<Throwable> em = (ExceptionMapper<Throwable>) providers.getExceptionMapper(cause.getClass());
       if (em != null) {
-        return em.toResponse(e.getCause());
+        return em.toResponse(exception.getCause());
       }
     }
-    
+
     // no cause or not handled, then we are really hosed
-    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.TEXT_PLAIN).entity(e.getMessage()).build();    
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+           .type(MediaType.TEXT_PLAIN).entity(exception.getMessage()).build();
   }
 }

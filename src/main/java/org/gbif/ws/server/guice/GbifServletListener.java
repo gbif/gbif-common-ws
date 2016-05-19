@@ -109,7 +109,7 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
     try {
       properties = PropertiesUtil.loadProperties(propertyFileName);
     } catch (IOException e) {
-      new IllegalArgumentException("Error reading properties file", e);
+      throw new IllegalArgumentException("Error reading properties file", e);
     }
     return properties;
   }

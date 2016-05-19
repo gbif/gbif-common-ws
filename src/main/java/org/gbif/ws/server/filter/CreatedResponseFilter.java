@@ -22,7 +22,7 @@ public class CreatedResponseFilter implements ContainerResponseFilter {
   @Override
   public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
 
-    if (request.getMethod() != null && request.getMethod().equalsIgnoreCase("post") && response.getStatusType() != null
+    if (request.getMethod() != null && "post".equalsIgnoreCase(request.getMethod()) && response.getStatusType() != null
         && response.getStatusType().getFamily() == Response.Status.Family.SUCCESSFUL) {
 
       response.setStatus(HttpURLConnection.HTTP_CREATED);
