@@ -140,7 +140,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
    * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
    */
   private static List<String> removeEmptyParameters(List<String> parameters) {
-    List<String> cleanParameters = Lists.newArrayList();
+    List<String> cleanParameters = Lists.newArrayListWithCapacity(parameters.size());
     for (String param : parameters) {
       String cleanParam = Strings.nullToEmpty(param).trim();
       if (!cleanParam.isEmpty()) {
