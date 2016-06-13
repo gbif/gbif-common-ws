@@ -3,6 +3,7 @@ package org.gbif.ws.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,8 @@ public class XSSUtil {
     Pattern.compile("src[\r\n]*=[\r\n]*\\\"(.*?)\\\"", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
     // Remove any lonesome </script> tag
     Pattern.compile("</script>", Pattern.CASE_INSENSITIVE),
+    // Avoid anything in a <iframe> type of expression
+    Pattern.compile("<iframe>(.*?)</iframe>", Pattern.CASE_INSENSITIVE),
     // Remove any lonesome <script ...> tag
     Pattern.compile("<script(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
     // Avoid eval(...) expressions
@@ -62,5 +65,31 @@ public class XSSUtil {
       }
     }
     return false;
+  }
+
+  /**
+   * Strip all instances of all XXS patterns that match.
+   *
+   * @param value
+   * @return
+   */
+  public static String stripXSS(String value) {
+
+    if(value == null){
+      return null;
+    }
+
+    // Avoid null characters
+    String cleanValue = NULL_CHAR.matcher(value).replaceAll("");
+    if(StringUtils.isBlank(cleanValue)) {
+      return cleanValue;
+    }
+
+    // Remove all sections that match a pattern
+    for (Pattern scriptPattern : PATTERNS) {
+      Matcher matcher = scriptPattern.matcher(cleanValue);
+      cleanValue = matcher.replaceAll("");
+    }
+    return cleanValue;
   }
 }
