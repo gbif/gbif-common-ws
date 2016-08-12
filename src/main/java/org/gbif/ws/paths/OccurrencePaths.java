@@ -34,6 +34,14 @@ public final class OccurrencePaths {
 
   public static final String OCCURRENCE_ID_PATH = "occurrenceId";
 
+  public static final String ORGANISM_ID_PATH = "organismId";
+
+  public static final String LOCALITY_PATH = "locality";
+
+  public static final String WATER_BODY_PATH = "waterBody";
+
+  public static final String STATE_PROVINCE_PATH = "stateProvince";
+
   public static final String VERBATIM_PATH = "verbatim";
 
   public static final String FRAGMENT_PATH = "fragment";
