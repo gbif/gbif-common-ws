@@ -68,7 +68,7 @@ public abstract class GbifWsClientModule extends PrivateModule {
     Names.bindProperties(binder(), properties);
 
     // configure jsonMixIns
-    JacksonJsonContextResolver.addMixIns(getPolymorphicClassMap());
+    JacksonJsonContextResolver.addMixIns(getMixIns());
 
     configureClient();
 
@@ -86,13 +86,14 @@ public abstract class GbifWsClientModule extends PrivateModule {
    */
   protected abstract void configureClient();
 
+
   /**
-   * The Jackson JSON configuration needs to know about how to (de)serialize polymorphic classes.
    * Override this method to pass a map of mixIn classes into the Jackson context resolver.
+   * For example, the Jackson JSON configuration may need to know about how to (de)serialize polymorphic classes.
    *
    * @return the mixIn class map. Defaults to an empty map.
    */
-  protected Map<Class<?>, Class<?>> getPolymorphicClassMap() {
+  protected Map<Class<?>, Class<?>> getMixIns() {
     return Maps.newHashMap();
   }
 
