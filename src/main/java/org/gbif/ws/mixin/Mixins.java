@@ -1,6 +1,7 @@
 package org.gbif.ws.mixin;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.search.DatasetSearchResult;
 
@@ -25,7 +26,8 @@ public class Mixins {
           ImmutableMap.<Class<?>, Class<?>>of(
                   Dataset.class, DatasetMixin.class,
                   DatasetSearchResult.class, DatasetMixin.class,
-                  Download.class, LicenseMixin.class
+                  Download.class, LicenseMixin.class,
+                  Occurrence.class, LicenseMixin.class
           );
 
   /**
