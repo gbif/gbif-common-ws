@@ -6,6 +6,12 @@ package org.gbif.ws.util;
 public class WebserviceParameter {
 
   /**
+   * The query string for searches.
+   * Repeated in SearchConstants, couldnt resolve dependencies.
+   */
+  public static final String PARAM_QUERY_STRING = "q";
+
+  /**
    * Facet param name.
    */
   public static final String PARAM_FACET = "facet";
@@ -19,12 +25,16 @@ public class WebserviceParameter {
 
   public static final String PARAM_FACET_OFFSET = "facetOffset";
 
-  public static final String PARAM_HIGHLIGHT = "hl";
-
   /**
    * Parameter min count of facets, facets with less than this valued sholdn't be included in the response.
    */
   public static final String PARAM_FACET_MINCOUNT = "facetMincount";
+
+  public static final String PARAM_HIGHLIGHT = "hl";
+
+  public static final String PARAM_HIGHLIGHT_FIELD = "hlField";
+
+  public static final String PARAM_HIGHLIGHT_CONTEXT = "hlContext";
 
   /**
    * spellCheck parameter.
@@ -37,10 +47,14 @@ public class WebserviceParameter {
   public static final String PARAM_SPELLCHECK_COUNT = "spellCheckCount";
 
   /**
-   * The query string for searches.
-   * Repeated in SearchConstants, couldnt resolve dependencies.
+   *
    */
-  public static final String PARAM_QUERY_STRING = "q";
+  public static final String PARAM_EXTENDED = "extended";
+
+  /**
+   * Search match type parameter
+   */
+  public static final String PARAM_MATCH = "match";
 
   public static final String DEFAULT_SEARCH_PARAM_VALUE = "*";
 

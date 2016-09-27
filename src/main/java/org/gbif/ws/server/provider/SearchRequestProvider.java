@@ -25,6 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.core.spi.component.ComponentContext;
@@ -87,8 +88,10 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     try {
       RT req = requestType.newInstance();
       return getSearchRequest(context, req);
-    } catch (InstantiationException e) {
-    } catch (IllegalAccessException e) {
+
+    } catch (InstantiationException | IllegalAccessException e) {
+      // should never happen
+      Throwables.propagate(e);
     }
     return null;
   }
@@ -106,6 +109,16 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     searchRequest.copyPagingValues(PageableProvider.getPagingRequest(context));
 
     final MultivaluedMap<String, String> params = context.getRequest().getQueryParameters();
+
+    getSearchRequestFromQueryParams(searchRequest, params);
+
+    return searchRequest;
+  }
+
+  /**
+   * Override this method for populating specific search/suggest requests
+   */
+  protected void getSearchRequestFromQueryParams(RT searchRequest, final MultivaluedMap<String, String> params) {
     final String q = params.getFirst(PARAM_QUERY_STRING);
     final String highlightValue = params.getFirst(PARAM_HIGHLIGHT);
     final String spellCheck = params.getFirst(PARAM_SPELLCHECK);
@@ -131,8 +144,6 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
 
     // find search parameter enum based filters
     setSearchParams(searchRequest, params);
-
-    return searchRequest;
   }
 
   /**
