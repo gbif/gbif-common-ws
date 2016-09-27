@@ -20,6 +20,7 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_CONTEXT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_FIELD;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_FIELD;
 
 /**
  *
@@ -56,8 +57,9 @@ public class NameUsageSearchRequestProviderTest extends TestCase {
     params.add(PARAM_FACET, NameUsageSearchParameter.DATASET_KEY.name());
     params.add(PARAM_HIGHLIGHT, Boolean.TRUE.toString());
     params.add(PARAM_HIGHLIGHT_CONTEXT, String.valueOf(250));
-    params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.HighlightField.DESCRIPTION.name());
-    params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.HighlightField.VERNACULAR.name());
+    params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.QueryField.DESCRIPTION.name());
+    params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.QueryField.VERNACULAR.name());
+    params.add(PARAM_QUERY_FIELD, NameUsageSearchRequest.QueryField.VERNACULAR.name());
 
     NameUsageSearchRequest x = provider.getValue(ctx);
     assertTrue(x.getFacets().contains(NameUsageSearchParameter.HABITAT));
@@ -66,9 +68,13 @@ public class NameUsageSearchRequestProviderTest extends TestCase {
 
     assertTrue(x.isHighlight());
     assertEquals((Integer)250, x.getHighlightContext());
+
     assertEquals(2, x.getHighlightFields().size());
-    assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.HighlightField.DESCRIPTION));
-    assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.HighlightField.VERNACULAR));
+    assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.QueryField.DESCRIPTION));
+    assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.QueryField.VERNACULAR));
+
+    assertEquals(1, x.getQueryFields().size());
+    assertTrue(x.getQueryFields().contains(NameUsageSearchRequest.QueryField.VERNACULAR));
   }
 
   @Test

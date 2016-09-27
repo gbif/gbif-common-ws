@@ -31,7 +31,7 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_EXTENDED;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_CONTEXT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_FIELD;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_MATCH;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_FIELD;
 
 @Provider
 @Singleton
@@ -51,9 +51,10 @@ public class NameUsageSearchRequestProvider extends FacetedSearchRequestProvider
       request.setExtended(Boolean.parseBoolean(p));
     }
 
-    p = params.getFirst(PARAM_MATCH);
+    p = params.getFirst(PARAM_QUERY_FIELD);
     if (!Strings.isNullOrEmpty(p)) {
-      request.setMatch(VocabularyUtils.lookupEnum(p, NameUsageSearchRequest.MatchType.class));
+      request.getQueryFields().clear();
+      request.getQueryFields().add(VocabularyUtils.lookupEnum(p, NameUsageSearchRequest.QueryField.class));
     }
 
     p = params.getFirst(PARAM_HIGHLIGHT_CONTEXT);
@@ -62,9 +63,10 @@ public class NameUsageSearchRequestProvider extends FacetedSearchRequestProvider
     }
 
     if (params.containsKey(PARAM_HIGHLIGHT_FIELD)) {
+      request.getHighlightFields().clear();
       for (String val : params.get(PARAM_HIGHLIGHT_FIELD)) {
         if (!Strings.isNullOrEmpty(val)) {
-          request.getHighlightFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.HighlightField.class));
+          request.getHighlightFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.QueryField.class));
         }
       }
     }

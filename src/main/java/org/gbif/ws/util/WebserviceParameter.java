@@ -12,6 +12,11 @@ public class WebserviceParameter {
   public static final String PARAM_QUERY_STRING = "q";
 
   /**
+   * The query fields to search within.
+   */
+  public static final String PARAM_QUERY_FIELD = "qField";
+
+  /**
    * Facet param name.
    */
   public static final String PARAM_FACET = "facet";
@@ -50,11 +55,6 @@ public class WebserviceParameter {
    *
    */
   public static final String PARAM_EXTENDED = "extended";
-
-  /**
-   * Search match type parameter
-   */
-  public static final String PARAM_MATCH = "match";
 
   public static final String DEFAULT_SEARCH_PARAM_VALUE = "*";
 
