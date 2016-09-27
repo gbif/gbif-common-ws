@@ -60,6 +60,7 @@ public class NameUsageSearchRequestProviderTest extends TestCase {
     params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.QueryField.DESCRIPTION.name());
     params.add(PARAM_HIGHLIGHT_FIELD, NameUsageSearchRequest.QueryField.VERNACULAR.name());
     params.add(PARAM_QUERY_FIELD, NameUsageSearchRequest.QueryField.VERNACULAR.name());
+    params.add(PARAM_QUERY_FIELD, NameUsageSearchRequest.QueryField.SCIENTIFIC.name());
 
     NameUsageSearchRequest x = provider.getValue(ctx);
     assertTrue(x.getFacets().contains(NameUsageSearchParameter.HABITAT));
@@ -73,8 +74,9 @@ public class NameUsageSearchRequestProviderTest extends TestCase {
     assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.QueryField.DESCRIPTION));
     assertTrue(x.getHighlightFields().contains(NameUsageSearchRequest.QueryField.VERNACULAR));
 
-    assertEquals(1, x.getQueryFields().size());
+    assertEquals(2, x.getQueryFields().size());
     assertTrue(x.getQueryFields().contains(NameUsageSearchRequest.QueryField.VERNACULAR));
+    assertTrue(x.getQueryFields().contains(NameUsageSearchRequest.QueryField.SCIENTIFIC));
   }
 
   @Test

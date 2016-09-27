@@ -51,12 +51,6 @@ public class NameUsageSearchRequestProvider extends FacetedSearchRequestProvider
       request.setExtended(Boolean.parseBoolean(p));
     }
 
-    p = params.getFirst(PARAM_QUERY_FIELD);
-    if (!Strings.isNullOrEmpty(p)) {
-      request.getQueryFields().clear();
-      request.getQueryFields().add(VocabularyUtils.lookupEnum(p, NameUsageSearchRequest.QueryField.class));
-    }
-
     p = params.getFirst(PARAM_HIGHLIGHT_CONTEXT);
     if (!Strings.isNullOrEmpty(p)) {
       request.setHighlightContext(Integer.parseInt(p));
@@ -67,6 +61,15 @@ public class NameUsageSearchRequestProvider extends FacetedSearchRequestProvider
       for (String val : params.get(PARAM_HIGHLIGHT_FIELD)) {
         if (!Strings.isNullOrEmpty(val)) {
           request.getHighlightFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.QueryField.class));
+        }
+      }
+    }
+
+    if (params.containsKey(PARAM_QUERY_FIELD)) {
+      request.getQueryFields().clear();
+      for (String val : params.get(PARAM_QUERY_FIELD)) {
+        if (!Strings.isNullOrEmpty(val)) {
+          request.getQueryFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.QueryField.class));
         }
       }
     }
