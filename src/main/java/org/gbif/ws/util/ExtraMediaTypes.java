@@ -25,6 +25,13 @@ public class ExtraMediaTypes {
   public static final String APPLICATION_JAVASCRIPT = "application/javascript";
   public static final MediaType APPLICATION_JAVASCRIPT_TYPE = new MediaType("application", "javascript");
 
+  public static final String TEXT_CSV = "text/csv";
+  public static final MediaType TEXT_CSV_TYPE = new MediaType("text", "csv");
+
+  public static final String TEXT_TSV = "text/tab-separated-values";
+  public static final MediaType TEXT_TSV_TYPE = new MediaType("text", "tab-separated-values");
+
+
   /**
    * Darwin Core archive media type with underlying zip structure.
    * Use carefully, it's an unregistered media type, in most of the cases it is more appropriate to return a simple
