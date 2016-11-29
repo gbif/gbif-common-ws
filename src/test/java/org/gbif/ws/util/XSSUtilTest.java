@@ -38,6 +38,7 @@ public class XSSUtilTest {
       {"http://www.gbif.org/index.php?name=<script>window.onload = function() {var link=document.getElementsByTagName(\"a\");link[0].href=\"http://not-real-xssattackexamples.com/\";}</script>", true,
               "http://www.gbif.org/index.php?name="},
       {"http://www.gbif.org/dataset/search?q=<iframe>frame it</iframe>", true, "http://www.gbif.org/dataset/search?q="},
+      {"http://www.gbif.org/login.do?email=\"><img src=x onerror=prompt(/XSS/)>", true, "http://www.gbif.org/login.do?email=\">"},
 
       // do not contain xss
       {"http://www.gbif.org/ipt", false, null},

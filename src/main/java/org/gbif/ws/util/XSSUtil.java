@@ -30,6 +30,8 @@ public class XSSUtil {
     Pattern.compile("<iframe>(.*?)</iframe>", Pattern.CASE_INSENSITIVE),
     // Remove any lonesome <script ...> tag
     Pattern.compile("<script(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+    // Remove any lonesome <img ...> tag
+    Pattern.compile("<img(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
     // Avoid eval(...) expressions
     Pattern.compile("eval\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
     // Avoid expression(...) expressions
