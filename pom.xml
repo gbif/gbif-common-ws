@@ -31,11 +31,11 @@
   </distributionManagement>
 
   <properties>
-    <jdkLevel>1.7</jdkLevel>
+    <jdkLevel>1.8</jdkLevel>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.47</gbif-api.version>
-    <gbif-common.version>0.28</gbif-common.version>
+    <gbif-api.version>0.50</gbif-api.version>
+    <gbif-common.version>0.32</gbif-common.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.64</grizzly-servlet-webserver.version>
     <guava.version>18.0</guava.version>
@@ -46,14 +46,14 @@
          because of http://jira.codehaus.org/browse/JACKSON-757
          Jersey 1.19 comes with jackson 1.9.2, so its a minor update only -->
     <jackson.version>1.9.13</jackson.version>
-    <jersey.version>1.19</jersey.version>
+    <jersey.version>1.19.3</jersey.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
     <junit.version>4.12</junit.version>
-    <logback.version>1.1.7</logback.version>
+    <logback.version>1.1.9</logback.version>
     <mockito.version>1.9.5</mockito.version>
     <servlet-api.version>3.0.1</servlet-api.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <slf4j.version>1.7.22</slf4j.version>
     <validation-api.version>1.1.0.Final</validation-api.version>
   </properties>
 
