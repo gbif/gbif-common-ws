@@ -10,7 +10,9 @@ import com.sun.jersey.spi.container.ContainerResponse;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 
 /**
- * Filter that updates http headers when a new resource is successfully created via a POST request.
+ * Filter that updates http headers when a new resource is successfully created via a POST request unless
+ * the response returns 204 No Content.
+ * 
  * The following headers are added or replaced if they existed:
  * <ul>
  *   <li>Http response code 201</li>
@@ -22,8 +24,10 @@ public class CreatedResponseFilter implements ContainerResponseFilter {
   @Override
   public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
 
-    if (request.getMethod() != null && "post".equalsIgnoreCase(request.getMethod()) && response.getStatusType() != null
-        && response.getStatusType().getFamily() == Response.Status.Family.SUCCESSFUL) {
+    if (request.getMethod() != null && "post".equalsIgnoreCase(request.getMethod())
+            && response.getStatusType() != null
+            && !Response.Status.NO_CONTENT.equals(response.getStatusType())
+            && response.getStatusType().getFamily() == Response.Status.Family.SUCCESSFUL) {
 
       response.setStatus(HttpURLConnection.HTTP_CREATED);
       // if response contains the key, also set Location
