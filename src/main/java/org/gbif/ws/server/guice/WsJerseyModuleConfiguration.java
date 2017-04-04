@@ -1,5 +1,6 @@
 package org.gbif.ws.server.guice;
 
+import org.gbif.ws.server.filter.AuthFilter;
 import org.gbif.ws.server.filter.CreatedResponseFilter;
 import org.gbif.ws.server.filter.CrossDomainResponseFilter;
 import org.gbif.ws.server.filter.JsonpResponseFilter;
@@ -19,7 +20,9 @@ import com.sun.jersey.spi.container.ContainerResponseFilter;
 public class WsJerseyModuleConfiguration {
 
   private String resourcePackages;
+
   private Boolean installAuthenticationFilter;
+  private Class<? extends ContainerRequestFilter> authenticationFilterClass;
 
   private List<Class<? extends ContainerResponseFilter>> defaultResponseFilters = Lists.newArrayList();
   private List<Class<? extends ContainerResponseFilter>> responseFilters = Lists.newArrayList();
@@ -47,6 +50,16 @@ public class WsJerseyModuleConfiguration {
    */
   public WsJerseyModuleConfiguration installAuthenticationFilter(boolean installAuthenticationFilter) {
     this.installAuthenticationFilter = installAuthenticationFilter;
+    return this;
+  }
+
+  /**
+   * Allows to use a custom authentication filter instead of the default {@link AuthFilter}.
+   */
+  public WsJerseyModuleConfiguration useAuthenticationFilter(Class<? extends ContainerRequestFilter>
+                                                                     authenticationFilterClass) {
+    this.installAuthenticationFilter = true;
+    this.authenticationFilterClass = authenticationFilterClass;
     return this;
   }
 
@@ -83,6 +96,10 @@ public class WsJerseyModuleConfiguration {
 
   public Boolean isInstallAuthenticationFilter() {
     return installAuthenticationFilter;
+  }
+
+  public Class<? extends ContainerRequestFilter> getAuthenticationFilterClass() {
+    return authenticationFilterClass;
   }
 
   public List<Class<? extends ContainerResponseFilter>> getDefaultResponseFilters() {

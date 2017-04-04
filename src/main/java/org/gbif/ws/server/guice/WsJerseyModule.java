@@ -124,7 +124,13 @@ public class WsJerseyModule extends JerseyServletModule {
     // request filters
     LinkedList<Class<? extends ContainerRequestFilter>> reqFilters = Lists.newLinkedList();
     if (config.isInstallAuthenticationFilter()) {
-      reqFilters.addFirst(AuthFilter.class);
+      if(config.getAuthenticationFilterClass() != null) {
+        reqFilters.addFirst(config.getAuthenticationFilterClass());
+      }
+      else{
+        reqFilters.addFirst(AuthFilter.class);
+      }
+
     }
     reqFilters.addFirst(RequestHeaderParamUpdateFilter.class);
     reqFilters.addAll(config.getRequestFilters());
