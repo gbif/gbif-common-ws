@@ -34,8 +34,8 @@
     <jdkLevel>1.8</jdkLevel>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.50</gbif-api.version>
-    <gbif-common.version>0.32</gbif-common.version>
+    <gbif-api.version>0.52</gbif-api.version>
+    <gbif-common.version>0.34</gbif-common.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <grizzly-servlet-webserver.version>1.9.64</grizzly-servlet-webserver.version>
     <guava.version>18.0</guava.version>
