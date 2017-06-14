@@ -38,16 +38,10 @@ public class HttpGbifAuthFilterTest {
   ArgumentCaptor<ClientRequestAdapter> captor = ArgumentCaptor.forClass(ClientRequestAdapter.class);
 
   @Before
-  public void setupMock() throws URISyntaxException {
+  public void setUp() throws URISyntaxException {
     headers = new OutBoundHeaders();
     entity = "Simsalabim";
     uri = new URI("http://localhost/dataset");
-    when(mockRequest.getURI()).thenReturn(uri);
-    when(mockRequest.getMethod()).thenReturn("POST");
-    when(mockRequest.getEntity()).thenReturn(entity);
-    // we instantiate a real request here, because there is no implementation of MultivaluedMap<String, Object>
-    when(mockRequest.getHeaders()).thenReturn(headers);
-    when(mockRequest.getAdapter()).thenReturn(origAdapter);
   }
 
   @Test
@@ -75,6 +69,12 @@ public class HttpGbifAuthFilterTest {
 
   @Test
   public void testHandleWithPrincipal() throws Exception {
+    when(mockRequest.getURI()).thenReturn(uri);
+    when(mockRequest.getMethod()).thenReturn("POST");
+    when(mockRequest.getEntity()).thenReturn(entity);
+    // we instantiate a real request here, because there is no implementation of MultivaluedMap<String, Object>
+    when(mockRequest.getHeaders()).thenReturn(headers);
+
     pp.setPrincipal("Søren");
 
     execute();
