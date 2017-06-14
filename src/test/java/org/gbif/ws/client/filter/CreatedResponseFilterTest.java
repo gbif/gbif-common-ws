@@ -33,43 +33,46 @@ public class CreatedResponseFilterTest {
 
   private CreatedResponseFilter filter = new CreatedResponseFilter();
   private MultivaluedMap<String, String> params;
+  private MultivaluedMap<String, Object> headers;
   private Object content;
-  @Before
-  public void setUp() {
-    params = new MultivaluedMapImpl();
-    when(mockRequest.getQueryParameters()).thenReturn(params);
-    MultivaluedMap<String, Object> headers = new StringKeyIgnoreCaseMultivaluedMap<Object>();
-    when(mockResponse.getHttpHeaders()).thenReturn(headers);
-    when(mockResponse.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
-    when(mockResponse.getStatus()).thenReturn(200);
-    when(mockResponse.getStatusType()).thenReturn(ClientResponse.Status.OK);
-    when(mockRequest.getMethod()).thenReturn("POST");
-    content = UUID.randomUUID();
-    when(mockResponse.getEntity()).thenReturn(content);
-    when(mockRequest.getRequestUriBuilder()).thenReturn(UriBuilder.fromUri("http://api.gbif.org/node"));
-  }
-
+  
   @Mock
   ContainerResponse mockResponse;
 
   @Mock
   ContainerRequest mockRequest;
 
+  @Before
+  public void setUp() {
+    params = new MultivaluedMapImpl();
+    headers = new StringKeyIgnoreCaseMultivaluedMap<Object>();
+    content = UUID.randomUUID();
+  }
+
   @Test
   public void testEmptyEntity() {
+    when(mockResponse.getHttpHeaders()).thenReturn(headers);
+    when(mockResponse.getStatusType()).thenReturn(ClientResponse.Status.OK);
+    when(mockRequest.getMethod()).thenReturn("POST");
+    when(mockResponse.getEntity()).thenReturn(content);
     setContent(null);
     assertNoLocationHeader(filter.filter(mockRequest, mockResponse));
   }
 
   @Test
   public void testWrongMethod() {
+    when(mockResponse.getHttpHeaders()).thenReturn(headers);
     when(mockRequest.getMethod()).thenReturn("PUT");
+    when(mockResponse.getEntity()).thenReturn(content);
     assertNoLocationHeader(filter.filter(mockRequest, mockResponse));
   }
 
   @Test
   public void testWrongReturnType() {
+    when(mockResponse.getHttpHeaders()).thenReturn(headers);
+    when(mockResponse.getStatusType()).thenReturn(ClientResponse.Status.OK);
     when(mockRequest.getMethod()).thenReturn("POST");
+    when(mockResponse.getEntity()).thenReturn(content);
     Map<String, Integer > data = Maps.newHashMap();
     data.put("feel", 17);
     data.put("act", 21);
@@ -87,6 +90,11 @@ public class CreatedResponseFilterTest {
 
   @Test
   public void testSuccessfulPost() {
+    when(mockResponse.getHttpHeaders()).thenReturn(headers);
+    when(mockResponse.getStatusType()).thenReturn(ClientResponse.Status.OK);
+    when(mockRequest.getMethod()).thenReturn("POST");
+    when(mockResponse.getEntity()).thenReturn(content);
+    when(mockRequest.getRequestUriBuilder()).thenReturn(UriBuilder.fromUri("http://api.gbif.org/node"));
     content = UUID.randomUUID();
     when(mockResponse.getEntity()).thenReturn(content);
 
