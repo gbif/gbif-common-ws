@@ -23,6 +23,7 @@ import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.spi.container.ContainerRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,6 +209,7 @@ public class GbifAuthService {
 
     // the proxied username
     request.getHeaders().putSingle(HEADER_GBIF_USER, username);
+
     // the canonical path header
     request.getHeaders().putSingle(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getURI()));
     // adds content md5
@@ -225,6 +227,7 @@ public class GbifAuthService {
     }
     // sign
     String signature = buildSignature(stringToSign, secretKey);
+
     // build authorization header string
     String header = buildAuthHeader(appKey, signature);
     // add authorization header
@@ -246,6 +249,21 @@ public class GbifAuthService {
       LOG.error("Failed to serialize http entity [{}]", entity);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Tries to get the appkey from the request header.
+   * @param requestHeaderAccessor lambda expression to access the headers of a request.
+   * @return the appkey found or null
+   */
+  public static String getAppKeyFromRequest(RequestHeaderAccessor requestHeaderAccessor) {
+    if(StringUtils.startsWith(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION), GBIF_SCHEME + " ")) {
+      String[] values = COLON_PATTERN.split(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION).substring(5), 2);
+      if (values.length == 2) {
+        return values[0];
+      }
+    }
+    return null;
   }
 
   public boolean isValidRequest(ContainerRequest request) {

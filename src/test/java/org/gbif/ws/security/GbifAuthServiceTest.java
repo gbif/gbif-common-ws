@@ -180,13 +180,19 @@ public class GbifAuthServiceTest {
   public void testIsValid() throws Exception {
 
     GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
-
     service.signRequest("heinz", mockRequest);
-
     assertTrue(service.isValidRequest(containerRequest));
 
     headers.putSingle(HEADER_CONTENT_MD5, "73");
     assertFalse(service.isValidRequest(containerRequest));
+  }
+
+  @Test
+  public void testGetAppKeyFromRequest() throws Exception {
+    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
+    service.signRequest("heinz", mockRequest);
+    assertEquals(APPKEY,
+            GbifAuthService.getAppKeyFromRequest((headerName) -> mockRequest.getHeaders().getFirst(headerName).toString()));
   }
 
   /**
