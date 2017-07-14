@@ -26,9 +26,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ *
  * Future replacement for common-ws AuthFilter
+ *
+ * Server filter that looks for a http BasicAuthentication with user accounts based on a {@link IdentityAccessService}
+ * or GBIF trusted application schema to impersonate a user and populates the security context.
+ *
+ * As we have another custom authorization filter in the registry that understands a registry internal authentication,
+ * all Basic authentication requests that have a UUID as the username are simply passed through and passwords are not
+ * evaluated.
  */
-public class IdentifyFilter implements ContainerRequestFilter {
+public class IdentityFilter implements ContainerRequestFilter {
 
   private static class Authorizer implements SecurityContext {
 
@@ -88,7 +96,7 @@ public class IdentifyFilter implements ContainerRequestFilter {
     }
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(IdentifyFilter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IdentityFilter.class);
 
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
   private final IdentityAccessService identityAccessService;
@@ -98,7 +106,7 @@ public class IdentifyFilter implements ContainerRequestFilter {
   private static final String BASIC_SCHEME_PREFIX = "Basic ";
 
   /**
-   * IdentifyFilter constructor
+   * IdentityFilter constructor
    * In case {@link GbifAuthService} is not provided, this class will reject all authentications
    * on the GBIF scheme prefix.
    *
@@ -106,7 +114,7 @@ public class IdentifyFilter implements ContainerRequestFilter {
    * @param authService     nullable GbifAuthService
    */
   @Inject
-  public IdentifyFilter(@NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {
+  public IdentityFilter(@NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {
     Objects.requireNonNull(identityAccessService, "identityAccessService shall be provided");
     this.identityAccessService = identityAccessService;
     this.authService = authService;
