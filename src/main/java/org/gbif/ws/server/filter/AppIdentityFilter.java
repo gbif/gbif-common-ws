@@ -44,7 +44,7 @@ public class AppIdentityFilter implements ContainerRequestFilter {
 
   public static final  String APPKEYS_WHITELIST = "identity.appkeys.whitelist";
 
-  //FIXME should have its own scheme
+  //FIXME should probably have its own scheme but that would requires to change {@link GbifAuthService)
   private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + " ";
   private static final Logger LOG = LoggerFactory.getLogger(AppIdentityFilter.class);
 

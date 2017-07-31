@@ -1,7 +1,7 @@
 package org.gbif.ws.json;
 
+import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.ContextResolver;
@@ -48,6 +48,18 @@ public class JacksonJsonContextResolver implements ContextResolver<ObjectMapper>
       MAPPER.getSerializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
       MAPPER.getDeserializationConfig().addMixInAnnotations(classClassEntry.getKey(), classClassEntry.getValue());
     }
+  }
+
+  /**
+   * Disable Jackson's SerializationConfig.Feature.
+   * @param features
+   */
+  public static void disableFeature(List<SerializationConfig.Feature> features) {
+    if (features == null) {
+      return;
+    }
+    features.stream()
+            .forEach(f -> MAPPER.configure(f, false));
   }
 
   @Override

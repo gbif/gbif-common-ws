@@ -4,6 +4,7 @@ import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.json.JacksonJsonContextResolver;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -16,6 +17,7 @@ import com.google.inject.Module;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
+import org.codehaus.jackson.map.SerializationConfig;
 
 /**
  * A basic servlet listener for all our webservices.
@@ -144,12 +146,22 @@ public abstract class GbifServletListener extends GuiceServletContextListener {
     return Maps.newHashMap();
   }
 
+  /**
+   * Get the list of additional SerializationConfig.Feature that should be disabled from the shared ObjectMapper.
+   *
+   * @return list of SerializationConfig.Feature, empty, or null
+   */
+  protected List<SerializationConfig.Feature> getAdditionalDisabledFeature() {
+    return Collections.emptyList();
+  }
+
   @Override
   protected synchronized Injector getInjector() {
     if (injector == null) {
 
       // configure Jackson MixIns
       JacksonJsonContextResolver.addMixIns(getMixIns());
+      JacksonJsonContextResolver.disableFeature(getAdditionalDisabledFeature());
 
       List<Module> modules = getModules(properties);
       modules.add(new WsJerseyModule(moduleConfig));
