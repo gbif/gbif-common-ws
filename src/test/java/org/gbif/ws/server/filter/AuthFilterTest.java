@@ -20,9 +20,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -70,22 +70,14 @@ public class AuthFilterTest {
   }
 
   @Before
-  public void initMocks() {
-    when(userService.get(Matchers.<String>eq("admin"))).thenReturn(admin);
-    when(userService.authenticate(Matchers.<String>eq("admin"), Matchers.<String>any())).thenReturn(admin);
-    when(userService.get(Matchers.<String>eq("heinz"))).thenReturn(heinz);
-    when(userService.authenticate(Matchers.<String>eq("heinz"), Matchers.<String>any())).thenReturn(heinz);
-    // setup basic POST request
-    when(mockRequest.getQueryParameters()).thenReturn(new MultivaluedMapImpl());
-    when(mockRequest.getMethod()).thenReturn("POST");
-    setMockAuth(null);
-
+  public void setUp() {
     GbifAuthService authService = GbifAuthService.multiKeyAuthService(GbifAuthServiceTest.buildAppKeyMap());
     filter = new AuthFilter(userService, authService);
   }
 
   @Test
   public void testFilterWithAnonymous() throws Exception {
+    setMockAuth(null);
     assertPrincipalName(null);
 
     setMockAuth("");
@@ -103,6 +95,7 @@ public class AuthFilterTest {
 
   @Test
   public void testFilterWithBasicHeinz() throws Exception {
+    when(userService.authenticate(ArgumentMatchers.<String>eq("heinz"), ArgumentMatchers.<String>any())).thenReturn(heinz);
     setMockAuth(heinzAuthBasic);
     assertPrincipalName("heinz");
   }
@@ -117,7 +110,7 @@ public class AuthFilterTest {
 
   @Test
   public void testFilterWithGET() throws Exception {
-    when(mockRequest.getMethod()).thenReturn("GET");
+    setMockAuth(null);
     assertPrincipalName(null);
   }
 
@@ -155,7 +148,7 @@ public class AuthFilterTest {
   }
 
   private void setMockAuth(String authentication) {
-    when(mockRequest.getHeaderValue(Matchers.<String>eq(ContainerRequest.AUTHORIZATION))).thenReturn(authentication);
+    when(mockRequest.getHeaderValue(ArgumentMatchers.<String>eq(ContainerRequest.AUTHORIZATION))).thenReturn(authentication);
   }
 
 }

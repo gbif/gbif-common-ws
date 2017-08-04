@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.gbif.ws.security.GbifAuthService.HEADER_AUTHORIZATION;
 import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_MD5;
@@ -49,6 +49,8 @@ public class GbifAuthServiceTest {
   @Mock
   ClientRequest mockRequest;
   MultivaluedMap<String, Object> headers;
+  
+  private URI testUri;
 
   private static class HeaderWrapper implements MultivaluedMap<String, String> {
 
@@ -143,11 +145,33 @@ public class GbifAuthServiceTest {
   }
 
   @Before
-  public void initMocks() throws Exception {
-    URI uri = new URI("http://api.gbif.org/v1/dataset");
-    when(mockRequest.getURI()).thenReturn(uri);
-    when(containerRequest.getRequestUri()).thenReturn(uri);
-    when(containerRequest.getAbsolutePath()).thenReturn(uri);
+  public void setUp() throws Exception {
+    testUri = new URI("http://api.gbif.org/v1/dataset");
+  }
+
+  @Test
+  public void testSignRequest() throws Exception {
+    when(mockRequest.getURI()).thenReturn(testUri);
+
+    when(mockRequest.getMethod()).thenReturn("POST");
+
+    Object entity = "Simsalabim";
+    when(mockRequest.getEntity()).thenReturn(entity);
+    // we instantiate a real request here, because there is no implementation of MultivaluedMap<String, Object>
+    headers = new OutBoundHeaders();
+    when(mockRequest.getHeaders()).thenReturn(headers);
+	  
+    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
+    service.signRequest("heinz", mockRequest);
+
+    assertNotNull(headers.getFirst(HEADER_CONTENT_MD5));
+    assertEquals("heinz", headers.getFirst(HEADER_GBIF_USER));
+    assertTrue(headers.getFirst(HEADER_AUTHORIZATION).toString().startsWith("GBIF appKey:"));
+  }
+
+  @Test
+  public void testIsValid() throws Exception {
+    when(mockRequest.getURI()).thenReturn(testUri);
 
     when(mockRequest.getMethod()).thenReturn("POST");
     when(containerRequest.getMethod()).thenReturn("POST");
@@ -159,25 +183,6 @@ public class GbifAuthServiceTest {
     when(mockRequest.getHeaders()).thenReturn(headers);
     when(containerRequest.getRequestHeaders()).thenReturn(new HeaderWrapper(headers));
     when(containerRequest.getHeaderValue(eq(HEADER_AUTHORIZATION))).thenCallRealMethod();
-    when(containerRequest.getHeaderValue(eq(HEADER_CONTENT_TYPE))).thenCallRealMethod();
-    when(containerRequest.getHeaderValue(eq(HEADER_CONTENT_MD5))).thenCallRealMethod();
-    when(containerRequest.getHeaderValue(eq(HEADER_GBIF_USER))).thenCallRealMethod();
-
-  }
-
-  @Test
-  public void testSignRequest() throws Exception {
-
-    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
-    service.signRequest("heinz", mockRequest);
-
-    assertNotNull(headers.getFirst(HEADER_CONTENT_MD5));
-    assertEquals("heinz", headers.getFirst(HEADER_GBIF_USER));
-    assertTrue(headers.getFirst(HEADER_AUTHORIZATION).toString().startsWith("GBIF appKey:"));
-  }
-
-  @Test
-  public void testIsValid() throws Exception {
 
     GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
     service.signRequest("heinz", mockRequest);

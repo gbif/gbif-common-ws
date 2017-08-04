@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -80,7 +80,6 @@ public class JsonpResponseFilterTest {
   @Test
   public void testEmptyAndMissingCallback() {
     when(mockResponse.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
-    when(mockResponse.getEntity()).thenReturn("{id:1}");
 
     assertEquals(mockResponse, filter.filter(mockRequest, mockResponse));
     verify(mockResponse, never()).setEntity(any());
