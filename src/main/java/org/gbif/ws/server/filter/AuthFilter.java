@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @Deprecated, {@link IdentityFilter} should be use instead.
+ *
  * Server filter that looks for a http BasicAuthentication with user accounts based on a {@link UserService}
  * or GBIF trusted application schema and populates the security context in case of non GET requests.
  *
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * all Basic authentication requests that have a UUID as the username are simply passed through and passwords are not
  * evaluated.
  */
+@Deprecated
 public class AuthFilter implements ContainerRequestFilter {
 
   public class Authorizer implements SecurityContext {
