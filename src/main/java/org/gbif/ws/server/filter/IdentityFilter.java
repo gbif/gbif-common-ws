@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * Future replacement for common-ws AuthFilter
+ * Replacement for {@link AuthFilter}.
  *
  * Server filter that looks for a http BasicAuthentication with user accounts based on a {@link IdentityAccessService}
  * or GBIF trusted application schema to impersonate a user and populates the security context.
@@ -200,9 +200,9 @@ public class IdentityFilter implements ContainerRequestFilter {
     }
 
     //check if we have a request that impersonates a user
-    //Note: using an Anonymous Authorizer is probably not the best thing to do here
-    //we should consider
     GbifUser user = identityAccessService.get(username);
+    //Note: using an Anonymous Authorizer is probably not the best thing to do here
+    //we should consider simply return null to let another filter handle it
     return user == null ? Authorizer.getAnonymous(request.isSecure())
             : Authorizer.getAuthorizer(user, GbifAuthService.GBIF_SCHEME, request.isSecure());
   }
