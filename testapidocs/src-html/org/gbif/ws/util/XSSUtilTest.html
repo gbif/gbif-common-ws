@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.ws.util;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Arrays;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.junit.Test;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.junit.runner.RunWith;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.junit.runners.Parameterized;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import static org.junit.Assert.assertEquals;<a name="line.9"></a>
+<span class="sourceLineNo">010</span><a name="line.10"></a>
+<span class="sourceLineNo">011</span>@RunWith(value = Parameterized.class)<a name="line.11"></a>
+<span class="sourceLineNo">012</span>public class XSSUtilTest {<a name="line.12"></a>
+<span class="sourceLineNo">013</span>  // decoded request, header, or parameter<a name="line.13"></a>
+<span class="sourceLineNo">014</span>  private String value;<a name="line.14"></a>
+<span class="sourceLineNo">015</span><a name="line.15"></a>
+<span class="sourceLineNo">016</span>  // value expected after stripXSS is called<a name="line.16"></a>
+<span class="sourceLineNo">017</span>  private String stripXSSValue;<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>  // true if request contains XSS, or false otherwise<a name="line.19"></a>
+<span class="sourceLineNo">020</span>  private boolean containsXSS;<a name="line.20"></a>
+<span class="sourceLineNo">021</span><a name="line.21"></a>
+<span class="sourceLineNo">022</span>  public XSSUtilTest(String value, boolean containsXSS, String stripXSSValue) {<a name="line.22"></a>
+<span class="sourceLineNo">023</span>    this.value = value;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>    this.containsXSS = containsXSS;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>    this.stripXSSValue = stripXSSValue;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>  }<a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span>  /**<a name="line.28"></a>
+<span class="sourceLineNo">029</span>   * Additional requests to test can be added here.<a name="line.29"></a>
+<span class="sourceLineNo">030</span>   */<a name="line.30"></a>
+<span class="sourceLineNo">031</span>  @Parameterized.Parameters<a name="line.31"></a>
+<span class="sourceLineNo">032</span>  public static Iterable&lt;Object[]&gt; data() {<a name="line.32"></a>
+<span class="sourceLineNo">033</span>    return Arrays.asList(new Object[][] {<a name="line.33"></a>
+<span class="sourceLineNo">034</span>      // contain xss<a name="line.34"></a>
+<span class="sourceLineNo">035</span>      {"http://localhost:8090/ipt/about.do?request_locale=\"'&gt;&lt;script&gt;alert(6227)&lt;/script&gt;&amp;email=\"'&gt;&lt;script&gt;alert(6227)&lt;/script&gt;&amp;password=\"'&gt;&lt;script&gt;alert(6227)&lt;/script&gt;&amp;login-submit=\"'&gt;&lt;script&gt;alert(6227)&lt;/script&gt;", true,<a name="line.35"></a>
+<span class="sourceLineNo">036</span>              "http://localhost:8090/ipt/about.do?request_locale=\"'&gt;&amp;email=\"'&gt;&amp;password=\"'&gt;&amp;login-submit=\"'&gt;"},<a name="line.36"></a>
+<span class="sourceLineNo">037</span>      {"http://www.gbif.org/dataset/search?q=\"&gt;&lt;script&gt;prompt('XSSPOSED')&lt;/script&gt;", true, "http://www.gbif.org/dataset/search?q=\"&gt;"},<a name="line.37"></a>
+<span class="sourceLineNo">038</span>      {"http://www.gbif.org/index.php?name=&lt;script&gt;window.onload = function() {var link=document.getElementsByTagName(\"a\");link[0].href=\"http://not-real-xssattackexamples.com/\";}&lt;/script&gt;", true,<a name="line.38"></a>
+<span class="sourceLineNo">039</span>              "http://www.gbif.org/index.php?name="},<a name="line.39"></a>
+<span class="sourceLineNo">040</span>      {"http://www.gbif.org/dataset/search?q=&lt;iframe&gt;frame it&lt;/iframe&gt;", true, "http://www.gbif.org/dataset/search?q="},<a name="line.40"></a>
+<span class="sourceLineNo">041</span>      {"http://www.gbif.org/login.do?email=\"&gt;&lt;img src=x onerror=prompt(/XSS/)&gt;", true, "http://www.gbif.org/login.do?email=\"&gt;"},<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>      // do not contain xss<a name="line.43"></a>
+<span class="sourceLineNo">044</span>      {"http://www.gbif.org/ipt", false, null},<a name="line.44"></a>
+<span class="sourceLineNo">045</span>      {"http://api.gbif.org/v1/occurrence/search?year=1800", false, null}});<a name="line.45"></a>
+<span class="sourceLineNo">046</span>  }<a name="line.46"></a>
+<span class="sourceLineNo">047</span><a name="line.47"></a>
+<span class="sourceLineNo">048</span>  @Test<a name="line.48"></a>
+<span class="sourceLineNo">049</span>  public void testContainsXSS() {<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    assertEquals(containsXSS, XSSUtil.containsXSS(value));<a name="line.50"></a>
+<span class="sourceLineNo">051</span><a name="line.51"></a>
+<span class="sourceLineNo">052</span>    if(containsXSS){<a name="line.52"></a>
+<span class="sourceLineNo">053</span>      assertEquals(stripXSSValue, XSSUtil.stripXSS(value));<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>  }<a name="line.55"></a>
+<span class="sourceLineNo">056</span><a name="line.56"></a>
+<span class="sourceLineNo">057</span>}<a name="line.57"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
