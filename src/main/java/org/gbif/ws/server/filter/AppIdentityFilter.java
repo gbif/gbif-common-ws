@@ -62,7 +62,7 @@ public class AppIdentityFilter implements ContainerRequestFilter {
   public ContainerRequest filter(final ContainerRequest containerRequest) {
 
     // Only try if no user principal is already there
-    if (containerRequest.getUserPrincipal() != null) {
+    if (containerRequest.getSecurityContext() != null && containerRequest.getUserPrincipal() != null) {
       return containerRequest;
     }
 

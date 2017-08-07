@@ -9,6 +9,7 @@ import org.gbif.ws.security.GbifAuthService;
 
 import java.security.Principal;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -178,7 +179,7 @@ public class IdentityFilter implements ContainerRequestFilter {
     return Authorizer.getAuthorizer(user, SecurityContext.BASIC_AUTH, isSecure);
   }
 
-  private Authorizer gbifAuthentication(ContainerRequest request) {
+  private Authorizer gbifAuthentication(final ContainerRequest request) {
     String username = request.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);
     if (Strings.isNullOrEmpty(username)) {
       LOG.warn("Missing gbif username header {}", GbifAuthService.HEADER_GBIF_USER);
@@ -204,7 +205,8 @@ public class IdentityFilter implements ContainerRequestFilter {
     //Note: using an Anonymous Authorizer is probably not the best thing to do here
     //we should consider simply return null to let another filter handle it
     return user == null ? Authorizer.getAnonymous(request.isSecure())
-            : Authorizer.getAuthorizer(user, GbifAuthService.GBIF_SCHEME, request.isSecure());
+            : Authorizer.getAuthorizer(user, GbifAuthService.GBIF_SCHEME,
+            Optional.ofNullable(request.getSecurityContext()).map(sc -> request.isSecure()).orElse(Boolean.FALSE));
   }
 
 }

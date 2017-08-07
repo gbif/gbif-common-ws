@@ -13,7 +13,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.sun.jersey.core.util.Base64;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.spi.container.ContainerRequest;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -33,6 +32,9 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Keep until {@link AuthFilter} is removed.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class AuthFilterTest {
 
@@ -40,6 +42,7 @@ public class AuthFilterTest {
   UserService userService;
   @Mock
   ContainerRequest mockRequest;
+
   ArgumentCaptor<SecurityContext> secCtxCaptor = ArgumentCaptor.forClass(SecurityContext.class);
 
   AuthFilter filter;

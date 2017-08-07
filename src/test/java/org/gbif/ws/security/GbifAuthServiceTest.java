@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -32,8 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -221,8 +218,8 @@ public class GbifAuthServiceTest {
    * @throws URISyntaxException
    */
   public static ContainerRequest createMockContainerRequestFor(String username, GbifAuthService service) throws URISyntaxException {
-    ContainerRequest containerRequest = mock(ContainerRequest.class);
-    ClientRequest mockRequest = mock(ClientRequest.class);
+    ContainerRequest containerRequest = mock(ContainerRequest.class, Mockito.CALLS_REAL_METHODS);
+    ClientRequest mockRequest = mock(ClientRequest.class, Mockito.CALLS_REAL_METHODS);
     when(mockRequest.getURI()).thenReturn(new URI("http://api.gbif.org/v1/dataset"));
     //shared map
     MultivaluedMap<String, Object> headers = new OutBoundHeaders();
@@ -236,11 +233,7 @@ public class GbifAuthServiceTest {
     service.signRequest(username, mockRequest);
 
     HeaderWrapper headersWrapper = new HeaderWrapper(headers);
-    when(containerRequest.getHeaderValue(anyString())).thenAnswer( invocation -> headersWrapper.getFirst(invocation.getArgument(0)));
     when(containerRequest.getRequestHeaders()).thenReturn(headersWrapper);
-
-    when(containerRequest.getUserPrincipal()).thenCallRealMethod();
-    Mockito.doCallRealMethod().when(containerRequest).setSecurityContext(any(SecurityContext.class));
 
     return containerRequest;
   }
