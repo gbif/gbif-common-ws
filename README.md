@@ -17,6 +17,9 @@ mvn clean install
 ## Change Log
 [Change Log](CHANGELOG.md)
 
+## Documentation
+[JavaDocs](http://gbif.github.io/gbif-common-ws/apidocs/)
+
 ## Limitation
 This library can not be easily updated to use Jersey 2.
 As stated in the [Jersey documentation](https://jersey.java.net/nonav/documentation/2.0/migration.html): " ... there are many incompatiblities between Jersey 1.x and Jersey 2.0"
