@@ -47,6 +47,10 @@ public class ExtraMediaTypes {
   public static final String APPLICATION_XZIP_COMPRESSED = "application/x-zip-compressed";
   public static final MediaType APPLICATION_XZIP_COMPRESSED_TYPE = new MediaType("application", "x-zip-compressed");
 
+  public static final String APPLICATION_GZIP = "application/gzip";
+  public static final MediaType APPLICATION_GZIP_TYPE = new MediaType("application", "gzip");
+
+
   /**
    * Darwin Core archive media type with underlying zip structure.
    * Use carefully, it's an unregistered media type, in most of the cases it is more appropriate to return a simple
