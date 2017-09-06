@@ -4,6 +4,11 @@ package org.gbif.ws.response;
  * Extended response status codes used by the GBIF Rest API.
  */
 public enum GbifResponseStatus {
+
+  /**
+   * Returned if you try to upload a file that is too large
+   */
+  PAYLOAD_TOO_LARGE(413),
   /**
    * Returned when the client is being rate limited.
    */

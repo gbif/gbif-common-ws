@@ -43,6 +43,9 @@ public class ExtraMediaTypes {
   public static final String APPLICATION_OPEN_DOC_SPREADSHEET = "application/vnd.oasis.opendocument.spreadsheet";
   public static final MediaType APPLICATION_OPEN_DOC_SPREADSHEET_TYPE = new MediaType("application", "vnd.oasis.opendocument.spreadsheet");
 
+  //the common one is defined by com.sun.jersey.multipart.file.CommonMediaTypes.ZIP , this is another used by some sites
+  public static final String APPLICATION_XZIP_COMPRESSED = "application/x-zip-compressed";
+  public static final MediaType APPLICATION_XZIP_COMPRESSED_TYPE = new MediaType("application", "x-zip-compressed");
 
   /**
    * Darwin Core archive media type with underlying zip structure.
