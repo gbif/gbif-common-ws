@@ -1,11 +1,11 @@
 package org.gbif.ws.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class with utility methods for XSS filtering.
@@ -41,7 +41,7 @@ public class XSSUtil {
     // Avoid vbscript:... expressions
     Pattern.compile("vbscript:", Pattern.CASE_INSENSITIVE),
     // Avoid onload= expressions
-    Pattern.compile("onload(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+    Pattern.compile("on(load|error|mouseover)(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
   };
 
   /**
@@ -61,7 +61,7 @@ public class XSSUtil {
       for (Pattern scriptPattern : PATTERNS) {
         Matcher matcher = scriptPattern.matcher(cleanValue);
         if (matcher.find()) {
-          LOG.warn("Malicious XSS script found: {}", cleanValue);
+          LOG.warn("Potentially malicious XSS script found: {}", cleanValue);
           return true;
         }
       }

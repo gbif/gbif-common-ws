@@ -1,10 +1,10 @@
 package org.gbif.ws.util;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
@@ -39,8 +39,10 @@ public class XSSUtilTest {
               "http://www.gbif.org/index.php?name="},
       {"http://www.gbif.org/dataset/search?q=<iframe>frame it</iframe>", true, "http://www.gbif.org/dataset/search?q="},
       {"http://www.gbif.org/login.do?email=\"><img src=x onerror=prompt(/XSS/)>", true, "http://www.gbif.org/login.do?email=\">"},
+      {"http://gbif.org/login.do?email=\"><img src=x onmouseover=prompt(/XSS/)>", true, "http://gbif.org/login.do?email=\">"},
 
       // do not contain xss
+      {"http://gbif.org/login.do?email=sven@gbif.org&password=xyz", false, "http://gbif.org/login.do?email=sven@gbif.org&password=xyz"},
       {"http://www.gbif.org/ipt", false, null},
       {"http://api.gbif.org/v1/occurrence/search?year=1800", false, null}});
   }
