@@ -41,7 +41,7 @@ public class XSSUtil {
     // Avoid vbscript:... expressions
     Pattern.compile("vbscript:", Pattern.CASE_INSENSITIVE),
     // Avoid onload= expressions
-    Pattern.compile("on(load|error|mouseover)(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+    Pattern.compile("on(load|error|mouseover|submit|reset|focus|click)(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
   };
 
   /**
