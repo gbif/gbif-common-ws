@@ -15,14 +15,7 @@
  */
 package org.gbif.ws.server.provider;
 
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.api.model.common.paging.PagingRequest;
-
-import java.lang.reflect.Type;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.core.spi.component.ComponentContext;
@@ -30,13 +23,17 @@ import com.sun.jersey.core.spi.component.ComponentScope;
 import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
 import com.sun.jersey.spi.inject.Injectable;
 import com.sun.jersey.spi.inject.InjectableProvider;
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.paging.PagingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_LIMIT;
-import static org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_OFFSET;
-import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
-import static org.gbif.api.model.common.paging.PagingConstants.PARAM_OFFSET;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Type;
+
+import static org.gbif.api.model.common.paging.PagingConstants.*;
 
 /**
  * Jersey provider class that extracts the page size and offset from the query parameters, or provides the default
@@ -60,6 +57,8 @@ public class PageableProvider extends AbstractHttpContextInjectable<Pageable>
   implements InjectableProvider<Context, Type> {
 
   private static final Logger LOG = LoggerFactory.getLogger(PageableProvider.class);
+  @VisibleForTesting
+  static final int LIMIT_CAP = 1000;
 
   @Override
   public Injectable<Pageable> getInjectable(ComponentContext ic, Context a, Type c) {
@@ -90,6 +89,9 @@ public class PageableProvider extends AbstractHttpContextInjectable<Pageable>
           LOG.info("Limit parameter was no positive integer [{}]. Using default {}",
                    params.getFirst(PARAM_LIMIT), DEFAULT_PARAM_LIMIT);
           limit = DEFAULT_PARAM_LIMIT;
+        } else if (limit > LIMIT_CAP) {
+          LOG.info("Limit parameter too high. Use maximum {}", LIMIT_CAP);
+          limit = LIMIT_CAP;
         }
       } catch (NumberFormatException e) {
         LOG.warn("Unparsable value supplied for limit [{}]. Using default {}", params.getFirst(PARAM_LIMIT),
