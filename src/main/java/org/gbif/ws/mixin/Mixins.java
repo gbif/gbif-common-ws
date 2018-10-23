@@ -27,7 +27,7 @@ public class Mixins {
                   Dataset.class, DatasetMixin.class,
                   DatasetSearchResult.class, DatasetMixin.class,
                   Download.class, LicenseMixin.class,
-                  Occurrence.class, LicenseMixin.class
+                  Occurrence.class, OccurrenceMixin.class
           );
 
   /**
