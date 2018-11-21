@@ -5,6 +5,7 @@ import org.gbif.api.model.common.UserPrincipal;
 import org.gbif.api.service.common.UserService;
 import org.gbif.ws.security.GbifAuthService;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -158,7 +159,9 @@ public class AuthFilter implements ContainerRequestFilter {
   }
 
   private Authorizer basicAuthentication(String authentication) {
-    String[] values = COLON_PATTERN.split(Base64.base64Decode(authentication));
+    // As specified in RFC 7617, the auth header (if not ASCII) is in UTF-8.
+    byte[] decodedAuthentication = Base64.decode(authentication);
+    String[] values = COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
     if (values.length < 2) {
       LOG.warn("Invalid syntax for username and password: {}", authentication);
       throw new WebApplicationException(Response.Status.BAD_REQUEST);

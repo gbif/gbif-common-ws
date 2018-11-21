@@ -54,10 +54,12 @@ public class IdentityFilterTest {
   private GbifAuthService authService;
 
   private static String heinzAuthBasic;
+  private static String sørenAuthBasic;
   private static String legacyBasic;
 
   private static GbifUser admin = new GbifUser();
   private static GbifUser heinz = new GbifUser();
+  private static GbifUser søren = new GbifUser();
 
   private static final Map<String, GbifUser> TEST_USERS = new HashMap<>();
   static {
@@ -74,12 +76,15 @@ public class IdentityFilterTest {
     heinz.getRoles().add(UserRole.USER);
     TEST_USERS.put(heinz.getUserName(), heinz);
 
-    try {
-      heinzAuthBasic = "Basic " + toAuthorizationString(heinz);
-      legacyBasic = "Basic " + new String(Base64.encode(UUID.randomUUID().toString() + ":password"), "UTF8");
-    } catch (UnsupportedEncodingException e) {
-      fail(e.getMessage());
-    }
+    søren.setUserName("søren");
+    søren.setPasswordHash("SØREN"); //this is not a hash but it doesn't matter for the test
+    søren.setEmail("søren@mailinator.com");
+    søren.getRoles().add(UserRole.USER);
+    TEST_USERS.put(søren.getUserName(), søren);
+
+    heinzAuthBasic = "Basic " + toAuthorizationString(heinz);
+    sørenAuthBasic = "Basic " + toAuthorizationString(søren);
+    legacyBasic = "Basic " + toAuthorizationString(UUID.randomUUID().toString(),":password");
   }
 
   @Before
@@ -108,7 +113,7 @@ public class IdentityFilterTest {
   }
 
   private static String toAuthorizationString(String user, String password) {
-    return new String(Base64.encode(user + ":" + password), StandardCharsets.UTF_8);
+    return new String(Base64.encode((user + ":" + password).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
   }
 
   @Test
@@ -126,6 +131,11 @@ public class IdentityFilterTest {
   @Test
   public void testFilterWithBasicAuth() throws Exception {
     assertPrincipalName("heinz", getMockRequestAuthorization(heinzAuthBasic));
+  }
+
+  @Test
+  public void testFilterWithBasicAuthUtf8() throws Exception {
+    assertPrincipalName("søren", getMockRequestAuthorization(sørenAuthBasic));
   }
 
   @Test(expected = WebApplicationException.class)

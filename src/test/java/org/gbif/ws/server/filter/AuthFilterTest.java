@@ -7,6 +7,7 @@ import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.security.GbifAuthServiceTest;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -48,10 +49,12 @@ public class AuthFilterTest {
   AuthFilter filter;
   static String adminAuthGbif;
   static String heinzAuthBasic;
+  static String sørenAuthBasic;
   static String legacyBasic;
 
   static User admin = new User();
   static User heinz = new User();
+  static User søren = new User();
 
   static {
     admin.setUserName("admin");
@@ -63,9 +66,14 @@ public class AuthFilterTest {
     heinz.setEmail("heinz@mailinator.com");
     heinz.getRoles().add(UserRole.USER);
 
+    søren.setUserName("søren");
+    søren.setEmail("søren@mailinator.com");
+    søren.getRoles().add(UserRole.USER);
+
     try {
       adminAuthGbif = "GBIF " + new String(Base64.encode("1234567890:admin"), "UTF8");
       heinzAuthBasic = "Basic " + new String(Base64.encode("heinz:HEINZ"), "UTF8");
+      sørenAuthBasic = "Basic " + new String(Base64.encode("søren:SØREN".getBytes(StandardCharsets.UTF_8)));
       legacyBasic = "Basic " + new String(Base64.encode(UUID.randomUUID().toString() + ":password"), "UTF8");
     } catch (UnsupportedEncodingException e) {
       // TODO: Handle exception
@@ -101,6 +109,13 @@ public class AuthFilterTest {
     when(userService.authenticate(ArgumentMatchers.<String>eq("heinz"), ArgumentMatchers.<String>any())).thenReturn(heinz);
     setMockAuth(heinzAuthBasic);
     assertPrincipalName("heinz");
+  }
+
+  @Test
+  public void testFilterWithBasicSøren() throws Exception {
+    when(userService.authenticate(ArgumentMatchers.<String>eq("søren"), ArgumentMatchers.<String>any())).thenReturn(søren);
+    setMockAuth(sørenAuthBasic);
+    assertPrincipalName("søren");
   }
 
   @Test
