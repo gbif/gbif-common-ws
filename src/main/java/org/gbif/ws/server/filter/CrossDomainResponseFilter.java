@@ -21,7 +21,7 @@ public class CrossDomainResponseFilter implements ContainerResponseFilter {
   public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
     response.getHttpHeaders().putSingle("Access-Control-Allow-Origin", "*");
 
-    response.getHttpHeaders().putSingle("Access-Control-Allow-Methods", "HEAD, GET, POST, DELETE, PUT");
+    response.getHttpHeaders().putSingle("Access-Control-Allow-Methods", "HEAD, GET, POST, DELETE, PUT, OPTIONS");
 
     //Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
     //https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Preflighted_requests
