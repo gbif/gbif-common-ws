@@ -29,9 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST http requests
- * using a private key. It uses the standard Http Authorization Header to transport the following information:
- * Authorization: GBIF applicationKey:Signature
+ * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST HTTP requests
+ * using a private key. It uses the standard HTTP Authorization header to transport the following information:
+ * Authorization: GBIF applicationKey:signature
  *
  * <br/>
  * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)
@@ -43,20 +43,20 @@ import org.slf4j.LoggerFactory;
  *
  * <pre>
  * POST /dataset HTTP/1.1
- * Host: johnsmith.s3.amazonaws.com
+ * Host: api.gbif.org
  * Date: Mon, 26 Mar 2007 19:37:58 +0000
  * x-gbif-user: trobertson
  * Content-MD5: LiFThEP4Pj2TODQXa/oFPg==
  * Authorization: GBIF gbif.portal:frJIUN8DYpKDtOLCwo//yllqDzg=
  * </pre>
  *
- * When signing an http request in addition to the Authentication header some additional custom headers are added
+ * When signing an HTTP request in addition to the Authorization header some additional custom headers are added
  * which are used to sign and digest the message.
  * <br/>
  * x-gbif-user is added to transport a proxied user in which the application is acting.
  * <br/>
  * Content-MD5 is added if a body entity exists.
- * See Concent-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
+ * See Content-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
  */
 @Singleton
 public class GbifAuthService {
