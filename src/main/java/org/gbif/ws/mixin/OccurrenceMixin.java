@@ -6,9 +6,9 @@ import org.gbif.api.jackson.DateSerde;
 import java.util.Date;
 
 public interface OccurrenceMixin extends LicenseMixin {
-  @JsonSerialize(using = DateSerde.NoTimezoneDateJsonSerializer.class)
+  @JsonSerialize(using = DateSerde.NoTimezoneDateJsonSerializer.class, include = JsonSerialize.Inclusion.NON_NULL)
   Date getDateIdentified();
 
-  @JsonSerialize(using = DateSerde.NoTimezoneDateJsonSerializer.class)
+  @JsonSerialize(using = DateSerde.NoTimezoneDateJsonSerializer.class, include = JsonSerialize.Inclusion.NON_NULL)
   Date getEventDate();
 }
