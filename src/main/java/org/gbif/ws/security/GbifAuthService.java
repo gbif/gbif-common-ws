@@ -1,43 +1,47 @@
 package org.gbif.ws.security;
 
-import org.gbif.ws.json.JacksonJsonContextResolver;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.regex.Pattern;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.container.ContainerException;
 import com.sun.jersey.core.util.Base64;
+import com.sun.jersey.core.util.ReaderWriter;
 import com.sun.jersey.spi.container.ContainerRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.gbif.ws.json.JacksonJsonContextResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST HTTP requests
  * using a private key. It uses the standard HTTP Authorization header to transport the following information:
  * Authorization: GBIF applicationKey:signature
- *
+ * <p>
  * <br/>
  * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)
  * and a unique signature for the very request which is generated using a fixed set of request attributes
  * which are then encrypted by a standard HMAC-SHA1 algorithm.
- *
+ * <p>
  * <br/>
  * A POST request with a GBIF header would look like this:
  *
@@ -49,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * Content-MD5: LiFThEP4Pj2TODQXa/oFPg==
  * Authorization: GBIF gbif.portal:frJIUN8DYpKDtOLCwo//yllqDzg=
  * </pre>
- *
+ * <p>
  * When signing an HTTP request in addition to the Authorization header some additional custom headers are added
  * which are used to sign and digest the message.
  * <br/>
@@ -64,7 +68,6 @@ public class GbifAuthService {
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthService.class);
 
   private static final String ALGORITHM = "HmacSHA1";
-  private static final String CHAR_ENCODING = "UTF8";
   public static final String HEADER_AUTHORIZATION = "Authorization";
   public static final String HEADER_CONTENT_TYPE = "Content-Type";
   public static final String HEADER_CONTENT_MD5 = "Content-MD5";
@@ -108,10 +111,9 @@ public class GbifAuthService {
    * For that reason this string may only contain information also available in the exact same form to the server.
    *
    * @return unique string for a request
-   *
    * @see <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html">AWS Docs</a>
    */
-  private static String buildStringToSign(ContainerRequest request) {
+  private String buildStringToSign(ContainerRequest request) {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
@@ -124,8 +126,46 @@ public class GbifAuthService {
       sb.append(getCanonicalizedPath(request.getRequestUri()));
     }
 
+    InputStream in = request.getEntityInputStream();
+
+    // transform to ByteArrayInputStream which allows reset the content
+    // see ContainerRequest
+    if (in.getClass() != ByteArrayInputStream.class) {
+      // Buffer input
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try {
+        ReaderWriter.writeTo(in, baos);
+      } catch (IOException ex) {
+        throw new ContainerException(ex);
+      }
+      in = new ByteArrayInputStream(baos.toByteArray());
+      request.setEntityInputStream(in);
+    }
+
     appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_TYPE, false);
-    appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_MD5, true);
+
+    // Read entity
+    final InputStream entityInputStream = request.getEntityInputStream();
+    Object entity = null;
+    try {
+      final int available = entityInputStream.available();
+
+      if (available > 0) {
+        entity = request.getEntity(Object.class);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Can't get available bytes from the stream", e);
+    }
+
+    // Reset buffer
+    ByteArrayInputStream bais = (ByteArrayInputStream) in;
+    bais.reset();
+
+    if (entity != null) {
+      sb.append(NEWLINE);
+      sb.append(buildContentMD5(entity));
+    }
+
     appendHeader(sb, request.getRequestHeaders(), HEADER_GBIF_USER, true);
 
     return sb.toString();
@@ -136,7 +176,7 @@ public class GbifAuthService {
    * For PUT/POST requests that contain a body content it is required that the Content-MD5 header
    * is already present on the request instance!
    */
-  private static String buildStringToSign(ClientRequest request) {
+  private String buildStringToSign(ClientRequest request) {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
@@ -175,22 +215,21 @@ public class GbifAuthService {
   /**
    * Generates a Base64 encoded HMAC-SHA1 signature of the passed in string with the given secret key.
    * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
+   *
    * @param stringToSign the string to be signed
    * @param secretKey the secret key to use in the
    */
   private String buildSignature(String stringToSign, String secretKey) {
     try {
       Mac mac = Mac.getInstance(ALGORITHM);
-      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(Charset.forName("UTF8")), ALGORITHM);
+      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);
       mac.init(secret);
       byte[] digest = mac.doFinal(stringToSign.getBytes());
 
-      return new String(Base64.encode(digest), "ASCII");
+      return new String(Base64.encode(digest), StandardCharsets.US_ASCII);
 
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException("Unsupported character encoding " + CHAR_ENCODING, e);
     } catch (InvalidKeyException e) {
       throw new RuntimeException("Invalid secret key " + secretKey, e);
     }
@@ -200,7 +239,7 @@ public class GbifAuthService {
    * Signs a request by adding a Content-MD5 and Authorization header.
    * For PUT/POST requests that contain a body entity the Content-MD5 header is created using the same
    * JSON mapper for serialization as the clients use.
-   *
+   * <p>
    * Other format than JSON are not supported currently !!!
    */
   public void signRequest(String username, ClientRequest request) {
@@ -240,10 +279,22 @@ public class GbifAuthService {
    * Content-MD5 header value.
    * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
    */
+  @SuppressWarnings("unchecked")
   private String buildContentMD5(Object entity) {
     try {
-      byte[] content = mapper.writeValueAsBytes(entity);
-      return new String(Base64.encode(DigestUtils.md5(content)), "ASCII");
+      // convert object to Map
+      final Map<String, Object> entityMap;
+      if (!(entity instanceof Map)) {
+        entityMap = mapper.convertValue(entity, Map.class);
+      } else {
+        entityMap = ((Map) entity);
+      }
+
+      // filter null values
+      entityMap.values().removeIf(Objects::isNull);
+
+      byte[] content = mapper.writeValueAsBytes(entityMap);
+      return new String(Base64.encode(DigestUtils.md5(content)), StandardCharsets.US_ASCII);
 
     } catch (IOException e) {
       LOG.error("Failed to serialize http entity [{}]", entity);
@@ -253,11 +304,12 @@ public class GbifAuthService {
 
   /**
    * Tries to get the appkey from the request header.
+   *
    * @param requestHeaderAccessor lambda expression to access the headers of a request.
    * @return the appkey found or null
    */
   public static String getAppKeyFromRequest(RequestHeaderAccessor requestHeaderAccessor) {
-    if(StringUtils.startsWith(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION), GBIF_SCHEME + " ")) {
+    if (StringUtils.startsWith(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION), GBIF_SCHEME + " ")) {
       String[] values = COLON_PATTERN.split(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION).substring(5), 2);
       if (values.length == 2) {
         return values[0];
