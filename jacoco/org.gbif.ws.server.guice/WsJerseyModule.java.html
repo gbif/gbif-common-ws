@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WsJerseyModule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.guice</a> &gt; <span class="el_source">WsJerseyModule.java</span></div><h1>WsJerseyModule.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.guice;
+
+import org.gbif.ws.json.JacksonJsonContextResolver;
+import org.gbif.ws.server.filter.AuthFilter;
+import org.gbif.ws.server.filter.AuthResponseFilter;
+import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
+import org.gbif.ws.server.interceptor.NullToNotFound;
+import org.gbif.ws.server.interceptor.NullToNotFoundInterceptor;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nullable;
+import javax.ws.rs.core.MediaType;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.inject.matcher.Matchers;
+import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
+import com.sun.jersey.api.core.PackagesResourceConfig;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.guice.JerseyServletModule;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
+import com.sun.jersey.spi.container.ContainerResponseFilter;
+import com.sun.jersey.spi.container.ResourceFilters;
+
+/**
+ * A basic jersey {@link JerseyServletModule} for JSON, JSONP etc.
+ * All providers found in org.gbif.ws.server.provider will be automatically added.
+ *
+ * @see WsJerseyModuleConfiguration
+ */
+public class WsJerseyModule extends JerseyServletModule {
+
+  private final WsJerseyModuleConfiguration config;
+  private static final String ROOT_RESOURCES = &quot;org.gbif.ws.server.provider,&quot;;
+
+<span class="nc" id="L44">  private final Function&lt;Class&lt;?&gt;, String&gt; fnClassName = new Function&lt;Class&lt;?&gt;, String&gt;() {</span>
+
+    @Override
+    public String apply(Class&lt;?&gt; input) {
+<span class="nc" id="L48">      return input.getName();</span>
+    }
+  };
+
+  /**
+   * Creates the module, optionally installing authentication filters and customising the
+   * responses.
+   *
+   * @param resourcePackages To scan for the Jersey resources
+   * @param installAuth Controls whether the GBIF default AuthFilter should be configured
+   * @param responseFilters Optionally controlling the response
+   */
+  public WsJerseyModule(String resourcePackages, boolean installAuth,
+    @Nullable List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; responseFilters) {
+<span class="nc" id="L62">    this(resourcePackages, installAuth, responseFilters, null);</span>
+<span class="nc" id="L63">  }</span>
+
+  /**
+   * Creates the module, optionally installing authentication filters and customising the
+   * responses and/or the requests.
+   *
+   * @param resourcePackages To scan for the Jersey resources
+   * @param installAuth Controls whether the authentication filter should be configured
+   * @param responseFilters To customise the response if necessary
+   * @param requestFilters To apply in the chain of request filtering (see note above)
+   */
+  public WsJerseyModule(String resourcePackages, boolean installAuth,
+    @Nullable List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; responseFilters,
+<span class="nc" id="L76">    List&lt;Class&lt;? extends ContainerRequestFilter&gt;&gt; requestFilters) {</span>
+
+<span class="nc" id="L78">    this.config = new WsJerseyModuleConfiguration()</span>
+<span class="nc" id="L79">            .resourcePackages(resourcePackages)</span>
+<span class="nc" id="L80">            .installAuthenticationFilter(installAuth)</span>
+<span class="nc" id="L81">            .responseFilters(responseFilters)</span>
+<span class="nc" id="L82">            .requestFilters(requestFilters);</span>
+<span class="nc" id="L83">  }</span>
+
+  /**
+   * Creates the module using the provided configuration object.
+   * Note that the request filters will be handled as follows if provided:
+   *
+   * &lt;ol&gt;
+   * &lt;li&gt;The default filters will always be first&lt;/li&gt;
+   * &lt;li&gt;The authentication filter will be next if enabled (installAuth=true)&lt;/li&gt;
+   * &lt;li&gt;The provided filters will be last in the given order&lt;/li&gt;
+   * &lt;/ol&gt;
+   *
+   * @param config
+   */
+<span class="nc" id="L97">  public WsJerseyModule(WsJerseyModuleConfiguration config){</span>
+<span class="nc" id="L98">    Preconditions.checkNotNull(config.isInstallAuthenticationFilter(), &quot;installAuthenticationFilter must be set&quot;);</span>
+<span class="nc" id="L99">    this.config = config;</span>
+<span class="nc" id="L100">  }</span>
+
+  @Override
+  protected void configureServlets() {
+<span class="nc" id="L104">    Map&lt;String, String&gt; params = new HashMap&lt;String, String&gt;(6);</span>
+
+<span class="nc" id="L106">    bind(JacksonJsonContextResolver.class);</span>
+<span class="nc" id="L107">    params.put(JSONConfiguration.FEATURE_POJO_MAPPING, &quot;true&quot;);</span>
+
+    // allow resources to use suffices to ask for media types
+<span class="nc" id="L110">    Map&lt;String, String&gt; mediaTypes = Maps.newHashMap();</span>
+<span class="nc" id="L111">    mediaTypes.put(&quot;json&quot;, MediaType.APPLICATION_JSON);</span>
+<span class="nc" id="L112">    mediaTypes.put(&quot;xml&quot;, MediaType.APPLICATION_XML);</span>
+<span class="nc" id="L113">    mediaTypes.put(&quot;txt&quot;, MediaType.TEXT_PLAIN);</span>
+<span class="nc" id="L114">    mediaTypes.put(&quot;zip&quot;, MediaType.APPLICATION_OCTET_STREAM);</span>
+<span class="nc" id="L115">    params.put(ResourceConfig.PROPERTY_MEDIA_TYPE_MAPPINGS,</span>
+<span class="nc" id="L116">      Joiner.on(&quot;, &quot;).withKeyValueSeparator(&quot; : &quot;).join(mediaTypes));</span>
+
+    // Let Jersey look for root resources automatically
+<span class="nc" id="L119">    params.put(PackagesResourceConfig.PROPERTY_PACKAGES, ROOT_RESOURCES + config.getResourcePackages());</span>
+
+    // secure resources via JSR 250
+<span class="nc" id="L122">    params.put(ResourceFilters.class.getName(), RolesAllowedResourceFilterFactory.class.getName());</span>
+
+    // request filters
+<span class="nc" id="L125">    LinkedList&lt;Class&lt;? extends ContainerRequestFilter&gt;&gt; reqFilters = Lists.newLinkedList();</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    if (config.isInstallAuthenticationFilter()) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">      if(config.getAuthenticationFilterClass() != null) {</span>
+<span class="nc" id="L128">        reqFilters.addFirst(config.getAuthenticationFilterClass());</span>
+      }
+      else{
+<span class="nc" id="L131">        reqFilters.addFirst(AuthFilter.class);</span>
+      }
+
+    }
+<span class="nc" id="L135">    reqFilters.addFirst(RequestHeaderParamUpdateFilter.class);</span>
+<span class="nc" id="L136">    reqFilters.addAll(config.getRequestFilters());</span>
+<span class="nc" id="L137">    params.put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS,</span>
+<span class="nc" id="L138">      Joiner.on(&quot;;&quot;).join(Lists.transform(reqFilters, fnClassName)));</span>
+
+    // response filters
+<span class="nc" id="L141">    List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; respFilters = Lists.newArrayList();</span>
+    // The default filters are always added to start of the chain followed by authentication
+<span class="nc" id="L143">    respFilters.addAll(config.getDefaultResponseFilters());</span>
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (config.isInstallAuthenticationFilter()) {</span>
+<span class="nc" id="L146">      respFilters.add(AuthResponseFilter.class);</span>
+    }
+<span class="nc" id="L148">    respFilters.addAll(config.getResponseFilters());</span>
+<span class="nc" id="L149">    params.put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS,</span>
+<span class="nc" id="L150">      Joiner.on(&quot;;&quot;).join(Lists.transform(respFilters, fnClassName)));</span>
+
+<span class="nc" id="L152">    serve(&quot;/*&quot;).with(GuiceContainer.class, params);</span>
+
+<span class="nc" id="L154">    bindInterceptor(Matchers.any(), Matchers.annotatedWith(NullToNotFound.class), new NullToNotFoundInterceptor());</span>
+<span class="nc" id="L155">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

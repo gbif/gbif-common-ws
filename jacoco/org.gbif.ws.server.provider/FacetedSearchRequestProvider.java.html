@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FacetedSearchRequestProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.provider</a> &gt; <span class="el_source">FacetedSearchRequestProvider.java</span></div><h1>FacetedSearchRequestProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2011 Global Biodiversity Information Facility (GBIF)
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.server.provider;
+
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.google.common.base.Strings;
+import com.sun.jersey.api.core.HttpContext;
+import com.sun.jersey.spi.inject.InjectableProvider;
+
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_LIMIT;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MINCOUNT;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_MULTISELECT;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_OFFSET;
+
+/**
+ * Provider class that transforms a set of HTTP parameters into a FacetedSearchRequest class instance.
+ * This assumes the existence of the following parameters in the HTTP request:
+ * 'page_size', 'offset', 'facet', 'q' and any of the search parameter enum member names case insensitively.
+ */
+public class FacetedSearchRequestProvider&lt;RT extends FacetedSearchRequest&lt;P&gt;, P extends Enum&lt;?&gt; &amp; SearchParameter&gt;
+  extends SearchRequestProvider&lt;RT, P&gt; implements InjectableProvider&lt;Context, Type&gt; {
+
+  private static final int DEFAULT_FACET_LIMIT = 10;
+
+  public FacetedSearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {
+<span class="fc" id="L45">    super(requestType, searchParameterClass);</span>
+<span class="fc" id="L46">  }</span>
+
+  @Override
+  protected RT getSearchRequest(HttpContext context, RT searchRequest) {
+<span class="fc" id="L50">    RT request = super.getSearchRequest(context, searchRequest);</span>
+
+<span class="fc" id="L52">    final MultivaluedMap&lt;String, String&gt; params = context.getRequest().getQueryParameters();</span>
+
+
+<span class="fc" id="L55">    final String facetMultiSelectValue = getFirstIgnoringCase(PARAM_FACET_MULTISELECT, params);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    if (facetMultiSelectValue != null) {</span>
+<span class="fc" id="L57">      searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));</span>
+    }
+
+<span class="fc" id="L60">    final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    if (facetMinCountValue != null) {</span>
+<span class="nc" id="L62">      searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));</span>
+    }
+
+<span class="fc" id="L65">    final String facetLimit = getFirstIgnoringCase(PARAM_FACET_LIMIT, params);</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">    if (facetLimit != null) {</span>
+<span class="nc" id="L67">      searchRequest.setFacetLimit(Integer.parseInt(facetLimit));</span>
+    }
+
+<span class="fc" id="L70">    final String facetOffset = getFirstIgnoringCase(PARAM_FACET_OFFSET, params);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">    if (facetOffset != null) {</span>
+<span class="nc" id="L72">      searchRequest.setFacetOffset(Integer.parseInt(facetOffset));</span>
+    }
+
+<span class="fc" id="L75">    final List&lt;String&gt; facets = params.get(PARAM_FACET);</span>
+<span class="pc bpc" id="L76" title="2 of 4 branches missed.">    if (facets != null &amp;&amp; !facets.isEmpty()) {</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">      for (String f : facets) {</span>
+<span class="fc" id="L78">        P p = findSearchParam(f);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (p != null) {</span>
+<span class="fc" id="L80">          searchRequest.addFacets(p);</span>
+<span class="fc" id="L81">          String pFacetOffset = getFirstIgnoringCase(f + '.' + PARAM_FACET_OFFSET, params);</span>
+<span class="fc" id="L82">          String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">          if (pFacetLimit != null) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (pFacetOffset != null) {</span>
+<span class="nc" id="L85">              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));</span>
+            }  else {
+<span class="nc" id="L87">              searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));</span>
+            }
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">          } else if (pFacetOffset != null) {</span>
+<span class="nc" id="L90">            searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), DEFAULT_FACET_LIMIT);</span>
+          }
+        }
+<span class="fc" id="L93">      }</span>
+    }
+
+<span class="fc" id="L96">    return request;</span>
+  }
+
+  /**
+   * Get the first parameter value, the parameter is searched in a case-insensitive manner.
+   * First tries with the exact match, then the lowercase and finally the uppercase value of the parameter.
+   */
+  private static String getFirstIgnoringCase(String parameter, MultivaluedMap&lt;String, String&gt; params) {
+<span class="fc" id="L104">    String value = params.getFirst(parameter);</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">    if (!Strings.isNullOrEmpty(value)) {</span>
+<span class="fc" id="L106">      return value;</span>
+    }
+<span class="fc" id="L108">    value = params.getFirst(parameter.toLowerCase());</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(value)) {</span>
+<span class="nc" id="L110">      return value;</span>
+    }
+<span class="fc" id="L112">    value = params.getFirst(parameter.toUpperCase());</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(value)) {</span>
+<span class="nc" id="L114">      return value;</span>
+    }
+<span class="fc" id="L116">    return null;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

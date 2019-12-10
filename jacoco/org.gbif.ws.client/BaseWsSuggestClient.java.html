@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseWsSuggestClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">BaseWsSuggestClient.java</span></div><h1>BaseWsSuggestClient.java</h1><pre class="source lang-java linenums">package org.gbif.ws.client;
+
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.common.search.SearchRequest;
+import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.service.common.SuggestService;
+
+import java.util.List;
+
+import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.WebResource;
+
+
+/**
+ * Base web service suggest &amp; faceted search client.
+ */
+public abstract class BaseWsSuggestClient&lt;T, P extends Enum&lt;?&gt; &amp; SearchParameter, R extends FacetedSearchRequest&lt;P&gt;, ST, RSUG extends SearchRequest&lt;P&gt;&gt;
+  extends BaseWsFacetedSearchClient&lt;T, P, R&gt; implements SuggestService&lt;ST, P, RSUG&gt; {
+
+  private final GenericType&lt;List&lt;ST&gt;&gt; suggestType;
+
+  /**
+   * @param resource the base web resource being the parent of /search and /suggest
+   * @param searchType the generic type for the search response.
+   * @param suggestType the generic type for the suggest response.
+   */
+  protected BaseWsSuggestClient(WebResource resource, GenericType&lt;SearchResponse&lt;T, P&gt;&gt; searchType,
+    GenericType&lt;List&lt;ST&gt;&gt; suggestType) {
+<span class="nc" id="L30">    super(resource, searchType);</span>
+<span class="nc" id="L31">    this.suggestType = suggestType;</span>
+<span class="nc" id="L32">  }</span>
+
+  /**
+   * Generic suggest operation retrieving search entities T.
+   * 
+   * @param suggestRequest to issue the search/suggest operation.
+   * @return a List of NameUsageSearchSuggestResult objects
+   */
+  public List&lt;ST&gt; suggest(RSUG suggestRequest) {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    if (suggestRequest == null) {</span>
+<span class="nc" id="L42">      throw new IllegalArgumentException(&quot;searchSuggestRequest cannot be null&quot;);</span>
+    }
+<span class="nc" id="L44">    return get(suggestType, null, getParameterFromSearchRequest(suggestRequest), suggestRequest, &quot;suggest&quot;);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

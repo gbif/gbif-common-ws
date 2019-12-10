@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryParamBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">QueryParamBuilder.java</span></div><h1>QueryParamBuilder.java</h1><pre class="source lang-java linenums">package org.gbif.ws.client;
+
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Language;
+
+import java.util.Map;
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.google.common.base.Strings;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+/**
+ * A simple builder class to generate query parameter maps.
+ * It converts enum values to their name string, but uses ISO2 letter codes for the country and language enum.
+ */
+<span class="fc" id="L16">public class QueryParamBuilder {</span>
+
+<span class="fc" id="L18">  private final MultivaluedMap&lt;String, String&gt; params = new MultivaluedMapImpl();</span>
+
+  /**
+   * Creates a new, empty query parameter builder.
+   */
+  public static QueryParamBuilder create() {
+<span class="fc" id="L24">    return new QueryParamBuilder();</span>
+  }
+
+  /**
+   * Creates a query parameter builder from a list of key value pairs.
+   *
+   * @param kvp list of key value pairs with key first. For example K1,V1,K2,V2.
+   *
+   * @throws IllegalArgumentException if kvp list is not pairs with an even number
+   */
+  public static QueryParamBuilder create(Object... kvp) {
+<span class="fc bfc" id="L35" title="All 2 branches covered.">    if (kvp.length % 2 != 0) {</span>
+<span class="fc" id="L36">      throw new IllegalArgumentException(&quot;Equal number of kvp parameter required to build key value pairs.&quot;);</span>
+    }
+
+<span class="fc" id="L39">    QueryParamBuilder builder = new QueryParamBuilder();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">    for (int x = kvp.length - 1; x &gt; 0; x -= 2) {</span>
+<span class="fc" id="L41">      Object k = kvp[x - 1];</span>
+<span class="fc" id="L42">      Object v = kvp[x];</span>
+<span class="fc" id="L43">      builder.queryParam(k, v);</span>
+    }
+<span class="fc" id="L45">    return builder;</span>
+  }
+
+  /**
+   * Creates a query parameter builder with a list of key value pairs having the same key.
+   *
+   * @param key    parameter key
+   * @param values list of values to be used to construct single key value pairs
+   *
+   * @throws IllegalArgumentException if kvp list is not pairs with an even number
+   */
+  public static QueryParamBuilder create(String key, Object[] values) {
+<span class="fc" id="L57">    return new QueryParamBuilder().queryParam(key, values);</span>
+  }
+
+  /**
+   * Creates a query parameter builder from an existing parameter map.
+   *
+   * @param fromParams map of query parameters.
+   */
+  public static QueryParamBuilder create(Map&lt;String, String&gt; fromParams) {
+<span class="nc" id="L66">    QueryParamBuilder builder = new QueryParamBuilder();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; kvp : fromParams.entrySet()) {</span>
+<span class="nc" id="L68">      builder.queryParam(kvp.getKey(), kvp.getValue());</span>
+<span class="nc" id="L69">    }</span>
+<span class="nc" id="L70">    return builder;</span>
+  }
+
+  /**
+   * Adds an additional query parameter the parameter map.
+   *
+   * @param key   the query parameter name
+   * @param value the query parameter value or a list if the parameter should be added several times
+   *
+   * @return the current builder to chain calls.
+   */
+  public QueryParamBuilder queryParam(Object key, Object... value) {
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">    if (key != null &amp;&amp; value != null) {</span>
+<span class="fc" id="L83">      String k = key.toString();</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">      if (!Strings.isNullOrEmpty(k)) {</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        for (Object val : value) {</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">          if (val != null) {</span>
+            // use iso codes for country and language enums, otherwise just toString
+            String v;
+<span class="fc bfc" id="L89" title="All 2 branches covered.">            if (val instanceof Country){</span>
+<span class="fc" id="L90">              v = ((Country) val).getIso2LetterCode();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">            } else if (val instanceof Language){</span>
+<span class="fc" id="L92">              v = ((Language) val).getIso2LetterCode();</span>
+            } else {
+<span class="fc" id="L94">              v = val.toString();</span>
+            }
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            if (!Strings.isNullOrEmpty(v)) {</span>
+<span class="fc" id="L97">              params.add(k, v);</span>
+            }
+          }
+        }
+      }
+    }
+<span class="fc" id="L103">    return this;</span>
+  }
+
+  public MultivaluedMap&lt;String, String&gt; build() {
+<span class="fc" id="L107">    return params;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

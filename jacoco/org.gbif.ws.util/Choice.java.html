@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Choice.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util</a> &gt; <span class="el_source">Choice.java</span></div><h1>Choice.java</h1><pre class="source lang-java linenums">package org.gbif.ws.util;
+
+import javax.annotation.Nullable;
+
+public class Choice {
+
+  private final Object key;
+  private final String url;
+  private final String title;
+  private final String description;
+
+
+<span class="fc" id="L13">  public Choice(@Nullable Object key, String url, String title, @Nullable String description) {</span>
+<span class="fc" id="L14">    this.key = key;</span>
+<span class="fc" id="L15">    this.url = url;</span>
+<span class="fc" id="L16">    this.title = title;</span>
+<span class="fc" id="L17">    this.description = description;</span>
+<span class="fc" id="L18">  }</span>
+
+  public Object getKey() {
+<span class="fc" id="L21">    return key;</span>
+  }
+
+  public String getUrl() {
+<span class="nc" id="L25">    return url;</span>
+  }
+
+  public String getTitle() {
+<span class="fc" id="L29">    return title;</span>
+  }
+
+  public String getDescription() {
+<span class="nc" id="L33">    return description;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

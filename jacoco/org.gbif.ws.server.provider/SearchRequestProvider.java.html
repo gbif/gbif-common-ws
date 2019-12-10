@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchRequestProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.provider</a> &gt; <span class="el_source">SearchRequestProvider.java</span></div><h1>SearchRequestProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2011 Global Biodiversity Information Facility (GBIF)
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.server.provider;
+
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.common.search.SearchRequest;
+import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.api.util.VocabularyUtils;
+
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.sun.jersey.api.core.HttpContext;
+import com.sun.jersey.core.spi.component.ComponentContext;
+import com.sun.jersey.core.spi.component.ComponentScope;
+import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
+import com.sun.jersey.spi.inject.Injectable;
+import com.sun.jersey.spi.inject.InjectableProvider;
+
+import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
+
+/**
+ * Provider class that transforms a set of HTTP parameters into a SearchRequest class instance.
+ * This assumes the existence of the following parameters in the HTTP request:
+ * 'page_size', 'offset', 'q' and any of the search parameter enum member names case insensitively.
+ */
+public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P extends Enum&lt;?&gt; &amp; SearchParameter&gt;
+  extends AbstractHttpContextInjectable&lt;RT&gt; implements InjectableProvider&lt;Context, Type&gt; {
+
+  private final Class&lt;P&gt; searchParameterClass;
+  private final Class&lt;RT&gt; requestType;
+  private static final int NON_SPELL_CHECK_COUNT = -1;
+
+<span class="fc" id="L54">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {</span>
+<span class="fc" id="L55">    this.requestType = requestType;</span>
+<span class="fc" id="L56">    this.searchParameterClass = searchParameterClass;</span>
+<span class="fc" id="L57">  }</span>
+
+  /**
+   * Get an injectable.
+   *
+   * @param ic the injectable context
+   * @param context the annotation instance
+   * @param type the context instance
+   * @return an Injectable instance, otherwise null if an instance cannot
+   *         be created.
+   */
+  @Override
+  public Injectable&lt;RT&gt; getInjectable(ComponentContext ic, Context context, Type type) {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (type.equals(requestType)) {</span>
+<span class="fc" id="L71">      return this;</span>
+    }
+<span class="fc" id="L73">    return null;</span>
+  }
+
+  /**
+   * Get the scope of the injectable provider.
+   *
+   * @return the scope.
+   */
+  @Override
+  public ComponentScope getScope() {
+<span class="fc" id="L83">    return ComponentScope.PerRequest;</span>
+  }
+
+  @Override
+  public RT getValue(HttpContext context) {
+    try {
+<span class="fc" id="L89">      RT req = requestType.newInstance();</span>
+<span class="fc" id="L90">      return getSearchRequest(context, req);</span>
+
+<span class="nc" id="L92">    } catch (InstantiationException | IllegalAccessException e) {</span>
+      // should never happen
+<span class="nc" id="L94">      Throwables.propagate(e);</span>
+    }
+<span class="nc" id="L96">    return null;</span>
+  }
+
+  protected P findSearchParam(String name) {
+    try {
+<span class="fc" id="L101">      return (P) VocabularyUtils.lookupEnum(name, searchParameterClass);</span>
+<span class="fc" id="L102">    } catch (IllegalArgumentException e) {</span>
+      // we have all params here, not only the enum ones, so this is ok to end up here a few times
+    }
+<span class="fc" id="L105">    return null;</span>
+  }
+
+  protected RT getSearchRequest(HttpContext context, RT searchRequest) {
+<span class="fc" id="L109">    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(context));</span>
+
+<span class="fc" id="L111">    final MultivaluedMap&lt;String, String&gt; params = context.getRequest().getQueryParameters();</span>
+
+<span class="fc" id="L113">    getSearchRequestFromQueryParams(searchRequest, params);</span>
+
+<span class="fc" id="L115">    return searchRequest;</span>
+  }
+
+  /**
+   * Override this method for populating specific search/suggest requests
+   */
+  protected void getSearchRequestFromQueryParams(RT searchRequest, final MultivaluedMap&lt;String, String&gt; params) {
+<span class="fc" id="L122">    final String q = params.getFirst(PARAM_QUERY_STRING);</span>
+<span class="fc" id="L123">    final String highlightValue = params.getFirst(PARAM_HIGHLIGHT);</span>
+<span class="fc" id="L124">    final String spellCheck = params.getFirst(PARAM_SPELLCHECK);</span>
+<span class="fc" id="L125">    final String spellCheckCount = params.getFirst(PARAM_SPELLCHECK_COUNT);</span>
+
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(q)) {</span>
+<span class="nc" id="L128">      searchRequest.setQ(q);</span>
+    }
+
+<span class="fc bfc" id="L131" title="All 2 branches covered.">    if (!Strings.isNullOrEmpty(highlightValue)) {</span>
+<span class="fc" id="L132">      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));</span>
+    }
+
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheck)) {</span>
+<span class="nc" id="L136">      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));</span>
+    }
+
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheckCount)) {</span>
+<span class="nc" id="L140">      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));</span>
+    } else {
+<span class="fc" id="L142">      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);</span>
+    }
+
+    // find search parameter enum based filters
+<span class="fc" id="L146">    setSearchParams(searchRequest, params);</span>
+<span class="fc" id="L147">  }</span>
+
+  /**
+   * Removes all empty and null parameters from the list.
+   * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
+   */
+  private static List&lt;String&gt; removeEmptyParameters(List&lt;String&gt; parameters) {
+<span class="fc" id="L154">    List&lt;String&gt; cleanParameters = Lists.newArrayListWithCapacity(parameters.size());</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">    for (String param : parameters) {</span>
+<span class="fc" id="L156">      String cleanParam = Strings.nullToEmpty(param).trim();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">      if (!cleanParam.isEmpty()) {</span>
+<span class="fc" id="L158">        cleanParameters.add(cleanParam);</span>
+      }
+<span class="fc" id="L160">    }</span>
+<span class="fc" id="L161">    return cleanParameters;</span>
+  }
+
+  /**
+   * Iterates over the params map and adds to the search request the recognized parameters (i.e.: those that have a
+   * correspondent value in the P generic parameter).
+   * Empty (of all size) and null parameters are discarded.
+   */
+  private void setSearchParams(RT searchRequest, MultivaluedMap&lt;String, String&gt; params) {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">    for (Entry&lt;String, List&lt;String&gt;&gt; entry : params.entrySet()) {</span>
+<span class="fc" id="L171">      P p = findSearchParam(entry.getKey());</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">      if (p != null) {</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        for (String val : removeEmptyParameters(entry.getValue())) {</span>
+          // validate value for certain types
+<span class="fc" id="L175">          SearchTypeValidator.validate(p, val);</span>
+<span class="fc" id="L176">          searchRequest.addParameter(p, val);</span>
+<span class="fc" id="L177">        }</span>
+      }
+<span class="fc" id="L179">    }</span>
+<span class="fc" id="L180">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

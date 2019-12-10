@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GbifServletListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.guice</a> &gt; <span class="el_source">GbifServletListener.java</span></div><h1>GbifServletListener.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.guice;
+
+import org.gbif.utils.file.properties.PropertiesUtil;
+import org.gbif.ws.json.JacksonJsonContextResolver;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.Nullable;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
+import com.sun.jersey.spi.container.ContainerResponseFilter;
+import org.codehaus.jackson.map.SerializationConfig;
+
+/**
+ * A basic servlet listener for all our webservices.
+ * Note that the request filters will be ordered as follows if provided:
+ * &lt;ol&gt;
+ * &lt;li&gt;The default filters will always be first&lt;/li&gt;
+ * &lt;li&gt;The authentication filter will be next if enabled (installAuth=true)&lt;/li&gt;
+ * &lt;li&gt;The provided filters will be last in the given order&lt;/li&gt;
+ * &lt;/ol&gt;
+ */
+public abstract class GbifServletListener extends GuiceServletContextListener {
+
+  private final Properties properties;
+  private final WsJerseyModuleConfiguration moduleConfig;
+
+  private Injector injector;
+
+  /**
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example &quot;org.gbif.registry.ws,org.gbif.registry.common.ws&quot;
+   * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
+   *                                     UserService to be installed by one of the additional modules.
+   */
+  protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters) {
+<span class="nc" id="L46">    this(properties, resourcePackages, installAuthenticationFilters, null);</span>
+<span class="nc" id="L47">  }</span>
+
+  /**
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example &quot;org.gbif.registry.ws,org.gbif.registry.common.ws&quot;
+   * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
+   */
+  protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters,
+                                @Nullable List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; responseFilters) {
+<span class="nc" id="L59">    this(properties, resourcePackages, installAuthenticationFilters, responseFilters, null);</span>
+<span class="nc" id="L60">  }</span>
+
+  /**
+   * @param propertyFileName             Fully qualified filename that must be on the classpath
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example &quot;org.gbif.registry.ws,org.gbif.registry.common.ws&quot;
+   * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
+   */
+  protected GbifServletListener(String propertyFileName, String resourcePackages, boolean installAuthenticationFilters,
+                                @Nullable List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; responseFilters) {
+<span class="nc" id="L72">    this(readProperties(propertyFileName), resourcePackages, installAuthenticationFilters,</span>
+            responseFilters);
+<span class="nc" id="L74">  }</span>
+
+  /**
+   * @param properties                   The properties to load
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example &quot;org.gbif.registry.ws,org.gbif.registry.common.ws&quot;
+   * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
+   *                                     UserService to be installed by one of the additional modules.
+   * @param responseFilters              A list of response filters that are applied to the requests.
+   * @param requestFilters               A list of request filters that are applied to the requests. Note: read
+   *                                     constructor
+   *                                     documentation on {@link WsJerseyModule}
+   */
+  protected GbifServletListener(Properties properties, String resourcePackages, boolean installAuthenticationFilters,
+                                @Nullable List&lt;Class&lt;? extends ContainerResponseFilter&gt;&gt; responseFilters,
+                                @Nullable List&lt;Class&lt;? extends ContainerRequestFilter&gt;&gt; requestFilters) {
+<span class="nc" id="L90">    this(properties, new WsJerseyModuleConfiguration()</span>
+<span class="nc" id="L91">            .resourcePackages(resourcePackages)</span>
+<span class="nc" id="L92">            .installAuthenticationFilter(installAuthenticationFilters)</span>
+<span class="nc" id="L93">            .responseFilters(responseFilters)</span>
+<span class="nc" id="L94">            .requestFilters(requestFilters));</span>
+<span class="nc" id="L95">  }</span>
+
+  /**
+   * @param properties   The properties to load
+   * @param moduleConfig configuration to use in the WsJerseyModule
+   */
+<span class="nc" id="L101">  protected GbifServletListener(Properties properties, WsJerseyModuleConfiguration moduleConfig) {</span>
+<span class="nc" id="L102">    this.properties = properties;</span>
+<span class="nc" id="L103">    this.moduleConfig = moduleConfig;</span>
+<span class="nc" id="L104">  }</span>
+
+  /**
+   * Hides the checked exception that can be thrown when reading a file.
+   */
+  private static Properties readProperties(String propertyFileName) {
+<span class="nc" id="L110">    Properties properties = null;</span>
+    try {
+<span class="nc" id="L112">      properties = PropertiesUtil.loadProperties(propertyFileName);</span>
+<span class="nc" id="L113">    } catch (IOException e) {</span>
+<span class="nc" id="L114">      throw new IllegalArgumentException(&quot;Error reading properties file&quot;, e);</span>
+<span class="nc" id="L115">    }</span>
+<span class="nc" id="L116">    return properties;</span>
+  }
+
+  /**
+   * @param propertyFileName             Fully qualified filename that must be on the classpath
+   * @param resourcePackages             packages to scan for jersey resources,
+   *                                     for example &quot;org.gbif.registry.ws,org.gbif.registry.common.ws&quot;
+   * @param installAuthenticationFilters if true installs support for authentication. Requires an implementation of
+   *                                     UserService to be installed by one of the additional modules.
+   */
+  protected GbifServletListener(String propertyFileName, String resourcePackages,
+                                boolean installAuthenticationFilters) {
+<span class="nc" id="L128">    this(propertyFileName, resourcePackages, installAuthenticationFilters, null);</span>
+<span class="nc" id="L129">  }</span>
+
+
+  /**
+   * Implement this to return the list of all additional modules needed to be installed.
+   *
+   * @return a list of modules, never null.
+   */
+  protected abstract List&lt;Module&gt; getModules(Properties properties);
+
+  /**
+   * Override this method to pass a map of mixIn classes into the Jackson context resolver.
+   * For example, the Jackson JSON configuration may need to know about how to (de)serialize polymorphic classes.
+   *
+   * @return the mixIn class map. Defaults to an empty map.
+   */
+  protected Map&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; getMixIns() {
+<span class="nc" id="L146">    return Maps.newHashMap();</span>
+  }
+
+  /**
+   * Get the list of additional SerializationConfig.Feature that should be disabled from the shared ObjectMapper.
+   *
+   * @return list of SerializationConfig.Feature, empty, or null
+   */
+  protected List&lt;SerializationConfig.Feature&gt; getAdditionalDisabledFeature() {
+<span class="nc" id="L155">    return Collections.emptyList();</span>
+  }
+
+  @Override
+  protected synchronized Injector getInjector() {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">    if (injector == null) {</span>
+
+      // configure Jackson MixIns
+<span class="nc" id="L163">      JacksonJsonContextResolver.addMixIns(getMixIns());</span>
+<span class="nc" id="L164">      JacksonJsonContextResolver.disableFeature(getAdditionalDisabledFeature());</span>
+
+<span class="nc" id="L166">      List&lt;Module&gt; modules = getModules(properties);</span>
+<span class="nc" id="L167">      modules.add(new WsJerseyModule(moduleConfig));</span>
+
+<span class="nc" id="L169">      injector = Guice.createInjector(modules);</span>
+    }
+<span class="nc" id="L171">    return injector;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

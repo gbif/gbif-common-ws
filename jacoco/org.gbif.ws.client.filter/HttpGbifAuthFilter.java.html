@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpGbifAuthFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client.filter</a> &gt; <span class="el_source">HttpGbifAuthFilter.java</span></div><h1>HttpGbifAuthFilter.java</h1><pre class="source lang-java linenums">/*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *
+ * Copyright (c) 2010-2011 Oracle and/or its affiliates. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only (&quot;GPL&quot;) or the Common Development
+ * and Distribution License(&quot;CDDL&quot;) (collectively, the &quot;License&quot;).  You
+ * may not use this file except in compliance with the License.  You can
+ * obtain a copy of the License at
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
+ * or packager/legal/LICENSE.txt.  See the License for the specific
+ * language governing permissions and limitations under the License.
+ *
+ * When distributing the software, include this License Header Notice in each
+ * file and include the License file at packager/legal/LICENSE.txt.
+ *
+ * GPL Classpath Exception:
+ * Oracle designates this particular file as subject to the &quot;Classpath&quot;
+ * exception as provided by Oracle in the GPL Version 2 section of the License
+ * file that accompanied this code.
+ *
+ * Modifications:
+ * If applicable, add the following below the License Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * &quot;Portions Copyright [year] [name of copyright owner]&quot;
+ *
+ * Contributor(s):
+ * If you wish your version of this file to be governed by only the CDDL or
+ * only the GPL Version 2, indicate your decision by adding &quot;[Contributor]
+ * elects to include this software in this distribution under the [CDDL or GPL
+ * Version 2] license.&quot;  If you don't indicate a single choice of license, a
+ * recipient has the option to distribute your version of this file under
+ * either the CDDL, the GPL Version 2 or to extend the choice of license to
+ * its licensees as provided above.  However, if you add GPL Version 2 code
+ * and therefore, elected the GPL Version 2 license, then the option applies
+ * only if the new code is made subject to such option by the copyright
+ * holder.
+ */
+package org.gbif.ws.client.filter;
+
+import org.gbif.ws.security.GbifAuthService;
+
+import java.security.Principal;
+
+import com.google.inject.Provider;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.filter.ClientFilter;
+
+/**
+ * Thread safe client filter adding an HTTP Authentication header to the HTTP request using the custom GBIF schema
+ * for trusted applications.
+ * In addition to the Authentication this filter will add these headers to the request:
+ * &lt;ul&gt;
+ * &lt;li&gt;Content-MD5: the MD5 hash for the request body&lt;/li&gt;
+ * &lt;li&gt;x-gbif-user: the username of the proxied user&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public final class HttpGbifAuthFilter extends ClientFilter {
+
+  private final Provider&lt;Principal&gt; principalProvider;
+  private final GbifAuthService authService;
+
+  /**
+   * Creates a new HTTP GBIF Authentication filter using provided application ID and trusted principal provider.
+   */
+  public HttpGbifAuthFilter(GbifAuthService authService,
+<span class="fc" id="L70">    Provider&lt;Principal&gt; principalProvider) {</span>
+<span class="fc" id="L71">    this.principalProvider = principalProvider;</span>
+<span class="fc" id="L72">    this.authService = authService;</span>
+<span class="fc" id="L73">  }</span>
+
+  @Override
+  public ClientResponse handle(final ClientRequest cr) throws ClientHandlerException {
+
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (principalProvider != null) {</span>
+<span class="fc" id="L79">      Principal prince = principalProvider.get();</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">      if (prince != null) {</span>
+<span class="fc" id="L81">        authService.signRequest(prince.getName(), cr);</span>
+      }
+    }
+<span class="nc" id="L84">    return getNext().handle(cr);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

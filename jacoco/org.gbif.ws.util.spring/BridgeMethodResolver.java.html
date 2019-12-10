@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BridgeMethodResolver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util.spring</a> &gt; <span class="el_source">BridgeMethodResolver.java</span></div><h1>BridgeMethodResolver.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2002-2007 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gbif.ws.util.spring;
+
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * Helper for resolving synthetic {@link Method#isBridge bridge Methods} to the
+ * {@link Method} being bridged.
+ * &lt;p&gt;Given a synthetic {@link Method#isBridge bridge Method} returns the {@link Method}
+ * being bridged. A bridge method may be created by the compiler when extending a
+ * parameterized type whose methods have parameterized arguments. During runtime
+ * invocation the bridge {@link Method} may be invoked and/or used via reflection.
+ * When attempting to locate annotations on {@link Method Methods}, it is wise to check
+ * for bridge {@link Method Methods} as appropriate and find the bridged {@link Method}.
+ * &lt;p&gt;See &lt;a href=&quot;http://java.sun.com/docs/books/jls/third_edition/html/expressions.html#15.12.4.5&quot;&gt;
+ * The Java Language Specification&lt;/a&gt; for more details on the use of bridge methods.
+ * &lt;p&gt;Only usable on JDK 1.5 and higher. Use an appropriate {@link JdkVersion}
+ * check before calling this class, if a fallback for JDK 1.4 is desirable.
+ *
+ * @author Rob Harrop
+ * @author Juergen Hoeller
+ * @see JdkVersion
+ * @since 2.0
+ */
+<span class="nc" id="L49">public abstract class BridgeMethodResolver {</span>
+
+  /**
+   * Find the original method for the supplied {@link Method bridge Method}.
+   * &lt;p&gt;It is safe to call this method passing in a non-bridge {@link Method} instance.
+   * In such a case, the supplied {@link Method} instance is returned directly to the caller.
+   * Callers are &lt;strong&gt;not&lt;/strong&gt; required to check for bridging before calling this method.
+   *
+   * @throws IllegalStateException if no bridged {@link Method} can be found
+   */
+  public static Method findBridgedMethod(Method bridgeMethod) {
+<span class="nc" id="L60">    Assert.notNull(bridgeMethod, &quot;Method must not be null&quot;);</span>
+
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (!bridgeMethod.isBridge()) {</span>
+<span class="nc" id="L63">      return bridgeMethod;</span>
+    }
+
+    // Gather all methods with matching name and parameter size.
+<span class="nc" id="L67">    List candidateMethods = new ArrayList();</span>
+<span class="nc" id="L68">    Method[] methods = ReflectionUtils.getAllDeclaredMethods(bridgeMethod.getDeclaringClass());</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    for (int i = 0; i &lt; methods.length; i++) {</span>
+<span class="nc" id="L70">      Method candidateMethod = methods[i];</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">      if (isBridgedCandidateFor(candidateMethod, bridgeMethod)) {</span>
+<span class="nc" id="L72">        candidateMethods.add(candidateMethod);</span>
+      }
+    }
+
+    Method result;
+    // Now perform simple quick checks.
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (candidateMethods.size() == 1) {</span>
+<span class="nc" id="L79">      result = (Method) candidateMethods.get(0);</span>
+    } else {
+<span class="nc" id="L81">      result = searchCandidates(candidateMethods, bridgeMethod);</span>
+    }
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L85">      throw new IllegalStateException(&quot;Unable to locate bridged method for bridge method '&quot; + bridgeMethod + &quot;'&quot;);</span>
+    }
+
+<span class="nc" id="L88">    return result;</span>
+  }
+
+  /**
+   * Search for the bridged method in the given candidates.
+   *
+   * @param candidateMethods the List of candidate Methods
+   * @param bridgeMethod     the bridge method
+   *
+   * @return the bridged method, or &lt;code&gt;null&lt;/code&gt; if none found
+   */
+  private static Method searchCandidates(List candidateMethods, Method bridgeMethod) {
+<span class="nc" id="L100">    Map typeParameterMap = createTypeVariableMap(bridgeMethod.getDeclaringClass());</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    for (int i = 0; i &lt; candidateMethods.size(); i++) {</span>
+<span class="nc" id="L102">      Method candidateMethod = (Method) candidateMethods.get(i);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">      if (isBridgeMethodFor(bridgeMethod, candidateMethod, typeParameterMap)) {</span>
+<span class="nc" id="L104">        return candidateMethod;</span>
+      }
+    }
+<span class="nc" id="L107">    return null;</span>
+  }
+
+  /**
+   * Return &lt;code&gt;true&lt;/code&gt; if the supplied '&lt;code&gt;candidateMethod&lt;/code&gt;' can be
+   * consider a validate candidate for the {@link Method} that is {@link Method#isBridge() bridged}
+   * by the supplied {@link Method bridge Method}. This method performs inexpensive
+   * checks and can be used quickly filter for a set of possible matches.
+   */
+  private static boolean isBridgedCandidateFor(Method candidateMethod, Method bridgeMethod) {
+<span class="nc bnc" id="L117" title="All 4 branches missed.">    return (!candidateMethod.isBridge() &amp;&amp; !candidateMethod.equals(bridgeMethod) &amp;&amp;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            candidateMethod.getName().equals(bridgeMethod.getName()) &amp;&amp;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            candidateMethod.getParameterTypes().length == bridgeMethod.getParameterTypes().length);</span>
+  }
+
+  /**
+   * Determine whether or not the bridge {@link Method} is the bridge for the
+   * supplied candidate {@link Method}.
+   */
+  static boolean isBridgeMethodFor(Method bridgeMethod, Method candidateMethod, Map typeVariableMap) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    if (isResolvedTypeMatch(candidateMethod, bridgeMethod, typeVariableMap)) {</span>
+<span class="nc" id="L128">      return true;</span>
+    }
+<span class="nc" id="L130">    Method method = findGenericDeclaration(bridgeMethod);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">    return (method != null ? isResolvedTypeMatch(method, candidateMethod, typeVariableMap) : false);</span>
+  }
+
+  /**
+   * Search for the generic {@link Method} declaration whose erased signature
+   * matches that of the supplied bridge method.
+   *
+   * @throws IllegalStateException if the generic declaration cannot be found
+   */
+  private static Method findGenericDeclaration(Method bridgeMethod) {
+    // Search parent types for method that has same signature as bridge.
+<span class="nc" id="L142">    Class superclass = bridgeMethod.getDeclaringClass().getSuperclass();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    while (!Object.class.equals(superclass)) {</span>
+<span class="nc" id="L144">      Method method = searchForMatch(superclass, bridgeMethod);</span>
+<span class="nc bnc" id="L145" title="All 4 branches missed.">      if (method != null &amp;&amp; !method.isBridge()) {</span>
+<span class="nc" id="L146">        return method;</span>
+      }
+<span class="nc" id="L148">      superclass = superclass.getSuperclass();</span>
+<span class="nc" id="L149">    }</span>
+
+    // Search interfaces.
+<span class="nc" id="L152">    Class[] interfaces = ClassUtils.getAllInterfacesForClass(bridgeMethod.getDeclaringClass());</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    for (int i = 0; i &lt; interfaces.length; i++) {</span>
+<span class="nc" id="L154">      Class anInterface = interfaces[i];</span>
+<span class="nc" id="L155">      Method method = searchForMatch(anInterface, bridgeMethod);</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">      if (method != null &amp;&amp; !method.isBridge()) {</span>
+<span class="nc" id="L157">        return method;</span>
+      }
+    }
+
+<span class="nc" id="L161">    return null;</span>
+  }
+
+  /**
+   * Return &lt;code&gt;true&lt;/code&gt; if the {@link Type} signature of both the supplied
+   * {@link Method#getGenericParameterTypes() generic Method} and concrete {@link Method}
+   * are equal after resolving all {@link TypeVariable TypeVariables} using the supplied
+   * {@link #createTypeVariableMap TypeVariable Map}, otherwise returns &lt;code&gt;false&lt;/code&gt;.
+   */
+  private static boolean isResolvedTypeMatch(Method genericMethod, Method candidateMethod, Map typeVariableMap) {
+<span class="nc" id="L171">    Type[] genericParameters = genericMethod.getGenericParameterTypes();</span>
+<span class="nc" id="L172">    Class[] candidateParameters = candidateMethod.getParameterTypes();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">    if (genericParameters.length != candidateParameters.length) {</span>
+<span class="nc" id="L174">      return false;</span>
+    }
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    for (int i = 0; i &lt; genericParameters.length; i++) {</span>
+<span class="nc" id="L177">      Type genericParameter = genericParameters[i];</span>
+<span class="nc" id="L178">      Class candidateParameter = candidateParameters[i];</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">      if (candidateParameter.isArray()) {</span>
+        // An array type: compare the component type.
+<span class="nc" id="L181">        Type rawType = getRawType(genericParameter, typeVariableMap);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (rawType instanceof GenericArrayType) {</span>
+<span class="nc" id="L183">          if (!candidateParameter.getComponentType()</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            .equals(getRawType(((GenericArrayType) rawType).getGenericComponentType(), typeVariableMap))) {</span>
+<span class="nc" id="L185">            return false;</span>
+          }
+          break;
+        }
+      }
+      // A non-array type: compare the type itself.
+<span class="nc bnc" id="L191" title="All 2 branches missed.">      if (!candidateParameter.equals(getRawType(genericParameter, typeVariableMap))) {</span>
+<span class="nc" id="L192">        return false;</span>
+      }
+    }
+<span class="nc" id="L195">    return true;</span>
+  }
+
+  /**
+   * Determine the raw type for the given generic parameter type.
+   */
+  private static Type getRawType(Type genericType, Map typeVariableMap) {
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (genericType instanceof TypeVariable) {</span>
+<span class="nc" id="L203">      TypeVariable tv = (TypeVariable) genericType;</span>
+<span class="nc" id="L204">      Type result = (Type) typeVariableMap.get(tv);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">      return (result != null ? result : Object.class);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">    } else if (genericType instanceof ParameterizedType) {</span>
+<span class="nc" id="L207">      return ((ParameterizedType) genericType).getRawType();</span>
+    } else {
+<span class="nc" id="L209">      return genericType;</span>
+    }
+  }
+
+  /**
+   * If the supplied {@link Class} has a declared {@link Method} whose signature matches
+   * that of the supplied {@link Method}, then this matching {@link Method} is returned,
+   * otherwise &lt;code&gt;null&lt;/code&gt; is returned.
+   */
+  private static Method searchForMatch(Class type, Method bridgeMethod) {
+<span class="nc" id="L219">    return ReflectionUtils.findMethod(type, bridgeMethod.getName(), bridgeMethod.getParameterTypes());</span>
+  }
+
+  /**
+   * Build a mapping of {@link TypeVariable#getName TypeVariable names} to concrete
+   * {@link Class} for the specified {@link Class}. Searches all super types,
+   * enclosing types and interfaces.
+   */
+  static Map createTypeVariableMap(Class cls) {
+<span class="nc" id="L228">    Map typeVariableMap = new HashMap();</span>
+
+    // interfaces
+<span class="nc" id="L231">    extractTypeVariablesFromGenericInterfaces(cls.getGenericInterfaces(), typeVariableMap);</span>
+
+    // super class
+<span class="nc" id="L234">    Type genericType = cls.getGenericSuperclass();</span>
+<span class="nc" id="L235">    Class type = cls.getSuperclass();</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    while (!Object.class.equals(type)) {</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">      if (genericType instanceof ParameterizedType) {</span>
+<span class="nc" id="L238">        ParameterizedType pt = (ParameterizedType) genericType;</span>
+<span class="nc" id="L239">        populateTypeMapFromParameterizedType(pt, typeVariableMap);</span>
+      }
+<span class="nc" id="L241">      extractTypeVariablesFromGenericInterfaces(type.getGenericInterfaces(), typeVariableMap);</span>
+<span class="nc" id="L242">      genericType = type.getGenericSuperclass();</span>
+<span class="nc" id="L243">      type = type.getSuperclass();</span>
+    }
+
+    // enclosing class
+<span class="nc" id="L247">    type = cls;</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    while (type.isMemberClass()) {</span>
+<span class="nc" id="L249">      genericType = type.getGenericSuperclass();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">      if (genericType instanceof ParameterizedType) {</span>
+<span class="nc" id="L251">        ParameterizedType pt = (ParameterizedType) genericType;</span>
+<span class="nc" id="L252">        populateTypeMapFromParameterizedType(pt, typeVariableMap);</span>
+      }
+<span class="nc" id="L254">      type = type.getEnclosingClass();</span>
+    }
+
+<span class="nc" id="L257">    return typeVariableMap;</span>
+  }
+
+  private static void extractTypeVariablesFromGenericInterfaces(Type[] genericInterfaces, Map typeVariableMap) {
+<span class="nc bnc" id="L261" title="All 2 branches missed.">    for (int i = 0; i &lt; genericInterfaces.length; i++) {</span>
+<span class="nc" id="L262">      Type genericInterface = genericInterfaces[i];</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">      if (genericInterface instanceof ParameterizedType) {</span>
+<span class="nc" id="L264">        ParameterizedType pt = (ParameterizedType) genericInterface;</span>
+<span class="nc" id="L265">        populateTypeMapFromParameterizedType(pt, typeVariableMap);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (pt.getRawType() instanceof Class) {</span>
+<span class="nc" id="L267">          extractTypeVariablesFromGenericInterfaces(((Class) pt.getRawType()).getGenericInterfaces(), typeVariableMap);</span>
+        }
+<span class="nc bnc" id="L269" title="All 2 branches missed.">      } else if (genericInterface instanceof Class) {</span>
+<span class="nc" id="L270">        extractTypeVariablesFromGenericInterfaces(((Class) genericInterface).getGenericInterfaces(), typeVariableMap);</span>
+      }
+    }
+<span class="nc" id="L273">  }</span>
+
+
+  /**
+   * Read the {@link TypeVariable TypeVariables} from the supplied {@link ParameterizedType}
+   * and add mappings corresponding to the {@link TypeVariable#getName TypeVariable name} -&gt;
+   * concrete type to the supplied {@link Map}.
+   * &lt;p&gt;Consider this case:
+   * &lt;pre class=&quot;code&gt;
+   * public interface Foo&lt;S, T&gt; {
+   * ..
+   * }
+   * public class FooImpl implements Foo&lt;String, Integer&gt; {
+   * ..
+   * }&lt;/pre&gt;
+   * For '&lt;code&gt;FooImpl&lt;/code&gt;' the following mappings would be added to the {@link Map}:
+   * {S=java.lang.String, T=java.lang.Integer}.
+   */
+  private static void populateTypeMapFromParameterizedType(ParameterizedType type, Map typeVariableMap) {
+<span class="nc bnc" id="L292" title="All 2 branches missed.">    if (type.getRawType() instanceof Class) {</span>
+<span class="nc" id="L293">      Type[] actualTypeArguments = type.getActualTypeArguments();</span>
+<span class="nc" id="L294">      TypeVariable[] typeVariables = ((Class) type.getRawType()).getTypeParameters();</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">      for (int i = 0; i &lt; actualTypeArguments.length; i++) {</span>
+<span class="nc" id="L296">        Type actualTypeArgument = actualTypeArguments[i];</span>
+<span class="nc" id="L297">        TypeVariable variable = typeVariables[i];</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        if (actualTypeArgument instanceof Class) {</span>
+<span class="nc" id="L299">          typeVariableMap.put(variable, actualTypeArgument);</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        } else if (actualTypeArgument instanceof GenericArrayType) {</span>
+<span class="nc" id="L301">          typeVariableMap.put(variable, actualTypeArgument);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        } else if (actualTypeArgument instanceof ParameterizedType) {</span>
+<span class="nc" id="L303">          typeVariableMap.put(variable, ((ParameterizedType) actualTypeArgument).getRawType());</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        } else if (actualTypeArgument instanceof TypeVariable) {</span>
+          // We have a type that is parameterized at instantiation time
+          // the nearest match on the bridge method will be the bounded type.
+<span class="nc" id="L307">          TypeVariable typeVariableArgument = (TypeVariable) actualTypeArgument;</span>
+<span class="nc" id="L308">          Type resolvedType = (Type) typeVariableMap.get(typeVariableArgument);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">          if (resolvedType == null) {</span>
+<span class="nc" id="L310">            resolvedType = extractClassForTypeVariable(typeVariableArgument);</span>
+          }
+<span class="nc bnc" id="L312" title="All 2 branches missed.">          if (resolvedType != null) {</span>
+<span class="nc" id="L313">            typeVariableMap.put(variable, resolvedType);</span>
+          }
+        }
+      }
+    }
+<span class="nc" id="L318">  }</span>
+
+  /**
+   * Extracts the bound '&lt;code&gt;Class&lt;/code&gt;' for a give {@link TypeVariable}.
+   */
+  private static Class extractClassForTypeVariable(TypeVariable typeVariable) {
+<span class="nc" id="L324">    Type[] bounds = typeVariable.getBounds();</span>
+<span class="nc" id="L325">    Type result = null;</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">    if (bounds.length &gt; 0) {</span>
+<span class="nc" id="L327">      Type bound = bounds[0];</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">      if (bound instanceof ParameterizedType) {</span>
+<span class="nc" id="L329">        result = ((ParameterizedType) bound).getRawType();</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">      } else if (bound instanceof Class) {</span>
+<span class="nc" id="L331">        result = bound;</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">      } else if (bound instanceof TypeVariable) {</span>
+<span class="nc" id="L333">        result = extractClassForTypeVariable((TypeVariable) bound);</span>
+      }
+    }
+<span class="nc bnc" id="L336" title="All 2 branches missed.">    return (result instanceof Class ? (Class) result : null);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

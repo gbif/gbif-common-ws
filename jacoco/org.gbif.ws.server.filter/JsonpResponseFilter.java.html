@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JsonpResponseFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.filter</a> &gt; <span class="el_source">JsonpResponseFilter.java</span></div><h1>JsonpResponseFilter.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.filter;
+
+import org.gbif.ws.util.ExtraMediaTypes;
+
+import javax.ws.rs.core.MediaType;
+
+import com.google.common.base.Strings;
+import com.sun.jersey.api.json.JSONWithPadding;
+import com.sun.jersey.spi.container.ContainerRequest;
+import com.sun.jersey.spi.container.ContainerResponse;
+import com.sun.jersey.spi.container.ContainerResponseFilter;
+
+/**
+ * Filter that optionally wraps a JSON request in a JSONP response.
+ * &lt;p/&gt;
+ * For this wrapping to happen two things need to be true:
+ * &lt;ul&gt;
+ * &lt;li&gt;The Media type of the response must be set to JSON or application/javascript&lt;/li&gt;
+ * &lt;li&gt;The request must have a query parameter called {@code callback}&lt;/li&gt;
+ * &lt;/ul&gt;
+ * &lt;p/&gt;
+ *
+ * @see &lt;a href=&quot;http://weblogs.java.net/blog/felipegaucho/archive/2010/02/25/jersey-feat-jquery-jsonp&quot;&gt;JSONP with
+ *      Jersey and jQuery&lt;/a&gt;
+ */
+<span class="fc" id="L26">public class JsonpResponseFilter implements ContainerResponseFilter {</span>
+
+  @Override
+  public ContainerResponse filter(ContainerRequest request, ContainerResponse response) {
+<span class="fc bfc" id="L30" title="All 4 branches covered.">    if (response.getMediaType() == null || !response.getMediaType().equals(MediaType.APPLICATION_JSON_TYPE) &amp;&amp; !response</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">      .getMediaType().equals(ExtraMediaTypes.APPLICATION_JAVASCRIPT_TYPE)) {</span>
+<span class="fc" id="L32">      return response;</span>
+    }
+
+<span class="fc" id="L35">    String callback = Strings.nullToEmpty(request.getQueryParameters().getFirst(&quot;callback&quot;));</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">    if (callback.isEmpty()) {</span>
+<span class="fc" id="L37">      return response;</span>
+    }
+
+<span class="fc bfc" id="L40" title="All 2 branches covered.">    if (response.getEntity() != null) {</span>
+<span class="fc" id="L41">      JSONWithPadding jsonp = new JSONWithPadding(response.getEntity(), callback);</span>
+<span class="fc" id="L42">      response.setEntity(jsonp);</span>
+<span class="fc" id="L43">      return response;</span>
+    }
+
+<span class="fc" id="L46">    return response;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

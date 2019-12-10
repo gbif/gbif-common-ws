@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnonymousAuthModule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client.guice</a> &gt; <span class="el_source">AnonymousAuthModule.java</span></div><h1>AnonymousAuthModule.java</h1><pre class="source lang-java linenums">package org.gbif.ws.client.guice;
+
+import com.google.inject.AbstractModule;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.filter.ClientFilter;
+
+/**
+ * A small module that installs a dummy {@link com.sun.jersey.api.client.filter.ClientFilter} that doesn't do anything.
+ * It can be used as an anonymous authentication filter, leaving the http headers untouched.
+ */
+<span class="nc" id="L13">public class AnonymousAuthModule extends AbstractModule {</span>
+
+  /**
+   * Dummy client filter that doesn't do anything.
+   * Can be used as anonymous authentication for a required filter.
+   */
+  private static class AnonymousAuthFilter extends ClientFilter {
+
+    @Override
+    public ClientResponse handle(final ClientRequest cr) throws ClientHandlerException {
+<span class="nc" id="L23">      return getNext().handle(cr);</span>
+    }
+  }
+
+  @Override
+  protected void configure() {
+<span class="nc" id="L29">    bind(ClientFilter.class).to(AnonymousAuthFilter.class).asEagerSingleton();</span>
+<span class="nc" id="L30">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

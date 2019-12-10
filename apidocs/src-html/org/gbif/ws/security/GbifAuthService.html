@@ -37,9 +37,9 @@
 <span class="sourceLineNo">029</span>import org.slf4j.LoggerFactory;<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
 <span class="sourceLineNo">031</span>/**<a name="line.31"></a>
-<span class="sourceLineNo">032</span> * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST http requests<a name="line.32"></a>
-<span class="sourceLineNo">033</span> * using a private key. It uses the standard Http Authorization Header to transport the following information:<a name="line.33"></a>
-<span class="sourceLineNo">034</span> * Authorization: GBIF applicationKey:Signature<a name="line.34"></a>
+<span class="sourceLineNo">032</span> * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST HTTP requests<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * using a private key. It uses the standard HTTP Authorization header to transport the following information:<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * Authorization: GBIF applicationKey:signature<a name="line.34"></a>
 <span class="sourceLineNo">035</span> *<a name="line.35"></a>
 <span class="sourceLineNo">036</span> * &lt;br/&gt;<a name="line.36"></a>
 <span class="sourceLineNo">037</span> * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)<a name="line.37"></a>
@@ -51,20 +51,20 @@
 <span class="sourceLineNo">043</span> *<a name="line.43"></a>
 <span class="sourceLineNo">044</span> * &lt;pre&gt;<a name="line.44"></a>
 <span class="sourceLineNo">045</span> * POST /dataset HTTP/1.1<a name="line.45"></a>
-<span class="sourceLineNo">046</span> * Host: johnsmith.s3.amazonaws.com<a name="line.46"></a>
+<span class="sourceLineNo">046</span> * Host: api.gbif.org<a name="line.46"></a>
 <span class="sourceLineNo">047</span> * Date: Mon, 26 Mar 2007 19:37:58 +0000<a name="line.47"></a>
 <span class="sourceLineNo">048</span> * x-gbif-user: trobertson<a name="line.48"></a>
 <span class="sourceLineNo">049</span> * Content-MD5: LiFThEP4Pj2TODQXa/oFPg==<a name="line.49"></a>
 <span class="sourceLineNo">050</span> * Authorization: GBIF gbif.portal:frJIUN8DYpKDtOLCwo//yllqDzg=<a name="line.50"></a>
 <span class="sourceLineNo">051</span> * &lt;/pre&gt;<a name="line.51"></a>
 <span class="sourceLineNo">052</span> *<a name="line.52"></a>
-<span class="sourceLineNo">053</span> * When signing an http request in addition to the Authentication header some additional custom headers are added<a name="line.53"></a>
+<span class="sourceLineNo">053</span> * When signing an HTTP request in addition to the Authorization header some additional custom headers are added<a name="line.53"></a>
 <span class="sourceLineNo">054</span> * which are used to sign and digest the message.<a name="line.54"></a>
 <span class="sourceLineNo">055</span> * &lt;br/&gt;<a name="line.55"></a>
 <span class="sourceLineNo">056</span> * x-gbif-user is added to transport a proxied user in which the application is acting.<a name="line.56"></a>
 <span class="sourceLineNo">057</span> * &lt;br/&gt;<a name="line.57"></a>
 <span class="sourceLineNo">058</span> * Content-MD5 is added if a body entity exists.<a name="line.58"></a>
-<span class="sourceLineNo">059</span> * See Concent-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15<a name="line.59"></a>
+<span class="sourceLineNo">059</span> * See Content-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15<a name="line.59"></a>
 <span class="sourceLineNo">060</span> */<a name="line.60"></a>
 <span class="sourceLineNo">061</span>@Singleton<a name="line.61"></a>
 <span class="sourceLineNo">062</span>public class GbifAuthService {<a name="line.62"></a>

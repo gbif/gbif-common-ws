@@ -98,7 +98,7 @@
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>                     params.getFirst(PARAM_LIMIT), DEFAULT_PARAM_LIMIT);
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>            limit = DEFAULT_PARAM_LIMIT;
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (limit &gt; LIMIT_CAP) {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>            LOG.info(<span class="jxr_string">"Limit parameter too high. Use maximum {}"</span>, LIMIT_CAP);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>            LOG.debug(<span class="jxr_string">"Limit parameter too high. Use maximum {}"</span>, LIMIT_CAP);
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>            limit = LIMIT_CAP;
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>        } <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
@@ -126,6 +126,6 @@
 <a class="jxr_linenumber" name="L118" href="#L118">118</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
 </body>
 </html>

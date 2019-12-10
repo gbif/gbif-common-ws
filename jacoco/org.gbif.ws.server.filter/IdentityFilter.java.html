@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IdentityFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.filter</a> &gt; <span class="el_source">IdentityFilter.java</span></div><h1>IdentityFilter.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.filter;
+
+import org.gbif.api.model.common.ExtendedPrincipal;
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.model.common.GbifUserPrincipal;
+import org.gbif.api.model.common.User;
+import org.gbif.api.service.common.IdentityAccessService;
+import org.gbif.ws.security.GbifAuthService;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
+import com.google.common.base.Strings;
+import com.google.inject.Inject;
+import com.sun.jersey.core.util.Base64;
+import com.sun.jersey.spi.container.ContainerRequest;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ * Replacement for {@link AuthFilter}.
+ *
+ * Server filter that looks for a http BasicAuthentication with user accounts based on a {@link IdentityAccessService}
+ * or GBIF trusted application schema to impersonate a user and populates the security context.
+ *
+ * As we have another custom authorization filter in the registry that understands a registry internal authentication,
+ * all Basic authentication requests that have a UUID as the username are simply passed through and passwords are not
+ * evaluated.
+ */
+public class IdentityFilter implements ContainerRequestFilter {
+
+  private static class Authorizer implements SecurityContext {
+
+    private final ExtendedPrincipal principal;
+    private final String authenticationScheme;
+    private final boolean isSecure;
+
+<span class="fc" id="L49">    private Authorizer(ExtendedPrincipal principal, String authenticationScheme, boolean isSecure) {</span>
+<span class="fc" id="L50">      this.principal = principal;</span>
+<span class="fc" id="L51">      this.authenticationScheme = authenticationScheme;</span>
+<span class="fc" id="L52">      this.isSecure = isSecure;</span>
+<span class="fc" id="L53">    }</span>
+
+    /**
+     * Get an {@link Authorizer} for a specific {@link User}.
+     *
+     * @param user
+     * @param authenticationScheme
+     * @param isSecure
+     *
+     * @return
+     */
+    static Authorizer getAuthorizer(GbifUser user, String authenticationScheme, boolean isSecure) {
+<span class="fc" id="L65">      return new Authorizer(new GbifUserPrincipal(user), authenticationScheme, isSecure);</span>
+    }
+
+    /**
+     * Get an anonymous {@link Authorizer}.
+     * Anonymous users do not have {@link Principal}.
+     *
+     * @param isSecure
+     *
+     * @return
+     */
+    static Authorizer getAnonymous(boolean isSecure) {
+<span class="fc" id="L77">      return new Authorizer(null, &quot;&quot;, isSecure);</span>
+    }
+
+    @Override
+    public String getAuthenticationScheme() {
+<span class="nc" id="L82">      return authenticationScheme;</span>
+    }
+
+    @Override
+    public Principal getUserPrincipal() {
+<span class="fc" id="L87">      return principal;</span>
+    }
+
+    @Override
+    public boolean isSecure() {
+<span class="nc" id="L92">      return isSecure;</span>
+    }
+
+    @Override
+    public boolean isUserInRole(String role) {
+<span class="fc bfc" id="L97" title="All 4 branches covered.">      return principal != null &amp;&amp; principal.hasRole(role);</span>
+    }
+  }
+
+<span class="fc" id="L101">  private static final Logger LOG = LoggerFactory.getLogger(IdentityFilter.class);</span>
+
+<span class="fc" id="L103">  private static final Pattern COLON_PATTERN = Pattern.compile(&quot;:&quot;);</span>
+  private final IdentityAccessService identityAccessService;
+  private final GbifAuthService authService;
+
+  private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + &quot; &quot;;
+  private static final String BASIC_SCHEME_PREFIX = &quot;Basic &quot;;
+
+  /**
+   * IdentityFilter constructor
+   * In case {@link GbifAuthService} is not provided, this class will reject all authentications
+   * on the GBIF scheme prefix.
+   *
+   * @param identityAccessService
+   * @param authService     nullable GbifAuthService
+   */
+  @Inject
+<span class="fc" id="L119">  public IdentityFilter(@NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {</span>
+<span class="fc" id="L120">    Objects.requireNonNull(identityAccessService, &quot;identityAccessService shall be provided&quot;);</span>
+<span class="fc" id="L121">    this.identityAccessService = identityAccessService;</span>
+<span class="fc" id="L122">    this.authService = authService;</span>
+<span class="fc" id="L123">  }</span>
+
+  @Override
+  public ContainerRequest filter(ContainerRequest request) {
+
+    // authenticates the HTTP method, but ignores legacy UUID user names
+<span class="fc" id="L129">    Authorizer authorizer = authenticate(request);</span>
+
+<span class="fc bfc" id="L131" title="All 2 branches covered.">    if (authorizer == null) {</span>
+      // default is the anonymous user
+<span class="fc" id="L133">      authorizer = Authorizer.getAnonymous(request.isSecure());</span>
+    }
+<span class="fc" id="L135">    request.setSecurityContext(authorizer);</span>
+<span class="fc" id="L136">    return request;</span>
+  }
+
+  private Authorizer authenticate(ContainerRequest request) {
+    // Extract authentication credentials
+<span class="fc" id="L141">    String authentication = request.getHeaderValue(ContainerRequest.AUTHORIZATION);</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">    if (authentication != null) {</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">      if (authentication.startsWith(BASIC_SCHEME_PREFIX)) {</span>
+<span class="fc" id="L144">        return basicAuthentication(authentication.substring(BASIC_SCHEME_PREFIX.length()), request.isSecure());</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">      } else if (authentication.startsWith(GBIF_SCHEME_PREFIX)) {</span>
+<span class="fc" id="L146">        return gbifAuthentication(request);</span>
+      }
+    }
+<span class="fc" id="L149">    return Authorizer.getAnonymous(request.isSecure());</span>
+  }
+
+  private Authorizer basicAuthentication(String authentication, boolean isSecure) {
+    // As specified in RFC 7617, the auth header (if not ASCII) is in UTF-8.
+<span class="fc" id="L154">    byte[] decodedAuthentication = Base64.decode(authentication);</span>
+<span class="fc" id="L155">    String[] values = COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">    if (values.length &lt; 2) {</span>
+<span class="nc" id="L157">      LOG.warn(&quot;Invalid syntax for username and password: {}&quot;, authentication);</span>
+<span class="nc" id="L158">      throw new WebApplicationException(Response.Status.BAD_REQUEST);</span>
+    }
+
+<span class="fc" id="L161">    String username = values[0];</span>
+<span class="fc" id="L162">    String password = values[1];</span>
+<span class="pc bpc" id="L163" title="2 of 4 branches missed.">    if (username == null || password == null) {</span>
+<span class="nc" id="L164">      LOG.warn(&quot;Missing basic authentication username or password: {}&quot;, authentication);</span>
+<span class="nc" id="L165">      throw new WebApplicationException(Response.Status.BAD_REQUEST);</span>
+    }
+
+    // ignore usernames which are UUIDs - these are registry legacy IPT calls and handled by a special security filter
+    try {
+<span class="fc" id="L170">      UUID.fromString(username);</span>
+<span class="fc" id="L171">      return null;</span>
+<span class="fc" id="L172">    } catch (IllegalArgumentException e) {</span>
+      // no UUID, continue with regular drupal authentication
+    }
+
+<span class="fc" id="L176">    GbifUser user = identityAccessService.authenticate(username, password);</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">    if (user == null) {</span>
+<span class="fc" id="L178">      throw new WebApplicationException(Response.Status.UNAUTHORIZED);</span>
+    }
+
+<span class="fc" id="L181">    LOG.debug(&quot;Authenticating user {} via scheme {}&quot;, username, SecurityContext.BASIC_AUTH);</span>
+<span class="fc" id="L182">    return Authorizer.getAuthorizer(user, SecurityContext.BASIC_AUTH, isSecure);</span>
+  }
+
+  private Authorizer gbifAuthentication(final ContainerRequest request) {
+<span class="fc" id="L186">    String username = request.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">    if (Strings.isNullOrEmpty(username)) {</span>
+<span class="nc" id="L188">      LOG.warn(&quot;Missing gbif username header {}&quot;, GbifAuthService.HEADER_GBIF_USER);</span>
+<span class="nc" id="L189">      throw new WebApplicationException(Response.Status.BAD_REQUEST);</span>
+    }
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">    if (authService == null) {</span>
+<span class="nc" id="L192">      LOG.warn(&quot;No GbifAuthService defined.&quot;);</span>
+<span class="nc" id="L193">      throw new WebApplicationException(Response.Status.UNAUTHORIZED);</span>
+    }
+<span class="pc bpc" id="L195" title="1 of 2 branches missed.">    if (!authService.isValidRequest(request)) {</span>
+<span class="nc" id="L196">      LOG.warn(&quot;Invalid GBIF authenticated request&quot;);</span>
+<span class="nc" id="L197">      throw new WebApplicationException(Response.Status.UNAUTHORIZED);</span>
+    }
+
+<span class="fc" id="L200">    LOG.debug(&quot;Authenticating user {} via scheme {}&quot;, username, GbifAuthService.GBIF_SCHEME);</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">    if (identityAccessService == null) {</span>
+<span class="nc" id="L202">      LOG.debug(&quot;No identityService configured! No roles assigned, using anonymous user instead.&quot;);</span>
+<span class="nc" id="L203">      return Authorizer.getAnonymous(request.isSecure());</span>
+    }
+
+    //check if we have a request that impersonates a user
+<span class="fc" id="L207">    GbifUser user = identityAccessService.get(username);</span>
+    //Note: using an Anonymous Authorizer is probably not the best thing to do here
+    //we should consider simply return null to let another filter handle it
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">    return user == null ? Authorizer.getAnonymous(request.isSecure())</span>
+<span class="fc" id="L211">            : Authorizer.getAuthorizer(user, GbifAuthService.GBIF_SCHEME,</span>
+<span class="pc" id="L212">            Optional.ofNullable(request.getSecurityContext()).map(sc -&gt; request.isSecure()).orElse(Boolean.FALSE));</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

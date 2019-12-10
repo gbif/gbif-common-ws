@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GbifAuthService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">GbifAuthService.java</span></div><h1>GbifAuthService.java</h1><pre class="source lang-java linenums">package org.gbif.ws.security;
+
+import org.gbif.ws.json.JacksonJsonContextResolver;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.Singleton;
+import com.sun.jersey.api.client.ClientRequest;
+import com.sun.jersey.core.util.Base64;
+import com.sun.jersey.spi.container.ContainerRequest;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * The GBIF authentication scheme is modelled after the Amazon scheme on how to sign REST HTTP requests
+ * using a private key. It uses the standard HTTP Authorization header to transport the following information:
+ * Authorization: GBIF applicationKey:signature
+ *
+ * &lt;br/&gt;
+ * The header starts with the authentication scheme (GBIF), followed by the plain applicationKey (the public key)
+ * and a unique signature for the very request which is generated using a fixed set of request attributes
+ * which are then encrypted by a standard HMAC-SHA1 algorithm.
+ *
+ * &lt;br/&gt;
+ * A POST request with a GBIF header would look like this:
+ *
+ * &lt;pre&gt;
+ * POST /dataset HTTP/1.1
+ * Host: api.gbif.org
+ * Date: Mon, 26 Mar 2007 19:37:58 +0000
+ * x-gbif-user: trobertson
+ * Content-MD5: LiFThEP4Pj2TODQXa/oFPg==
+ * Authorization: GBIF gbif.portal:frJIUN8DYpKDtOLCwo//yllqDzg=
+ * &lt;/pre&gt;
+ *
+ * When signing an HTTP request in addition to the Authorization header some additional custom headers are added
+ * which are used to sign and digest the message.
+ * &lt;br/&gt;
+ * x-gbif-user is added to transport a proxied user in which the application is acting.
+ * &lt;br/&gt;
+ * Content-MD5 is added if a body entity exists.
+ * See Content-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
+ */
+@Singleton
+public class GbifAuthService {
+
+<span class="fc" id="L64">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthService.class);</span>
+
+  private static final String ALGORITHM = &quot;HmacSHA1&quot;;
+  private static final String CHAR_ENCODING = &quot;UTF8&quot;;
+  public static final String HEADER_AUTHORIZATION = &quot;Authorization&quot;;
+  public static final String HEADER_CONTENT_TYPE = &quot;Content-Type&quot;;
+  public static final String HEADER_CONTENT_MD5 = &quot;Content-MD5&quot;;
+  public static final String GBIF_SCHEME = &quot;GBIF&quot;;
+  public static final String HEADER_GBIF_USER = &quot;x-gbif-user&quot;;
+  public static final String HEADER_ORIGINAL_REQUEST_URL = &quot;x-url&quot;;
+  private static final char NEWLINE = '\n';
+<span class="fc" id="L75">  private static final Pattern COLON_PATTERN = Pattern.compile(&quot;:&quot;);</span>
+
+  private final ImmutableMap&lt;String, String&gt; keyStore;
+  private final String appKey;
+<span class="fc" id="L79">  private final ObjectMapper mapper = new JacksonJsonContextResolver().getContext(null);</span>
+
+<span class="fc" id="L81">  private GbifAuthService(Map&lt;String, String&gt; appKeys, String appKey) {</span>
+<span class="fc" id="L82">    keyStore = ImmutableMap.copyOf(appKeys);</span>
+<span class="fc" id="L83">    this.appKey = appKey;</span>
+<span class="fc" id="L84">    LOG.info(&quot;Initialised appkey store with {} keys&quot;, keyStore.size());</span>
+<span class="fc" id="L85">  }</span>
+
+  /**
+   * Creates a new GBIF authentication service for applications that need to validate requests
+   * for various application keys. Used by the GBIF webservice apps that require authentication.
+   */
+  public static GbifAuthService multiKeyAuthService(Map&lt;String, String&gt; appKeys) {
+<span class="fc" id="L92">    return new GbifAuthService(appKeys, null);</span>
+  }
+
+  /**
+   * Creates a new GBIF authentication service for clients that want to sign requests always using a single
+   * application key. Used by the GBIF portal and other trusted applications that need to proxy a user.
+   */
+  public static GbifAuthService singleKeyAuthService(String appKey, String secret) {
+<span class="fc" id="L100">    LOG.info(&quot;Initialising auth service with key {}&quot;, appKey);</span>
+<span class="fc" id="L101">    return new GbifAuthService(ImmutableMap.of(appKey, secret), appKey);</span>
+  }
+
+  /**
+   * Extracts the information to be encrypted from a request and concatenates them into a single String.
+   * When the server receives an authenticated request, it compares the computed request signature
+   * with the signature provided in the request in StringToSign.
+   * For that reason this string may only contain information also available in the exact same form to the server.
+   *
+   * @return unique string for a request
+   *
+   * @see &lt;a href=&quot;http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html&quot;&gt;AWS Docs&lt;/a&gt;
+   */
+  private static String buildStringToSign(ContainerRequest request) {
+<span class="fc" id="L115">    StringBuilder sb = new StringBuilder();</span>
+
+<span class="fc" id="L117">    sb.append(request.getMethod());</span>
+<span class="fc" id="L118">    sb.append(NEWLINE);</span>
+    // custom header set by varnish overrides real URI
+    // see http://dev.gbif.org/issues/browse/GBIFCOM-137
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (request.getRequestHeaders().containsKey(HEADER_ORIGINAL_REQUEST_URL)) {</span>
+<span class="fc" id="L122">      sb.append(request.getRequestHeaders().getFirst(HEADER_ORIGINAL_REQUEST_URL));</span>
+    } else {
+<span class="nc" id="L124">      sb.append(getCanonicalizedPath(request.getRequestUri()));</span>
+    }
+
+<span class="fc" id="L127">    appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_TYPE, false);</span>
+<span class="fc" id="L128">    appendHeader(sb, request.getRequestHeaders(), HEADER_CONTENT_MD5, true);</span>
+<span class="fc" id="L129">    appendHeader(sb, request.getRequestHeaders(), HEADER_GBIF_USER, true);</span>
+
+<span class="fc" id="L131">    return sb.toString();</span>
+  }
+
+  /**
+   * Build the string to be signed for a client request by extracting header information from the request.
+   * For PUT/POST requests that contain a body content it is required that the Content-MD5 header
+   * is already present on the request instance!
+   */
+  private static String buildStringToSign(ClientRequest request) {
+<span class="fc" id="L140">    StringBuilder sb = new StringBuilder();</span>
+
+<span class="fc" id="L142">    sb.append(request.getMethod());</span>
+<span class="fc" id="L143">    sb.append(NEWLINE);</span>
+<span class="fc" id="L144">    sb.append(getCanonicalizedPath(request.getURI()));</span>
+
+<span class="fc" id="L146">    appendHeader(sb, request.getHeaders(), HEADER_CONTENT_TYPE, false);</span>
+<span class="fc" id="L147">    appendHeader(sb, request.getHeaders(), HEADER_CONTENT_MD5, true);</span>
+<span class="fc" id="L148">    appendHeader(sb, request.getHeaders(), HEADER_GBIF_USER, true);</span>
+
+<span class="fc" id="L150">    return sb.toString();</span>
+  }
+
+  private static void appendHeader(StringBuilder sb, MultivaluedMap&lt;String, ?&gt; request, String header, boolean caseSensitive) {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">    if (request.containsKey(header)) {</span>
+<span class="fc" id="L155">      sb.append(NEWLINE);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">      if (caseSensitive) {</span>
+<span class="fc" id="L157">        sb.append(request.getFirst(header));</span>
+      } else {
+<span class="fc" id="L159">        sb.append(request.getFirst(header).toString().toLowerCase());</span>
+      }
+    }
+<span class="fc" id="L162">  }</span>
+
+  /**
+   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
+   */
+  private static String getCanonicalizedPath(URI uri) {
+<span class="fc" id="L168">    return uri.normalize().getPath();</span>
+  }
+
+  private static String buildAuthHeader(String applicationKey, String signature) {
+<span class="fc" id="L172">    return GBIF_SCHEME + &quot; &quot; + applicationKey + ':' + signature;</span>
+  }
+
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 signature of the passed in string with the given secret key.
+   * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
+   * @param stringToSign the string to be signed
+   * @param secretKey the secret key to use in the
+   */
+  private String buildSignature(String stringToSign, String secretKey) {
+    try {
+<span class="fc" id="L183">      Mac mac = Mac.getInstance(ALGORITHM);</span>
+<span class="fc" id="L184">      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(Charset.forName(&quot;UTF8&quot;)), ALGORITHM);</span>
+<span class="fc" id="L185">      mac.init(secret);</span>
+<span class="fc" id="L186">      byte[] digest = mac.doFinal(stringToSign.getBytes());</span>
+
+<span class="fc" id="L188">      return new String(Base64.encode(digest), &quot;ASCII&quot;);</span>
+
+<span class="nc" id="L190">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L191">      throw new RuntimeException(&quot;Cant find &quot; + ALGORITHM + &quot; message digester&quot;, e);</span>
+<span class="nc" id="L192">    } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L193">      throw new RuntimeException(&quot;Unsupported character encoding &quot; + CHAR_ENCODING, e);</span>
+<span class="nc" id="L194">    } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L195">      throw new RuntimeException(&quot;Invalid secret key &quot; + secretKey, e);</span>
+    }
+  }
+
+  /**
+   * Signs a request by adding a Content-MD5 and Authorization header.
+   * For PUT/POST requests that contain a body entity the Content-MD5 header is created using the same
+   * JSON mapper for serialization as the clients use.
+   *
+   * Other format than JSON are not supported currently !!!
+   */
+  public void signRequest(String username, ClientRequest request) {
+<span class="fc" id="L207">    Preconditions.checkNotNull(appKey, &quot;To sign request a single application key is required&quot;);</span>
+    // first add custom GBIF headers so we can use them to build the string to sign
+
+    // the proxied username
+<span class="fc" id="L211">    request.getHeaders().putSingle(HEADER_GBIF_USER, username);</span>
+
+    // the canonical path header
+<span class="fc" id="L214">    request.getHeaders().putSingle(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getURI()));</span>
+    // adds content md5
+<span class="fc bfc" id="L216" title="All 2 branches covered.">    if (request.getEntity() != null) {</span>
+<span class="fc" id="L217">      request.getHeaders().putSingle(HEADER_CONTENT_MD5, buildContentMD5(request.getEntity()));</span>
+    }
+
+    // build the unique string to sign
+<span class="fc" id="L221">    final String stringToSign = buildStringToSign(request);</span>
+    // find private key for this app
+<span class="fc" id="L223">    final String secretKey = getPrivateKey(appKey);</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">    if (secretKey == null) {</span>
+<span class="nc" id="L225">      LOG.warn(&quot;Skip signing request with unknown application key: {}&quot;, appKey);</span>
+<span class="nc" id="L226">      return;</span>
+    }
+    // sign
+<span class="fc" id="L229">    String signature = buildSignature(stringToSign, secretKey);</span>
+
+    // build authorization header string
+<span class="fc" id="L232">    String header = buildAuthHeader(appKey, signature);</span>
+    // add authorization header
+<span class="fc" id="L234">    LOG.debug(&quot;Adding authentication header to request {} for proxied user {} : {}&quot;, request.getURI(), username, header);</span>
+<span class="fc" id="L235">    request.getHeaders().putSingle(HEADER_AUTHORIZATION, header);</span>
+<span class="fc" id="L236">  }</span>
+
+  /**
+   * Generates the Base64 encoded 128 bit MD5 digest of the entire content string suitable for the
+   * Content-MD5 header value.
+   * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
+   */
+  private String buildContentMD5(Object entity) {
+    try {
+<span class="fc" id="L245">      byte[] content = mapper.writeValueAsBytes(entity);</span>
+<span class="fc" id="L246">      return new String(Base64.encode(DigestUtils.md5(content)), &quot;ASCII&quot;);</span>
+
+<span class="nc" id="L248">    } catch (IOException e) {</span>
+<span class="nc" id="L249">      LOG.error(&quot;Failed to serialize http entity [{}]&quot;, entity);</span>
+<span class="nc" id="L250">      throw Throwables.propagate(e);</span>
+    }
+  }
+
+  /**
+   * Tries to get the appkey from the request header.
+   * @param requestHeaderAccessor lambda expression to access the headers of a request.
+   * @return the appkey found or null
+   */
+  public static String getAppKeyFromRequest(RequestHeaderAccessor requestHeaderAccessor) {
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">    if(StringUtils.startsWith(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION), GBIF_SCHEME + &quot; &quot;)) {</span>
+<span class="fc" id="L261">      String[] values = COLON_PATTERN.split(requestHeaderAccessor.getHeader(HEADER_AUTHORIZATION).substring(5), 2);</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">      if (values.length == 2) {</span>
+<span class="fc" id="L263">        return values[0];</span>
+      }
+    }
+<span class="nc" id="L266">    return null;</span>
+  }
+
+  public boolean isValidRequest(ContainerRequest request) {
+    // parse auth header
+<span class="fc" id="L271">    final String authHeader = request.getHeaderValue(HEADER_AUTHORIZATION);</span>
+<span class="pc bpc" id="L272" title="2 of 4 branches missed.">    if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME + &quot; &quot;)) {</span>
+<span class="nc" id="L273">      LOG.info(HEADER_AUTHORIZATION + &quot; header is no GBIF scheme&quot;);</span>
+<span class="nc" id="L274">      return false;</span>
+    }
+
+<span class="fc" id="L277">    String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">    if (values.length &lt; 2) {</span>
+<span class="nc" id="L279">      LOG.warn(&quot;Invalid syntax for application key and signature: {}&quot;, authHeader);</span>
+<span class="nc" id="L280">      return false;</span>
+    }
+
+<span class="fc" id="L283">    final String appKey = values[0];</span>
+<span class="fc" id="L284">    final String signatureFound = values[1];</span>
+<span class="pc bpc" id="L285" title="2 of 4 branches missed.">    if (appKey == null || signatureFound == null) {</span>
+<span class="nc" id="L286">      LOG.warn(&quot;Authentication header missing applicationKey or signature: {}&quot;, authHeader);</span>
+<span class="nc" id="L287">      return false;</span>
+    }
+
+<span class="fc" id="L290">    String secretKey = getPrivateKey(appKey);</span>
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">    if (secretKey == null) {</span>
+<span class="nc" id="L292">      LOG.warn(&quot;Unknown application key: {}&quot;, appKey);</span>
+<span class="nc" id="L293">      return false;</span>
+    }
+    //
+<span class="fc" id="L296">    String stringToSign = buildStringToSign(request);</span>
+    // sign
+<span class="fc" id="L298">    String signature = buildSignature(stringToSign, secretKey);</span>
+    // compare signatures
+<span class="fc bfc" id="L300" title="All 2 branches covered.">    if (signatureFound.equals(signature)) {</span>
+<span class="fc" id="L301">      LOG.debug(&quot;Trusted application with matching signatures&quot;);</span>
+<span class="fc" id="L302">      return true;</span>
+
+    }
+<span class="fc" id="L305">    LOG.info(&quot;Invalid signature: {}&quot;, authHeader);</span>
+<span class="fc" id="L306">    LOG.debug(&quot;StringToSign: {}&quot;, stringToSign);</span>
+<span class="fc" id="L307">    return false;</span>
+  }
+
+  private String getPrivateKey(String applicationKey) {
+<span class="fc" id="L311">    return keyStore.get(applicationKey);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

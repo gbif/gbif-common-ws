@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExtraMediaTypes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util</a> &gt; <span class="el_source">ExtraMediaTypes.java</span></div><h1>ExtraMediaTypes.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2011 - 2015 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.util;
+
+import javax.ws.rs.core.MediaType;
+
+/**
+ * Extra media types used in Http responses.
+ */
+public class ExtraMediaTypes {
+
+  public static final String APPLICATION_JAVASCRIPT = &quot;application/javascript&quot;;
+<span class="fc" id="L26">  public static final MediaType APPLICATION_JAVASCRIPT_TYPE = new MediaType(&quot;application&quot;, &quot;javascript&quot;);</span>
+
+  public static final String TEXT_CSV = &quot;text/csv&quot;;
+<span class="fc" id="L29">  public static final MediaType TEXT_CSV_TYPE = new MediaType(&quot;text&quot;, &quot;csv&quot;);</span>
+
+  public static final String TEXT_TSV = &quot;text/tab-separated-values&quot;;
+<span class="fc" id="L32">  public static final MediaType TEXT_TSV_TYPE = new MediaType(&quot;text&quot;, &quot;tab-separated-values&quot;);</span>
+
+  //.xls
+  public static final String APPLICATION_EXCEL = &quot;application/vnd.ms-excel&quot;;
+<span class="fc" id="L36">  public static final MediaType APPLICATION_EXCEL_TYPE = new MediaType(&quot;application&quot;, &quot;vnd.ms-excel&quot;);</span>
+
+  //.xlsx
+  public static final String APPLICATION_OFFICE_SPREADSHEET = &quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;;
+<span class="fc" id="L40">  public static final MediaType APPLICATION_OFFICE_SPREADSHEET_TYPE = new MediaType(&quot;application&quot;, &quot;vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;);</span>
+
+  //.ods
+  public static final String APPLICATION_OPEN_DOC_SPREADSHEET = &quot;application/vnd.oasis.opendocument.spreadsheet&quot;;
+<span class="fc" id="L44">  public static final MediaType APPLICATION_OPEN_DOC_SPREADSHEET_TYPE = new MediaType(&quot;application&quot;, &quot;vnd.oasis.opendocument.spreadsheet&quot;);</span>
+
+  //the common one is defined by com.sun.jersey.multipart.file.CommonMediaTypes.ZIP , this is another used by some sites
+  public static final String APPLICATION_XZIP_COMPRESSED = &quot;application/x-zip-compressed&quot;;
+<span class="fc" id="L48">  public static final MediaType APPLICATION_XZIP_COMPRESSED_TYPE = new MediaType(&quot;application&quot;, &quot;x-zip-compressed&quot;);</span>
+
+  public static final String APPLICATION_GZIP = &quot;application/gzip&quot;;
+<span class="fc" id="L51">  public static final MediaType APPLICATION_GZIP_TYPE = new MediaType(&quot;application&quot;, &quot;gzip&quot;);</span>
+
+
+  /**
+   * Darwin Core archive media type with underlying zip structure.
+   * Use carefully, it's an unregistered media type, in most of the cases it is more appropriate to return a simple
+   * application/zip
+   * http://www.iana.org/assignments/media-types/media-types.xhtml
+   * Currently used for experimenting in OAI-PMH DublinCore resources.
+   */
+  public static final String APPLICATION_DWCA = &quot;application/dwca+zip&quot;;
+
+<span class="nc" id="L63">  private ExtraMediaTypes() {</span>
+<span class="nc" id="L64">    throw new UnsupportedOperationException(&quot;Can't initialize class&quot;);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PageableProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.provider</a> &gt; <span class="el_source">PageableProvider.java</span></div><h1>PageableProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2011 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.server.provider;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Singleton;
+import com.sun.jersey.api.core.HttpContext;
+import com.sun.jersey.core.spi.component.ComponentContext;
+import com.sun.jersey.core.spi.component.ComponentScope;
+import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
+import com.sun.jersey.spi.inject.Injectable;
+import com.sun.jersey.spi.inject.InjectableProvider;
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.paging.PagingRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Type;
+
+import static org.gbif.api.model.common.paging.PagingConstants.*;
+
+/**
+ * Jersey provider class that extracts the page size and offset from the query parameters, or provides the default
+ * implementation if necessary.
+ * &lt;p/&gt;
+ * Example resource use:
+ * &lt;pre&gt;
+ * {@code
+ * public List&lt;Checklist&gt; list(@QueryParam(&quot;page&quot;) Pageable pageable) {
+ *   // do stuff
+ * }
+ * }
+ * &lt;/pre&gt;
+ * &lt;p/&gt;
+ * Note, this implementation is based on the documentation provided on:
+ * http://stackoverflow.com/questions/5722506/how-do-you-map-multiple-query-parameters-to-the-fields-of-a-bean-on-jersey-get-re
+ */
+@Provider
+@Singleton
+<span class="fc" id="L56">public class PageableProvider extends AbstractHttpContextInjectable&lt;Pageable&gt;</span>
+  implements InjectableProvider&lt;Context, Type&gt; {
+
+<span class="fc" id="L59">  private static final Logger LOG = LoggerFactory.getLogger(PageableProvider.class);</span>
+  @VisibleForTesting
+  static final int LIMIT_CAP = 1000;
+
+  @Override
+  public Injectable&lt;Pageable&gt; getInjectable(ComponentContext ic, Context a, Type c) {
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    if (c.equals(Pageable.class)) {</span>
+<span class="fc" id="L66">      return this;</span>
+    }
+<span class="fc" id="L68">    return null;</span>
+  }
+
+  @Override
+  public ComponentScope getScope() {
+<span class="fc" id="L73">    return ComponentScope.PerRequest;</span>
+  }
+
+  @Override
+  public Pageable getValue(HttpContext c) {
+<span class="fc" id="L78">    return getPagingRequest(c);</span>
+  }
+
+  public static PagingRequest getPagingRequest(HttpContext c) {
+<span class="fc" id="L82">    MultivaluedMap&lt;String, String&gt; params = c.getRequest().getQueryParameters();</span>
+
+<span class="fc" id="L84">    int limit = DEFAULT_PARAM_LIMIT;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (params.getFirst(PARAM_LIMIT) != null) {</span>
+      try {
+<span class="fc" id="L87">        limit = Integer.parseInt(params.getFirst(PARAM_LIMIT));</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (limit &lt; 0) {</span>
+<span class="fc" id="L89">          LOG.info(&quot;Limit parameter was no positive integer [{}]. Using default {}&quot;,</span>
+<span class="fc" id="L90">                   params.getFirst(PARAM_LIMIT), DEFAULT_PARAM_LIMIT);</span>
+<span class="fc" id="L91">          limit = DEFAULT_PARAM_LIMIT;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        } else if (limit &gt; LIMIT_CAP) {</span>
+<span class="fc" id="L93">          LOG.debug(&quot;Limit parameter too high. Use maximum {}&quot;, LIMIT_CAP);</span>
+<span class="fc" id="L94">          limit = LIMIT_CAP;</span>
+        }
+<span class="nc" id="L96">      } catch (NumberFormatException e) {</span>
+<span class="nc" id="L97">        LOG.warn(&quot;Unparsable value supplied for limit [{}]. Using default {}&quot;, params.getFirst(PARAM_LIMIT),</span>
+<span class="nc" id="L98">          DEFAULT_PARAM_LIMIT);</span>
+<span class="fc" id="L99">      }</span>
+    }
+
+<span class="fc" id="L102">    long offset = DEFAULT_PARAM_OFFSET;</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    if (params.getFirst(PARAM_OFFSET) != null) {</span>
+      try {
+<span class="fc" id="L105">        offset = Long.parseLong(params.getFirst(PARAM_OFFSET));</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (offset &lt; 0) {</span>
+<span class="nc" id="L107">          LOG.warn(&quot;Offset parameter is a negative integer [{}]. Using default {}&quot;, params.getFirst(PARAM_OFFSET),</span>
+<span class="nc" id="L108">            DEFAULT_PARAM_OFFSET);</span>
+<span class="nc" id="L109">          offset = DEFAULT_PARAM_OFFSET;</span>
+        }
+<span class="fc" id="L111">      } catch (NumberFormatException e) {</span>
+<span class="fc" id="L112">        LOG.warn(&quot;Unparsable value supplied for offset [{}]. Using default {}&quot;, params.getFirst(PARAM_OFFSET),</span>
+<span class="fc" id="L113">          DEFAULT_PARAM_OFFSET);</span>
+<span class="fc" id="L114">      }</span>
+    }
+<span class="fc" id="L116">    return new PagingRequest(offset, limit);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
