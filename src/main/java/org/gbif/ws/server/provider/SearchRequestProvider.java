@@ -1,39 +1,21 @@
-/*
- * Copyright 2011 Global Biodiversity Information Facility (GBIF)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.gbif.ws.server.provider;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.ws.CommonRuntimeException;
+import org.springframework.web.context.request.WebRequest;
 
-import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MultivaluedMap;
-
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
-
+import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
@@ -44,8 +26,7 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
  * This assumes the existence of the following parameters in the HTTP request:
  * 'page_size', 'offset', 'q' and any of the search parameter enum member names case insensitively.
  */
-public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter>
-  extends AbstractHttpContextInjectable<RT> implements InjectableProvider<Context, Type> {
+public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter> implements ContextProvider<RT> {
 
   private final Class<P> searchParameterClass;
   private final Class<RT> requestType;
@@ -56,59 +37,30 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     this.searchParameterClass = searchParameterClass;
   }
 
-  /**
-   * Get an injectable.
-   *
-   * @param ic the injectable context
-   * @param context the annotation instance
-   * @param type the context instance
-   * @return an Injectable instance, otherwise null if an instance cannot
-   *         be created.
-   */
   @Override
-  public Injectable<RT> getInjectable(ComponentContext ic, Context context, Type type) {
-    if (type.equals(requestType)) {
-      return this;
-    }
-    return null;
-  }
-
-  /**
-   * Get the scope of the injectable provider.
-   *
-   * @return the scope.
-   */
-  @Override
-  public ComponentScope getScope() {
-    return ComponentScope.PerRequest;
-  }
-
-  @Override
-  public RT getValue(HttpContext context) {
+  public RT getValue(WebRequest webRequest) {
     try {
       RT req = requestType.newInstance();
-      return getSearchRequest(context, req);
-
+      return getSearchRequest(webRequest, req);
     } catch (InstantiationException | IllegalAccessException e) {
       // should never happen
-      Throwables.propagate(e);
+      throw new CommonRuntimeException(e);
     }
-    return null;
   }
 
   protected P findSearchParam(String name) {
     try {
-      return (P) VocabularyUtils.lookupEnum(name, searchParameterClass);
+      return VocabularyUtils.lookupEnum(name, searchParameterClass);
     } catch (IllegalArgumentException e) {
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }
     return null;
   }
 
-  protected RT getSearchRequest(HttpContext context, RT searchRequest) {
-    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(context));
+  protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {
+    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest));
 
-    final MultivaluedMap<String, String> params = context.getRequest().getQueryParameters();
+    final Map<String, String[]> params = webRequest.getParameterMap();
 
     getSearchRequestFromQueryParams(searchRequest, params);
 
@@ -118,11 +70,11 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   /**
    * Override this method for populating specific search/suggest requests
    */
-  protected void getSearchRequestFromQueryParams(RT searchRequest, final MultivaluedMap<String, String> params) {
-    final String q = params.getFirst(PARAM_QUERY_STRING);
-    final String highlightValue = params.getFirst(PARAM_HIGHLIGHT);
-    final String spellCheck = params.getFirst(PARAM_SPELLCHECK);
-    final String spellCheckCount = params.getFirst(PARAM_SPELLCHECK_COUNT);
+  protected void getSearchRequestFromQueryParams(RT searchRequest, final Map<String, String[]> params) {
+    final String q = getFirst(params, PARAM_QUERY_STRING);
+    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);
+    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);
+    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);
 
     if (!Strings.isNullOrEmpty(q)) {
       searchRequest.setQ(q);
@@ -166,11 +118,12 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
    * correspondent value in the P generic parameter).
    * Empty (of all size) and null parameters are discarded.
    */
-  private void setSearchParams(RT searchRequest, MultivaluedMap<String, String> params) {
-    for (Entry<String, List<String>> entry : params.entrySet()) {
+  private void setSearchParams(RT searchRequest, Map<String, String[]> params) {
+    for (Entry<String, String[]> entry : params.entrySet()) {
       P p = findSearchParam(entry.getKey());
       if (p != null) {
-        for (String val : removeEmptyParameters(entry.getValue())) {
+        final List<String> list = entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
+        for (String val : removeEmptyParameters(list)) {
           // validate value for certain types
           SearchTypeValidator.validate(p, val);
           searchRequest.addParameter(p, val);

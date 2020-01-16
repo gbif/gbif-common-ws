@@ -15,66 +15,49 @@
  */
 package org.gbif.ws.server.provider;
 
-import java.lang.reflect.Type;
+import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.WebRequest;
+
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.Provider;
+import java.util.Map;
 
-import com.google.common.base.Strings;
-import com.google.inject.Singleton;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.AbstractHttpContextInjectable;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
+import static org.gbif.ws.util.CommonWsUtils.getFirst;
 
 /**
- * Jersey provider class that extracts the requested locale based on http header or language query parameter.
+ * Provider class that extracts the requested locale based on http header or language query parameter.
  * This allows resources to access a locale context very easily while keeping all logic in this class.
  * The accept any language value * will be converted into a null locale.
  * Example resource use:
  * <pre>
  * {@code
- * public String getVernacularName(@Context Locale locale) {
+ * public String getVernacularName(Locale locale) {
  *   return "this is the " + locale + " vernacular name: xyz");
  * }
  * }
  * </pre>
  */
-@Provider
-@Singleton
-public class LocaleProvider extends AbstractHttpContextInjectable<Locale> implements InjectableProvider<Context, Type> {
+public class LocaleProvider implements ContextProvider<Locale> {
 
   private static final String LANGUAGE_PARAM = "language";
-
   private static final String ANY_LANGUAGE = "*";
 
   @Override
-  public Injectable<Locale> getInjectable(ComponentContext ic, Context a, Type c) {
-    if (c.equals(Locale.class)) {
-      return this;
-    }
-
-    return null;
+  public Locale getValue(WebRequest webRequest) {
+    return getLocale(webRequest);
   }
 
-  @Override
-  public ComponentScope getScope() {
-    return ComponentScope.PerRequest;
-  }
+  public static Locale getLocale(WebRequest webRequest) {
+    Map<String, String[]> params = webRequest.getParameterMap();
 
-  @Override
-  public Locale getValue(HttpContext c) {
-    return getLocale(c);
-  }
-
-  public static Locale getLocale(HttpContext c) {
     // try language parameter first
-    if (c.getRequest().getQueryParameters() != null && c.getRequest().getQueryParameters()
-      .containsKey(LANGUAGE_PARAM)) {
-      String lang = c.getRequest().getQueryParameters().getFirst(LANGUAGE_PARAM).trim().toLowerCase();
+    String languageParam = getFirst(params, LANGUAGE_PARAM);
+    if (languageParam != null) {
+      String lang = languageParam.trim().toLowerCase();
       // iso language has to be 2 lower case letters!
       if (!Strings.isNullOrEmpty(lang) && lang.length() == 2) {
         return new Locale(lang);
@@ -82,14 +65,19 @@ public class LocaleProvider extends AbstractHttpContextInjectable<Locale> implem
     }
 
     // try headers next
-    final List<Locale> locales = c.getRequest().getAcceptableLanguages();
-    for (Locale loc : locales) {
+    String[] acceptLanguageHeaderValues = webRequest.getHeaderValues(HttpHeaders.ACCEPT_LANGUAGE);
+
+    List<String> languages = acceptLanguageHeaderValues != null
+        ? Arrays.asList(acceptLanguageHeaderValues)
+        : Collections.emptyList();
+
+    for (String lang : languages) {
       // ignore accept any language value: * and non iso 2 letter codes
-      if (!Strings.isNullOrEmpty(loc.getLanguage()) && !ANY_LANGUAGE.equalsIgnoreCase(loc.getLanguage())
-          && loc.getLanguage().length() == 2) {
-        return loc;
+      if (StringUtils.isNotEmpty(lang) && !ANY_LANGUAGE.equalsIgnoreCase(lang) && lang.length() == 2) {
+        return Locale.forLanguageTag(lang);
       }
     }
+
     return null;
   }
 }

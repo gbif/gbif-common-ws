@@ -1,26 +1,37 @@
 package org.gbif.ws.server.filter;
 
-import org.gbif.api.model.common.AppPrincipal;
-import org.gbif.api.model.common.ExtendedPrincipal;
-import org.gbif.api.vocabulary.AppRole;
-import org.gbif.ws.security.GbifAuthService;
-
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.vocabulary.AppRole;
+import org.gbif.ws.security.AnonymousUserPrincipal;
+import org.gbif.ws.security.AppPrincipal;
+import org.gbif.ws.security.AppkeysConfiguration;
+import org.gbif.ws.security.GbifAuthService;
+import org.gbif.ws.security.GbifAuthUtils;
+import org.gbif.ws.security.GbifAuthenticationToken;
+import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.util.SecurityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A filter that allows an application to identify itself as an application (as opposed to an application
@@ -29,80 +40,68 @@ import org.slf4j.LoggerFactory;
  * accordingly.
  * If the application can be authenticated AND its appKey is in the whitelist, the {@link Principal#getName()} will return the appKey and the
  * role {@link AppRole#APP} will be assigned to it.
- *
+ * <p>
  * We use an appKey whitelist to control which app should be allowed to have the {@link AppRole#APP} while letting
  * the user impersonation available in {@link IdentityFilter}. If at some point multiple {@link AppRole} should be
  * supported the whitelist should simply be changed for something more structured.
- *
+ * <p>
  * This filter must run AFTER {@link IdentityFilter} if user impersonation using appKey is required.
- * This filter will be skipped if the {@link ContainerRequest} already has a {@link Principal} attached.
- * This filter operates on {@link GbifAuthService#GBIF_SCHEME} only.
+ * This filter will be skipped if the request already has a {@link Principal} attached.
+ * This filter operates on {@link SecurityConstants#GBIF_SCHEME} only.
  * If the appKeyWhitelist list is not provided no apps will be authenticated by this filter.
- *
  */
-public class AppIdentityFilter implements ContainerRequestFilter {
+@Component
+public class AppIdentityFilter extends GenericFilterBean {
 
-  public static final  String APPKEYS_WHITELIST = "identity.appkeys.whitelist";
-
-  //FIXME should probably have its own scheme but that would requires to change {@link GbifAuthService)
-  private static final String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + " ";
   private static final Logger LOG = LoggerFactory.getLogger(AppIdentityFilter.class);
 
   private final GbifAuthService authService;
   private final List<String> appKeyWhitelist;
 
-  @Inject
-  public AppIdentityFilter(@NotNull GbifAuthService authService, @Nullable @Named(APPKEYS_WHITELIST) List<String> appKeyWhitelist) {
+  public AppIdentityFilter(
+      @NotNull GbifAuthService authService,
+      AppkeysConfiguration appkeysConfiguration) {
     this.authService = authService;
     //defensive copy or creation
-    this.appKeyWhitelist = appKeyWhitelist != null ? new ArrayList<>(appKeyWhitelist) : new ArrayList<>();
+    this.appKeyWhitelist = appkeysConfiguration.getWhitelist() != null
+        ? new ArrayList<>(appkeysConfiguration.getWhitelist()) : new ArrayList<>();
   }
 
   @Override
-  public ContainerRequest filter(final ContainerRequest containerRequest) {
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    final HttpServletRequest httpRequest = (HttpServletRequest) request;
+    final HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+    final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     // Only try if no user principal is already there
-    if (containerRequest.getSecurityContext() != null && containerRequest.getUserPrincipal() != null) {
-      return containerRequest;
-    }
+    if (authentication == null
+        || authentication.getPrincipal() == null
+        || authentication.getPrincipal() instanceof AnonymousUserPrincipal) {
+      String authorization = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
+      if (StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+        if (authService.isValidRequest(new RequestObject(httpRequest))) {
+          String username = httpRequest.getHeader(SecurityConstants.HEADER_GBIF_USER);
+          String appKey = GbifAuthUtils.getAppKeyFromRequest(authorization);
 
-    String authorization = containerRequest.getHeaderValue(ContainerRequest.AUTHORIZATION);
-    if (StringUtils.startsWith(authorization, GBIF_SCHEME_PREFIX)) {
-      if (!authService.isValidRequest(containerRequest)) {
-        LOG.warn("Invalid GBIF authenticated request");
-        throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-      }
+          // check if it's an app by ensuring the appkey used to sign the request is the one used as x-gbif-user
+          if (StringUtils.equals(appKey, username) && appKeyWhitelist.contains(appKey)) {
+            final List<SimpleGrantedAuthority> authorities =
+                Collections.singletonList(new SimpleGrantedAuthority(AppRole.APP.name()));
+            final AppPrincipal principal = new AppPrincipal(appKey, authorities);
+            final Authentication newAuthentication =
+                new GbifAuthenticationToken(principal, SecurityConstants.GBIF_SCHEME, authorities);
 
-      String username = containerRequest.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);
-      String appKey = GbifAuthService.getAppKeyFromRequest(containerRequest::getHeaderValue);
-
-      //check if it's an app by ensuring the appkey used to sign the request is the one used as x-gbif-user
-      if (StringUtils.equals(appKey, username) && appKeyWhitelist.contains(appKey)) {
-        containerRequest.setSecurityContext(new SecurityContext() {
-          private final ExtendedPrincipal principal = new AppPrincipal(appKey, AppRole.APP.name());
-
-          @Override
-          public Principal getUserPrincipal() {
-            return principal;
+            SecurityContextHolder.getContext().setAuthentication(newAuthentication);
           }
-
-          @Override
-          public boolean isUserInRole(String s) {
-            return principal.hasRole(s);
-          }
-
-          @Override
-          public boolean isSecure() {
-            return containerRequest.isSecure();
-          }
-
-          @Override
-          public String getAuthenticationScheme() {
-            return GbifAuthService.GBIF_SCHEME;
-          }
-        });
+        } else {
+          LOG.warn("Invalid GBIF authenticated request");
+          httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+        }
       }
     }
-    return containerRequest;
+
+    filterChain.doFilter(request, httpResponse);
   }
 }
+

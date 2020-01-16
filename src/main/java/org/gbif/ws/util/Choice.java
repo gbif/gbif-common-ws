@@ -9,7 +9,6 @@ public class Choice {
   private final String title;
   private final String description;
 
-
   public Choice(@Nullable Object key, String url, String title, @Nullable String description) {
     this.key = key;
     this.url = url;

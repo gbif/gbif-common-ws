@@ -3,7 +3,7 @@ package org.gbif.ws.util;
 /**
  * Parameters used in the API webservices.
  */
-public class WebserviceParameter {
+public final class WebserviceParameter {
 
   /**
    * The query string for searches.

@@ -12,25 +12,6 @@
  */
 package org.gbif.ws.server.provider;
 
-import org.gbif.api.model.checklistbank.search.NameUsageSearchParameter;
-import org.gbif.api.model.checklistbank.search.NameUsageSuggestRequest;
-
-import java.lang.reflect.Type;
-
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.Provider;
-
-import com.google.inject.Singleton;
-import com.sun.jersey.spi.inject.InjectableProvider;
-
-@Provider
-@Singleton
-public class NameUsageSuggestRequestProvider
-  extends SearchRequestProvider<NameUsageSuggestRequest, NameUsageSearchParameter>
-  implements InjectableProvider<Context, Type> {
-
-  public NameUsageSuggestRequestProvider() {
-    super(NameUsageSuggestRequest.class, NameUsageSearchParameter.class);
-  }
-
+public class NameUsageSuggestRequestProvider {
+// TODO: 15/01/2020 not implemented
 }

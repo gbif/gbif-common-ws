@@ -12,7 +12,6 @@
  */
 package org.gbif.ws.paths;
 
-
 /**
  * Commons constants of occurrence service.
  */

@@ -1,265 +1,114 @@
 package org.gbif.ws.security;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.ws.rs.core.MultivaluedMap;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.net.MediaType;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.client.impl.ClientRequestImpl;
-import com.sun.jersey.core.header.OutBoundHeaders;
-import com.sun.jersey.spi.container.ContainerRequest;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+import org.gbif.ws.server.RequestObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpHeaders;
 
-import static org.gbif.ws.security.GbifAuthService.HEADER_AUTHORIZATION;
-import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_MD5;
-import static org.gbif.ws.security.GbifAuthService.HEADER_CONTENT_TYPE;
-import static org.gbif.ws.security.GbifAuthService.HEADER_GBIF_USER;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Paths;
 
+import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
+import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GbifAuthServiceTest {
 
   public static final String APPKEY = "appKey";
-  public static final String APPSECRET = "fghj56g66b676DFG";
-
-  public static Map<String, String> buildAppKeyMap() {
-    Map<String, String> map = Maps.newHashMap();
-    map.put(APPKEY, APPSECRET);
-    return map;
-  }
-
-  @Mock
-  ContainerRequest containerRequest;
-  @Mock
-  ClientRequest mockRequest;
 
   private URI testUri;
-
-  private static class HeaderWrapper implements MultivaluedMap<String, String> {
-
-    private final MultivaluedMap<String, Object> map;
-
-    public HeaderWrapper(MultivaluedMap<String, Object> map) {
-      this.map = map;
-    }
-
-    @Override
-    public void putSingle(String key, String value) {
-      map.putSingle(key, value);
-    }
-
-    @Override
-    public void add(String key, String value) {
-      map.add(key, value);
-    }
-
-    @Override
-    public String getFirst(String key) {
-      return map.getFirst(key).toString();
-    }
-
-    @Override
-    public int size() {
-      return map.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return map.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object o) {
-      return map.containsKey(o);
-    }
-
-    @Override
-    public boolean containsValue(Object o) {
-      return map.containsValue(o);
-    }
-
-    @Override
-    public List<String> get(Object o) {
-      final List<Object> src = map.get(o);
-      if (src == null) {
-        return null;
-      }
-      List<String> l = Lists.newArrayList();
-      for (Object lo : src) {
-        l.add(lo.toString());
-      }
-      return l;
-    }
-
-    @Override
-    public List<String> put(String s, List<String> strings) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<String> remove(Object o) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ? extends List<String>> map) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-      map.clear();
-    }
-
-    @Override
-    public Set<String> keySet() {
-      return map.keySet();
-    }
-
-    @Override
-    public Collection<List<String>> values() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<Entry<String, List<String>>> entrySet() {
-      throw new UnsupportedOperationException();
-    }
-  }
+  private GbifAuthService service;
 
   @Before
   public void setUp() throws Exception {
     testUri = new URI("http://api.gbif.org/v1/dataset");
+    service = prepareGbifAuthService();
+  }
+
+  public static GbifAuthService prepareGbifAuthService() throws Exception {
+    URL resource = GbifAuthServiceTest.class.getClassLoader().getResource("appkeys.properties");
+    String stringPath = Paths.get(resource.toURI()).toAbsolutePath().toString();
+
+    AppkeysConfiguration mockAppkeysConfiguration = mock(AppkeysConfiguration.class);
+    when(mockAppkeysConfiguration.getFile()).thenReturn(stringPath);
+
+    return new GbifAuthServiceImpl(
+        new SigningServiceImpl(),
+        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
+        mockAppkeysConfiguration,
+        () -> APPKEY
+    );
   }
 
   @Test
-  public void testSignRequest() throws Exception {
-    when(mockRequest.getURI()).thenReturn(testUri);
+  public void testSignRequest() {
+    // given
+    RequestObject requestObjectMock = mock(RequestObject.class);
+    HttpHeaders headers = new HttpHeaders();
+    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
+    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
+    when(requestObjectMock.getMethod()).thenReturn("POST");
+    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
 
-    when(mockRequest.getMethod()).thenReturn("POST");
+    // when
+    service.signRequest("heinz", requestObjectMock);
 
-    Object entity = "Simsalabim";
-    when(mockRequest.getEntity()).thenReturn(entity);
-    // we instantiate a real request here, because there is no implementation of MultivaluedMap<String, Object>
-    MultivaluedMap<String, Object> headers = new OutBoundHeaders();
-    when(mockRequest.getHeaders()).thenReturn(headers);
-	  
-    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
-    service.signRequest("heinz", mockRequest);
-
+    // then
     assertNotNull(headers.getFirst(HEADER_CONTENT_MD5));
     assertEquals("heinz", headers.getFirst(HEADER_GBIF_USER));
-    assertTrue(headers.getFirst(HEADER_AUTHORIZATION).toString().startsWith("GBIF appKey:"));
+    assertNotNull(headers.getFirst(AUTHORIZATION));
+    assertTrue(headers.getFirst(AUTHORIZATION).startsWith("GBIF appKey:"));
   }
 
   @Test
-  public void testIsValid() throws Exception {
-    when(mockRequest.getURI()).thenReturn(testUri);
+  public void testIsValid() {
+    // given
+    RequestObject requestObjectMock = mock(RequestObject.class);
+    HttpHeaders headers = new HttpHeaders();
+    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
+    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
+    when(requestObjectMock.getMethod()).thenReturn("POST");
+    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
+    when(requestObjectMock.getHeader(AUTHORIZATION)).thenCallRealMethod();
+    service.signRequest("heinz", requestObjectMock);
 
-    when(mockRequest.getMethod()).thenReturn("POST");
-    when(containerRequest.getMethod()).thenReturn("POST");
+    // when
+    boolean isRequestValidCorrectContentActual = service.isValidRequest(requestObjectMock);
+    headers.set(HEADER_CONTENT_MD5, "73");
+    boolean isRequestValidWrongContentActual = service.isValidRequest(requestObjectMock);
 
-    Object entity = "Simsalabim";
-    when(mockRequest.getEntity()).thenReturn(entity);
-    // we instantiate a real request here, because there is no implementation of MultivaluedMap<String, Object>
-    MultivaluedMap<String, Object> headers = new OutBoundHeaders();
-    when(mockRequest.getHeaders()).thenReturn(headers);
-    when(containerRequest.getRequestHeaders()).thenReturn(new HeaderWrapper(headers));
-    when(containerRequest.getHeaderValue(eq(HEADER_AUTHORIZATION))).thenCallRealMethod();
-
-    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
-    service.signRequest("heinz", mockRequest);
-    assertTrue(service.isValidRequest(containerRequest));
-
-    headers.putSingle(HEADER_CONTENT_MD5, "73");
-    assertFalse(service.isValidRequest(containerRequest));
+    // then
+    assertTrue(isRequestValidCorrectContentActual);
+    assertFalse(service.isValidRequest(requestObjectMock));
   }
 
   @Test
-  public void testGetAppKeyFromRequest() throws Exception {
-    GbifAuthService service = GbifAuthService.singleKeyAuthService(APPKEY, APPSECRET);
+  public void testGetAppKeyFromRequest() {
+    // given
+    RequestObject requestObjectMock = mock(RequestObject.class);
+    HttpHeaders headers = new HttpHeaders();
+    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
+    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
+    when(requestObjectMock.getMethod()).thenReturn("POST");
+    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
+    when(requestObjectMock.getHeader(AUTHORIZATION)).thenCallRealMethod();
 
-    when(mockRequest.getURI()).thenReturn(testUri);
-    MultivaluedMap<String, Object> headers = new OutBoundHeaders();
-    when(mockRequest.getHeaders()).thenReturn(headers);
+    // when
+    service.signRequest("heinz", requestObjectMock);
+    String actualAppKey = GbifAuthUtils.getAppKeyFromRequest(requestObjectMock.getHeader(AUTHORIZATION));
 
-    service.signRequest("heinz", mockRequest);
-    assertEquals(APPKEY,
-            GbifAuthService.getAppKeyFromRequest((headerName) -> mockRequest.getHeaders().getFirst(headerName).toString()));
+    // then
+    assertEquals(APPKEY, actualAppKey);
   }
-
-  /**
-   * Creates a mock POST to the /dataset endpoint with a String entity.
-   * Jersey 2.x has ContainerRequestBuilder to create a proper mock but Jersey 1.x doesn't.
-   * Only methods that we are currently using in unit tests are 'mapped' with Mockito.
-   *
-   * @param username
-   * @param service
-   * @return
-   * @throws URISyntaxException
-   */
-  public static ContainerRequest createMockContainerRequestFor(String username, GbifAuthService service) throws URISyntaxException {
-    ContainerRequest containerRequest = mock(ContainerRequest.class, Mockito.CALLS_REAL_METHODS);
-    ClientRequest mockRequest = mock(ClientRequest.class, Mockito.CALLS_REAL_METHODS);
-    when(mockRequest.getURI()).thenReturn(new URI("http://api.gbif.org/v1/dataset"));
-    //shared map
-    MultivaluedMap<String, Object> headers = new OutBoundHeaders();
-
-    when(containerRequest.getMethod()).thenReturn("POST");
-    when(mockRequest.getMethod()).thenReturn("POST");
-    Object entity = "My Entity";
-    when(mockRequest.getEntity()).thenReturn(entity);
-    when(mockRequest.getHeaders()).thenReturn(headers);
-
-    service.signRequest(username, mockRequest);
-
-    HeaderWrapper headersWrapper = new HeaderWrapper(headers);
-    when(containerRequest.getRequestHeaders()).thenReturn(headersWrapper);
-
-    return containerRequest;
-  }
-
-  /**
-   * This is a demo test only showing the signed headers and the usage to other implementots.
-   */
-  @Test
-  public void testSignRealRequest() throws Exception {
-    Object data = "this is no json";
-    ClientRequest req = new ClientRequestImpl(URI.create("http://api.gbif-dev.org/v1/organization"), "POST", data);
-    req.getHeaders().putSingle(HEADER_CONTENT_TYPE, MediaType.JSON_UTF_8);
-    GbifAuthService service = GbifAuthService.singleKeyAuthService("test", "123456");
-    service.signRequest("bko", req);
-    show(req);
-  }
-
-  private void show(ClientRequest req) {
-    System.out.println("");
-    System.out.println(req.getMethod());
-    System.out.println(req.getURI());
-    for (Map.Entry<String, List<Object>> x : req.getHeaders().entrySet()) {
-      for (Object v : x.getValue()) {
-        System.out.println(x.getKey() + ": " + v);
-      }
-    }
-  }
-
 }
