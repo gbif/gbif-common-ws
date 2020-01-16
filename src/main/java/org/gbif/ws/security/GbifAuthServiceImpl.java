@@ -8,6 +8,7 @@ import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.server.RequestObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +68,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   public GbifAuthServiceImpl(SigningService signingService,
                              Md5EncodeService md5EncodeService,
                              AppkeysConfiguration appkeysConfiguration,
-                             AppKeyProvider appKeyProvider) {
+                             @Autowired(required = false) AppKeyProvider appKeyProvider) {
     this.signingService = signingService;
     this.md5EncodeService = md5EncodeService;
     this.appKeyProvider = appKeyProvider;
