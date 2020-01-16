@@ -37,14 +37,9 @@
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.103.8-jackson2</gbif-api.version>
     <gbif-common.version>0.41</gbif-common.version>
-    <gbif-httputils.version>0.10</gbif-httputils.version>
-    <grizzly-servlet-webserver.version>1.9.64</grizzly-servlet-webserver.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.0</guice.version>
-    <httpclient.version>4.3.6</httpclient.version>
-    <httpcore.version>4.3.3</httpcore.version>
     <jackson.version>2.10.1</jackson.version>
-    <jersey.version>1.19.3</jersey.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
     <junit.version>4.12</junit.version>
@@ -127,17 +122,6 @@
       <version>${validation-api.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-logging</artifactId>
-          <groupId>commons-logging</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
       <version>${gbif-api.version}</version>
@@ -177,13 +161,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- Commons logging bridge for HttpClient -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
