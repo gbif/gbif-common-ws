@@ -1,10 +1,10 @@
 package org.gbif.ws.security;
 
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
 public interface GbifAuthService {
 
-  boolean isValidRequest(RequestObject request);
+  boolean isValidRequest(GbifHttpServletRequestWrapper request);
 
-  RequestObject signRequest(String username, RequestObject request);
+  GbifHttpServletRequestWrapper signRequest(String username, GbifHttpServletRequestWrapper request);
 }

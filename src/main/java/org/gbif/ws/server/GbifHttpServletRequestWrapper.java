@@ -1,5 +1,6 @@
 package org.gbif.ws.server;
 
+import java.util.ArrayList;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 
@@ -15,13 +16,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 
-public class RequestObject extends HttpServletRequestWrapper {
+public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
   private String content;
 
   private HttpHeaders httpHeaders;
 
-  public RequestObject(HttpServletRequest request) {
+  public GbifHttpServletRequestWrapper(HttpServletRequest request) {
     super(request);
 
     try {
@@ -55,7 +56,7 @@ public class RequestObject extends HttpServletRequestWrapper {
     if (headerNames != null) {
       while (headerNames.hasMoreElements()) {
         String currentHeaderName = headerNames.nextElement();
-        requestHeaders.add(currentHeaderName, request.getHeader(currentHeaderName));
+        requestHeaders.set(currentHeaderName, request.getHeader(currentHeaderName));
       }
     }
 
@@ -67,11 +68,11 @@ public class RequestObject extends HttpServletRequestWrapper {
   }
 
   public HttpHeaders getHttpHeaders() {
-    return httpHeaders;
+    return new HttpHeaders(httpHeaders);
   }
 
-  public void addHeader(String name, String value) {
-    httpHeaders.add(name, value);
+  public void overwriteLanguageHeader(String newValue) {
+    httpHeaders.set(HttpHeaders.ACCEPT_LANGUAGE, newValue);
   }
 
   @Override
@@ -84,14 +85,12 @@ public class RequestObject extends HttpServletRequestWrapper {
 
   @Override
   public Enumeration<String> getHeaderNames() {
-    List<String> names = Collections.list(super.getHeaderNames());
-    names.addAll(httpHeaders.keySet());
-    return Collections.enumeration(names);
+    return Collections.enumeration(httpHeaders.keySet());
   }
 
   @Override
   public Enumeration<String> getHeaders(String name) {
-    List<String> values = Collections.list(super.getHeaders(name));
+    List<String> values = new ArrayList<>();
     if (httpHeaders.containsKey(name)) {
       Optional.ofNullable(httpHeaders.get(name))
           .ifPresent(values::addAll);

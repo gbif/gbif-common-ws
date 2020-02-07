@@ -5,7 +5,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gbif.utils.file.properties.PropertiesUtil;
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +91,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
    * @return unique string for a request
    * @see <a href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html">AWS Docs</a>
    */
-  private String buildStringToSign(final RequestObject request) {
+  private String buildStringToSign(final GbifHttpServletRequestWrapper request) {
     StringBuilder sb = new StringBuilder();
 
     sb.append(request.getMethod());
@@ -132,7 +132,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   }
 
   @Override
-  public boolean isValidRequest(final RequestObject request) {
+  public boolean isValidRequest(final GbifHttpServletRequestWrapper request) {
     // parse auth header
     final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME_PREFIX)) {
@@ -184,7 +184,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
    * Other format than JSON are not supported currently !!!
    */
   @Override
-  public RequestObject signRequest(final String username, final RequestObject request) {
+  public GbifHttpServletRequestWrapper signRequest(final String username, final GbifHttpServletRequestWrapper request) {
     String appKey = appKeyProvider.get();
     Preconditions.checkNotNull(appKey, "To sign the request a single application key is required");
     // first add custom GBIF headers so we can use them to build the string to sign
@@ -210,7 +210,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     final String secretKey = getPrivateKey(appKey);
     if (secretKey == null) {
       LOG.warn("Skip signing request with unknown application key: {}", appKey);
-      return new RequestObject(request);
+      return request;
     }
     // sign
     final String signature = signingService.buildSignature(stringToSign, secretKey);

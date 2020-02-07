@@ -1,7 +1,7 @@
 package org.gbif.ws.security;
 
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class GbifAuthServiceTest {
   @Test
   public void testSignRequest() {
     // given
-    RequestObject requestObjectMock = mock(RequestObject.class);
+    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
     HttpHeaders headers = new HttpHeaders();
     when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
     when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
@@ -74,7 +74,7 @@ public class GbifAuthServiceTest {
   @Test
   public void testIsValid() {
     // given
-    RequestObject requestObjectMock = mock(RequestObject.class);
+    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
     HttpHeaders headers = new HttpHeaders();
     when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
     when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
@@ -96,7 +96,7 @@ public class GbifAuthServiceTest {
   @Test
   public void testGetAppKeyFromRequest() {
     // given
-    RequestObject requestObjectMock = mock(RequestObject.class);
+    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
     HttpHeaders headers = new HttpHeaders();
     when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
     when(requestObjectMock.getHttpHeaders()).thenReturn(headers);

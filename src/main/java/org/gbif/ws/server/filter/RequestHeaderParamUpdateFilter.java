@@ -1,8 +1,7 @@
 package org.gbif.ws.server.filter;
 
 import com.google.common.base.Strings;
-import org.gbif.ws.server.RequestObject;
-import org.springframework.http.HttpHeaders;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -32,9 +31,10 @@ public class RequestHeaderParamUpdateFilter extends GenericFilterBean {
    */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-    RequestObject httpRequestWrapper;
+    GbifHttpServletRequestWrapper httpRequestWrapper;
     if (servletRequest instanceof HttpServletRequest) {
-      httpRequestWrapper = new RequestObject(((HttpServletRequest) servletRequest));
+      httpRequestWrapper = servletRequest instanceof GbifHttpServletRequestWrapper
+          ? (GbifHttpServletRequestWrapper) servletRequest : new GbifHttpServletRequestWrapper(((HttpServletRequest) servletRequest));
 
       // update language headers
       processLanguage(httpRequestWrapper);
@@ -45,11 +45,11 @@ public class RequestHeaderParamUpdateFilter extends GenericFilterBean {
     }
   }
 
-  private static void processLanguage(RequestObject request) {
+  private static void processLanguage(GbifHttpServletRequestWrapper request) {
     String language = Strings.nullToEmpty(request.getParameter("language")).trim();
     if (!language.isEmpty()) {
       // overwrite http language
-      request.addHeader(HttpHeaders.ACCEPT_LANGUAGE, language.toLowerCase());
+      request.overwriteLanguageHeader(language.toLowerCase());
     }
   }
 }

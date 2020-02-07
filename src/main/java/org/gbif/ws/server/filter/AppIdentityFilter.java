@@ -8,7 +8,7 @@ import org.gbif.ws.security.AppkeysConfiguration;
 import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.security.GbifAuthUtils;
 import org.gbif.ws.security.GbifAuthenticationToken;
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.gbif.ws.util.SecurityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,8 @@ public class AppIdentityFilter extends GenericFilterBean {
         || authentication.getPrincipal() instanceof AnonymousUserPrincipal) {
       String authorization = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
       if (StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
-        if (authService.isValidRequest(new RequestObject(httpRequest))) {
+        if (authService.isValidRequest(httpRequest instanceof GbifHttpServletRequestWrapper
+            ? (GbifHttpServletRequestWrapper) httpRequest : new GbifHttpServletRequestWrapper(httpRequest))) {
           String username = httpRequest.getHeader(SecurityConstants.HEADER_GBIF_USER);
           String appKey = GbifAuthUtils.getAppKeyFromRequest(authorization);
 

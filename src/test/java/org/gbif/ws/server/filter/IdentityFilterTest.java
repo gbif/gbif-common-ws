@@ -7,7 +7,7 @@ import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.security.GbifAuthServiceTest;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -145,7 +145,7 @@ public class IdentityFilterTest {
         getMockRequestAuthorization("Basic " + toAuthorizationString(heinz.getUserName(), "wrong")));
   }
 
-  private void assertPrincipalName(String expectedUsername, RequestObject request) throws Exception {
+  private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request) throws Exception {
     identityFilter.doFilter(request, mockResponse, mockFilterChain);
     SecurityContext securityContext = SecurityContextHolder.getContext();
 
@@ -161,8 +161,8 @@ public class IdentityFilterTest {
     }
   }
 
-  private RequestObject getMockRequestAuthorization(String authorization) {
-    RequestObject requestObjectMock = mock(RequestObject.class);
+  private GbifHttpServletRequestWrapper getMockRequestAuthorization(String authorization) {
+    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
     when(requestObjectMock.getHeader(AUTHORIZATION)).thenReturn(authorization);
 
     return requestObjectMock;

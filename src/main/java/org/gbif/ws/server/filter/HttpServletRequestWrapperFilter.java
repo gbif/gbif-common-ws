@@ -1,6 +1,6 @@
 package org.gbif.ws.server.filter;
 
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -17,9 +17,12 @@ public class HttpServletRequestWrapperFilter extends GenericFilterBean {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     if (request instanceof HttpServletRequest) {
-      final HttpServletRequest httpRequest = (HttpServletRequest) request;
-      final RequestObject requestObject = new RequestObject(httpRequest);
-      chain.doFilter(requestObject, response);
+      final GbifHttpServletRequestWrapper requestWrapper =
+          request instanceof GbifHttpServletRequestWrapper
+              ? (GbifHttpServletRequestWrapper) request
+              : new GbifHttpServletRequestWrapper(((HttpServletRequest) request));
+
+      chain.doFilter(requestWrapper, response);
     } else {
       chain.doFilter(request, response);
     }

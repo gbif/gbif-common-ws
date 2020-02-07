@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.WebApplicationException;
-import org.gbif.ws.server.RequestObject;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -125,7 +125,9 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
       LOG.warn("No GbifAuthService defined.");
       throw new WebApplicationException(HttpStatus.UNAUTHORIZED);
     }
-    if (!authService.isValidRequest(new RequestObject(request))) {
+    GbifHttpServletRequestWrapper requestObject =
+        request instanceof GbifHttpServletRequestWrapper ? ((GbifHttpServletRequestWrapper) request) : new GbifHttpServletRequestWrapper(request);
+    if (!authService.isValidRequest(requestObject)) {
       LOG.warn("Invalid GBIF authenticated request");
       throw new WebApplicationException(HttpStatus.UNAUTHORIZED);
     }
