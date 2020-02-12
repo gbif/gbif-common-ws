@@ -1,48 +1,46 @@
 package org.gbif.ws.server.filter;
 
 import com.google.common.base.Strings;
-import org.gbif.ws.server.GbifHttpServletRequestWrapper;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
-
+import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * A request filter that overwrites a few common http headers if their query parameter counterparts are given. In
- * particular the query parameters:
+ * A request filter that overwrites a few common http headers if their query parameter counterparts
+ * are given. In particular the query parameters:
+ *
  * <dl>
- * <dt>language</dt>
- * <dd>overwrites the Accept-Language header with the given language</dd>
+ *   <dt>language
+ *   <dd>overwrites the Accept-Language header with the given language
  * </dl>
  */
 @Component
-public class RequestHeaderParamUpdateFilter extends GenericFilterBean {
+public class RequestHeaderParamUpdateFilter extends OncePerRequestFilter {
 
   /**
-   * A request filter that overwrites a few common http headers if their query parameter counterparts
-   * are given.
+   * A request filter that overwrites a few common http headers if their query parameter
+   * counterparts are given.
    *
    * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">HTTP 1.1 RFC 2616</a>
    */
   @Override
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-    GbifHttpServletRequestWrapper httpRequestWrapper;
-    if (servletRequest instanceof HttpServletRequest) {
-      httpRequestWrapper = servletRequest instanceof GbifHttpServletRequestWrapper
-          ? (GbifHttpServletRequestWrapper) servletRequest : new GbifHttpServletRequestWrapper(((HttpServletRequest) servletRequest));
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    GbifHttpServletRequestWrapper httpRequestWrapper =
+        request instanceof GbifHttpServletRequestWrapper
+            ? (GbifHttpServletRequestWrapper) request
+            : new GbifHttpServletRequestWrapper((request));
 
-      // update language headers
-      processLanguage(httpRequestWrapper);
+    // update language headers
+    processLanguage(httpRequestWrapper);
 
-      filterChain.doFilter(httpRequestWrapper, servletResponse);
-    } else {
-      filterChain.doFilter(servletRequest, servletResponse);
-    }
+    filterChain.doFilter(httpRequestWrapper, response);
   }
 
   private static void processLanguage(GbifHttpServletRequestWrapper request) {
