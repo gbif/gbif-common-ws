@@ -46,8 +46,8 @@ public class GbifAuthServiceTest {
     return new GbifAuthServiceImpl(
         new SigningServiceImpl(),
         new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
-        mockAppkeysConfiguration,
-        () -> APPKEY
+        () -> APPKEY,
+        new FileSystemKeyStore(mockAppkeysConfiguration)
     );
   }
 
