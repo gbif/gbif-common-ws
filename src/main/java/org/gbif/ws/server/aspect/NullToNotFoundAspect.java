@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 public class NullToNotFoundAspect {
 
-  @AfterReturning(pointcut = "@annotation(org.gbif.ws.annotation.NullToNotFound)",
+  @AfterReturning(pointcut = "@annotation(org.gbif.api.annotation.NullToNotFound)",
       returning = "retVal")
   public void afterReturningAdvice(JoinPoint jp, Object retVal) {
     if (retVal == null) {

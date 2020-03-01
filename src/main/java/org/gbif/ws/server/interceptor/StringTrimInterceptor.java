@@ -7,7 +7,7 @@ import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.beanutils.WrapDynaBean;
 import org.gbif.api.model.registry.Dataset;
-import org.gbif.ws.annotation.Trim;
+import org.gbif.api.annotation.Trim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
