@@ -3,7 +3,7 @@ package org.gbif.ws.server.processor;
 import java.lang.reflect.Method;
 import java.util.Map;
 import javax.servlet.ServletRequest;
-import org.gbif.ws.annotation.ParamName;
+import org.gbif.api.annotation.ParamName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.MutablePropertyValues;
