@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.security.GbifAuthenticationManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class IdentityFilter extends OncePerRequestFilter {
 
+  private static final Logger LOG = LoggerFactory.getLogger(IdentityFilter.class);
+
   private GbifAuthenticationManager authenticationManager;
 
   public IdentityFilter(GbifAuthenticationManager authenticationManager) {
@@ -49,7 +53,8 @@ public class IdentityFilter extends OncePerRequestFilter {
       SecurityContextHolder.getContext().setAuthentication(authentication);
       filterChain.doFilter(request, response);
     } catch (final WebApplicationException e) {
-      response.setStatus(e.getResponse().getStatusCode().value());
+      LOG.debug("Exception while authentication in IdentityFilter: {}", e.getMessage());
+      response.setStatus(e.getStatus());
     }
   }
 }

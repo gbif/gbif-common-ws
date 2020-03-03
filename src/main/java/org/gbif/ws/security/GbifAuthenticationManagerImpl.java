@@ -84,14 +84,14 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     String[] values = COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
     if (values.length < 2) {
       LOG.warn("Invalid syntax for username and password: {}", authentication);
-      throw new WebApplicationException(HttpStatus.BAD_REQUEST);
+      throw new WebApplicationException("Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
     }
 
     String username = values[0];
     String password = values[1];
     if (username == null || password == null) {
       LOG.warn("Missing basic authentication username or password: {}", authentication);
-      throw new WebApplicationException(HttpStatus.BAD_REQUEST);
+      throw new WebApplicationException("Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
     }
 
     // it's not a good approach to check UUID
@@ -105,7 +105,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
 
     GbifUser user = identityAccessService.authenticate(username, password);
     if (user == null) {
-      throw new WebApplicationException(HttpStatus.UNAUTHORIZED);
+      throw new WebApplicationException("Failed to authenticate user " + username, HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, BASIC_AUTH);
@@ -119,17 +119,17 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     String username = request.getHeader(HEADER_GBIF_USER);
     if (Strings.isNullOrEmpty(username)) {
       LOG.warn("Missing gbif username header {}", HEADER_GBIF_USER);
-      throw new WebApplicationException(HttpStatus.BAD_REQUEST);
+      throw new WebApplicationException("Missing gbif username header", HttpStatus.BAD_REQUEST);
     }
     if (authService == null) {
-      LOG.warn("No GbifAuthService defined.");
-      throw new WebApplicationException(HttpStatus.UNAUTHORIZED);
+      LOG.warn("Missing GBIF Authentication Service");
+      throw new WebApplicationException("Missing GBIF Authentication Service", HttpStatus.UNAUTHORIZED);
     }
     GbifHttpServletRequestWrapper requestObject =
         request instanceof GbifHttpServletRequestWrapper ? ((GbifHttpServletRequestWrapper) request) : new GbifHttpServletRequestWrapper(request);
     if (!authService.isValidRequest(requestObject)) {
       LOG.warn("Invalid GBIF authenticated request");
-      throw new WebApplicationException(HttpStatus.UNAUTHORIZED);
+      throw new WebApplicationException("Invalid GBIF authenticated request", HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, GBIF_SCHEME);
