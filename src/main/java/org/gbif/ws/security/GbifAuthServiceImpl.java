@@ -39,88 +39,28 @@ import org.springframework.stereotype.Service;
  * </pre>
  *
  * <p>When signing an HTTP request in addition to the Authorization header some additional custom
- * headers are added which are used to sign and digest the message. <br>
- * x-gbif-user is added to transport a proxied user in which the application is acting. <br>
- * Content-MD5 is added if a body entity exists. See Content-MD5 header specs:
- * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
+ * headers are added which are used to sign and digest the message. <br> x-gbif-user is added to
+ * transport a proxied user in which the application is acting. <br> Content-MD5 is added if a body
+ * entity exists. See Content-MD5 header specs: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.15
  */
 @Service
 public class GbifAuthServiceImpl implements GbifAuthService {
 
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthServiceImpl.class);
 
-  private static final char NEWLINE = '\n';
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
 
   private final SigningService signingService;
   private final Md5EncodeService md5EncodeService;
   private final AppKeyProvider appKeyProvider;
-  private final KeyStore keyStore;
 
   public GbifAuthServiceImpl(
       SigningService signingService,
       Md5EncodeService md5EncodeService,
-      @Autowired(required = false) AppKeyProvider appKeyProvider,
-      KeyStore keyStore) {
+      @Autowired(required = false) AppKeyProvider appKeyProvider) {
     this.signingService = signingService;
     this.md5EncodeService = md5EncodeService;
     this.appKeyProvider = appKeyProvider;
-    this.keyStore = keyStore;
-  }
-
-  /**
-   * Extracts the information to be encrypted from a request and concatenates them into a single
-   * String. When the server receives an authenticated request, it compares the computed request
-   * signature with the signature provided in the request in StringToSign. For that reason this
-   * string may only contain information also available in the exact same form to the server.
-   *
-   * @return unique string for a request
-   * @see <a
-   *     href="http://docs.amazonwebservices.com/AmazonS3/latest/dev/RESTAuthentication.html">AWS
-   *     Docs</a>
-   */
-  private String buildStringToSign(final GbifHttpServletRequestWrapper request) {
-    StringBuilder sb = new StringBuilder();
-
-    sb.append(request.getMethod());
-    sb.append(NEWLINE);
-    // custom header set by varnish overrides real URI
-    // see http://dev.gbif.org/issues/browse/GBIFCOM-137
-    final HttpHeaders httpHeaders = request.getHttpHeaders();
-
-    if (httpHeaders.containsKey(HEADER_ORIGINAL_REQUEST_URL)) {
-      sb.append(httpHeaders.getFirst(HEADER_ORIGINAL_REQUEST_URL));
-    } else {
-      sb.append(getCanonicalizedPath(request.getRequestURI()));
-    }
-
-    appendHeader(sb, httpHeaders, HttpHeaders.CONTENT_TYPE, false);
-    appendHeader(sb, httpHeaders, HEADER_CONTENT_MD5, true);
-    appendHeader(sb, httpHeaders, HEADER_GBIF_USER, true);
-
-    return sb.toString();
-  }
-
-  private void appendHeader(
-      final StringBuilder sb,
-      final HttpHeaders headers,
-      final String header,
-      final boolean caseSensitive) {
-    if (headers.containsKey(header)) {
-      sb.append(NEWLINE);
-      if (caseSensitive) {
-        sb.append(headers.getFirst(header));
-      } else {
-        sb.append(headers.getFirst(header).toLowerCase());
-      }
-    }
-  }
-
-  /**
-   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
-   */
-  private String getCanonicalizedPath(final String strUri) {
-    return URI.create(strUri).normalize().getPath();
   }
 
   @Override
@@ -145,23 +85,48 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       return false;
     }
 
-    final String secretKey = keyStore.getPrivateKey(appKey);
-    if (secretKey == null) {
-      LOG.warn("Unknown application key: {}", appKey);
+    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);
+    // sign
+    final String signature;
+    try {
+      signature = signingService.buildSignature(requestDataToSign, appKey);
+    } catch (PrivateKeyNotFoundException e) {
       return false;
     }
-    //
-    final String stringToSign = buildStringToSign(request);
-    // sign
-    final String signature = signingService.buildSignature(stringToSign, secretKey);
     // compare signatures
     if (signatureFound.equals(signature)) {
       LOG.debug("Trusted application with matching signatures");
       return true;
     }
     LOG.info("Invalid signature: {}", authHeader);
-    LOG.debug("StringToSign: {}", stringToSign);
+    LOG.debug("StringToSign: {}", requestDataToSign.stringToSign());
     return false;
+  }
+
+  private RequestDataToSign buildRequestDataToSign(final GbifHttpServletRequestWrapper request) {
+    final HttpHeaders headers = request.getHttpHeaders();
+    final RequestDataToSign dataToSign = new RequestDataToSign();
+
+    dataToSign.setMethod(request.getMethod());
+    // custom header set by varnish overrides real URI
+    // see http://dev.gbif.org/issues/browse/GBIFCOM-137
+    if (headers.containsKey(HEADER_ORIGINAL_REQUEST_URL)) {
+      dataToSign.setUrl(headers.getFirst(HEADER_ORIGINAL_REQUEST_URL));
+    } else {
+      dataToSign.setUrl(getCanonicalizedPath(request.getRequestURI()));
+    }
+    dataToSign.setContentType(headers.getFirst(HttpHeaders.CONTENT_TYPE));
+    dataToSign.setContentTypeMd5(headers.getFirst(HEADER_CONTENT_MD5));
+    dataToSign.setUser(headers.getFirst(HEADER_GBIF_USER));
+
+    return dataToSign;
+  }
+
+  /**
+   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
+   */
+  private String getCanonicalizedPath(final String strUri) {
+    return URI.create(strUri).normalize().getPath();
   }
 
   /**
@@ -169,7 +134,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
    * contain a body entity the Content-MD5 header is created using the same JSON mapper for
    * serialization as the clients use.
    *
-   * <p>Other format than JSON are not supported currently !!!
+   * <p>Other formats than JSON are not supported currently !!!
    */
   @Override
   public GbifHttpServletRequestWrapper signRequest(
@@ -195,16 +160,17 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       request.getHttpHeaders().add(HEADER_CONTENT_MD5, md5EncodeService.encode(content));
     }
 
-    // build the unique string to sign
-    final String stringToSign = buildStringToSign(request);
-    // find private key for this app
-    final String secretKey = keyStore.getPrivateKey(appKey);
-    if (secretKey == null) {
+    // build the unique request data object to sign
+    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);
+
+    // sign
+    final String signature;
+    try {
+      signature = signingService.buildSignature(requestDataToSign, appKey);
+    } catch (PrivateKeyNotFoundException e) {
       LOG.warn("Skip signing request with unknown application key: {}", appKey);
       return request;
     }
-    // sign
-    final String signature = signingService.buildSignature(stringToSign, secretKey);
 
     // build authorization header string
     final String header = buildAuthHeader(appKey, signature);
