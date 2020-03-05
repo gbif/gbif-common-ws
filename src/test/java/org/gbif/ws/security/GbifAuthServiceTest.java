@@ -44,7 +44,7 @@ public class GbifAuthServiceTest {
     when(mockAppkeysConfiguration.getFile()).thenReturn(stringPath);
 
     return new GbifAuthServiceImpl(
-        new SigningServiceImpl(new FileSystemKeyStore(mockAppkeysConfiguration)),
+        new AppKeySigningService(new FileSystemKeyStore(mockAppkeysConfiguration)),
         new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
         () -> APPKEY
     );
