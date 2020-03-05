@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.security.AnonymousUserPrincipal;
 import org.gbif.ws.security.AppPrincipal;
-import org.gbif.ws.security.AppkeysConfiguration;
+import org.gbif.ws.security.AppkeysConfigurationProperties;
 import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.security.GbifAuthUtils;
 import org.gbif.ws.security.GbifAuthenticationToken;
@@ -56,7 +56,7 @@ public class AppIdentityFilter extends OncePerRequestFilter {
   private final List<String> appKeyWhitelist;
 
   public AppIdentityFilter(
-      @NotNull GbifAuthService authService, AppkeysConfiguration appkeysConfiguration) {
+      @NotNull GbifAuthService authService, AppkeysConfigurationProperties appkeysConfiguration) {
     this.authService = authService;
     // defensive copy or creation
     this.appKeyWhitelist =

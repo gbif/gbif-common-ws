@@ -7,7 +7,7 @@ import java.util.List;
 
 @Component
 @ConfigurationProperties(prefix = "appkeys")
-public class AppkeysConfiguration {
+public class AppkeysConfigurationProperties {
 
   private String file;
 

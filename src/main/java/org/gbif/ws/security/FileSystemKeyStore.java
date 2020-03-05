@@ -16,7 +16,7 @@ public class FileSystemKeyStore implements KeyStore {
 
   private final ImmutableMap<String, String> store;
 
-  public FileSystemKeyStore(AppkeysConfiguration appkeysConfiguration) {
+  public FileSystemKeyStore(AppkeysConfigurationProperties appkeysConfiguration) {
     try {
       Properties props = PropertiesUtil.loadProperties(appkeysConfiguration.getFile());
       store = Maps.fromProperties(props);

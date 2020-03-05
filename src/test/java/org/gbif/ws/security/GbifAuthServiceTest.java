@@ -40,7 +40,7 @@ public class GbifAuthServiceTest {
     URL resource = GbifAuthServiceTest.class.getClassLoader().getResource("appkeys.properties");
     String stringPath = Paths.get(resource.toURI()).toAbsolutePath().toString();
 
-    AppkeysConfiguration mockAppkeysConfiguration = mock(AppkeysConfiguration.class);
+    AppkeysConfigurationProperties mockAppkeysConfiguration = mock(AppkeysConfigurationProperties.class);
     when(mockAppkeysConfiguration.getFile()).thenReturn(stringPath);
 
     return new GbifAuthServiceImpl(
