@@ -6,10 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.springframework.stereotype.Service;
 
-@Service
-public class BaseSigningService implements SigningService {
+public abstract class BaseSigningService implements SigningService {
 
   private static final String ALGORITHM = "HmacSHA1";
 
