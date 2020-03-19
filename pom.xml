@@ -35,7 +35,7 @@
     <spring-boot.version>2.2.2.RELEASE</spring-boot.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.104-jackson2-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.106-jackson2-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.41</gbif-common.version>
     <guava.version>18.0</guava.version>
     <guice.version>4.0</guice.version>

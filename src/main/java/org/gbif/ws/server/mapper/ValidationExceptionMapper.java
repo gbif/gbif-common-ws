@@ -26,8 +26,6 @@ public class ValidationExceptionMapper {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Object> toResponse(MethodArgumentNotValidException exception) {
-    LOG.error(exception.getMessage(), exception);
-
     ImmutableList.Builder<String> builder = ImmutableList.builder();
 
     exception.getBindingResult()
@@ -47,8 +45,6 @@ public class ValidationExceptionMapper {
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<Object> toResponse(ConstraintViolationException exception) {
-    LOG.error(exception.getMessage(), exception);
-
     ImmutableList.Builder<String> builder = ImmutableList.builder();
 
     for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
