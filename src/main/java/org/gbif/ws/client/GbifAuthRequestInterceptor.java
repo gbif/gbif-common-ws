@@ -16,16 +16,19 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
   private SigningService signingService;
   private Md5EncodeService md5EncodeService;
+  private String username;
   private String appKey;
   private String secretKey;
 
   public GbifAuthRequestInterceptor(
+      String username,
       String appKey,
       String secretKey,
       SigningService signingService,
       Md5EncodeService md5EncodeService) {
     this.signingService = signingService;
     this.md5EncodeService = md5EncodeService;
+    this.username = username;
     this.appKey = appKey;
     this.secretKey = secretKey;
   }
@@ -35,7 +38,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
     RequestDataToSign requestDataToSign = new RequestDataToSign();
     requestDataToSign.setMethod(template.method());
     requestDataToSign.setUrl(removeQueryParameters(template.url()));
-    requestDataToSign.setUser(appKey);
+    requestDataToSign.setUser(username);
 
     if ("POST".equals(template.method()) || "PUT".equals(template.method())) {
       Map<String, Collection<String>> headers = template.headers();
@@ -57,7 +60,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
     try {
       String signature = signingService.buildSignature(requestDataToSign, secretKey);
 
-      template.header("x-gbif-user", appKey);
+      template.header("x-gbif-user", username);
       template.header("Authorization", "GBIF " + appKey + ":" + signature);
     } catch (PrivateKeyNotFoundException e) {
       throw new WebApplicationException(

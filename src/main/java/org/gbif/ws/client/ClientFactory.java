@@ -23,11 +23,11 @@ public class ClientFactory {
   private ErrorDecoder errorDecoder;
   private Contract contract;
 
-  public ClientFactory(String url, String appKey, String secretKey) {
+  public ClientFactory(String username, String url, String appKey, String secretKey) {
     this.url = url;
     ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(appKey, secretKey, new SecretKeySigningService(),
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
             new Md5EncodeServiceImpl(objectMapper));
     this.encoder = new JacksonEncoder(objectMapper);
     this.decoder = new JacksonDecoder(objectMapper);
@@ -35,11 +35,13 @@ public class ClientFactory {
     this.contract = new ClientContract();
   }
 
-  public ClientFactory(String url, String appKey, String secretKey, SigningService signingService,
+  public ClientFactory(String username, String url, String appKey, String secretKey,
+      SigningService signingService,
       Md5EncodeService md5EncodeService, ObjectMapper objectMapper) {
     this.url = url;
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(appKey, secretKey, signingService, md5EncodeService);
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService,
+            md5EncodeService);
     this.encoder = new JacksonEncoder(objectMapper);
     this.decoder = new JacksonDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
