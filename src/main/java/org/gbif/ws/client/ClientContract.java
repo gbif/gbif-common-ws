@@ -32,7 +32,9 @@ public class ClientContract extends SpringMvcContract {
           || Util.isDefault(method)
           // skip default methods which related to generic inheritance
           // also default methods are considered as "unsupported operations"
-          || method.toString().startsWith("public default")) {
+          || method.toString().startsWith("public default")
+          // skip not annotated methods (consider as "not implemented")
+          || method.getAnnotations().length == 0) {
         continue;
       }
       final MethodMetadata metadata = this.parseAndValidateMetadata(targetType, method);
