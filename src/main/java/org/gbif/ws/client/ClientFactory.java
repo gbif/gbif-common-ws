@@ -3,6 +3,7 @@ package org.gbif.ws.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
+import feign.Feign.Builder;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -22,6 +23,16 @@ public class ClientFactory {
   private Encoder encoder;
   private ErrorDecoder errorDecoder;
   private Contract contract;
+
+  public ClientFactory(String url) {
+    this.url = url;
+    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
+    this.requestInterceptor = null;
+    this.encoder = new JacksonEncoder(objectMapper);
+    this.decoder = new JacksonDecoder(objectMapper);
+    this.errorDecoder = new ClientErrorDecoder();
+    this.contract = new ClientContract();
+  }
 
   public ClientFactory(String username, String url, String appKey, String secretKey) {
     this.url = url;
@@ -49,12 +60,16 @@ public class ClientFactory {
   }
 
   public <T> T newInstance(Class<T> clazz) {
-    return Feign.builder()
+    Feign.Builder builder = Feign.builder()
         .encoder(encoder)
         .decoder(decoder)
         .errorDecoder(errorDecoder)
-        .contract(contract)
-        .requestInterceptor(requestInterceptor)
-        .target(clazz, url);
+        .contract(contract);
+
+    if (requestInterceptor != null) {
+      builder.requestInterceptor(requestInterceptor);
+    }
+
+    return builder.target(clazz, url);
   }
 }
