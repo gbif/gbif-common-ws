@@ -3,7 +3,6 @@ package org.gbif.ws.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
-import feign.Feign.Builder;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -15,6 +14,7 @@ import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
+@SuppressWarnings("unused")
 public class ClientFactory {
 
   private String url;
