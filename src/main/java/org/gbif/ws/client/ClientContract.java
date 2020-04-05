@@ -9,14 +9,28 @@ import feign.Util;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.openfeign.annotation.PathVariableParameterProcessor;
+import org.springframework.cloud.openfeign.annotation.QueryMapParameterProcessor;
+import org.springframework.cloud.openfeign.annotation.RequestHeaderParameterProcessor;
+import org.springframework.cloud.openfeign.annotation.RequestParamParameterProcessor;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 public class ClientContract extends SpringMvcContract {
+
+  public ClientContract() {
+    super(Arrays.asList(
+        new PartialDateParameterProcessor(),
+        new PathVariableParameterProcessor(),
+        new RequestParamParameterProcessor(),
+        new RequestHeaderParameterProcessor(),
+        new QueryMapParameterProcessor()));
+  }
 
   @Override
   public List<MethodMetadata> parseAndValidatateMetadata(final Class<?> targetType) {
