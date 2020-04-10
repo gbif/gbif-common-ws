@@ -2,7 +2,10 @@ package org.gbif.ws.server.mapper;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.util.Comparator;
 import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -13,11 +16,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.validation.ConstraintViolationException;
-import java.util.Comparator;
-
 /**
- * Converts validation exceptions into a http 422 bad request and gives a meaningful messages on the issues.
+ * Converts validation exceptions into a http 422 bad request and gives a meaningful messages on the
+ * issues.
  */
 @ControllerAdvice
 public class ValidationExceptionMapper {
@@ -35,7 +36,8 @@ public class ValidationExceptionMapper {
         .sorted(Comparator.comparing(FieldError::getField, Comparator.naturalOrder()))
         .forEach(error -> {
           LOG.debug("Validation of [{}] failed: {}", error.getField(), error.getDefaultMessage());
-          builder.add(String.format("Validation of [%s] failed: %s", error.getField(), error.getDefaultMessage()));
+          builder.add(String.format("Validation of [%s] failed: %s", error.getField(),
+              error.getDefaultMessage()));
         });
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -49,11 +51,26 @@ public class ValidationExceptionMapper {
 
     for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
       LOG.debug("Validation of [{}] failed: {}", cv.getPropertyPath(), cv.getMessage());
-      builder.add(String.format("Validation of [%s] failed: %s", cv.getPropertyPath(), cv.getMessage()));
+      builder.add(String.format("Validation of [%s] failed: %s",
+          getPropertyFromPropertyPath(cv.getPropertyPath()), cv.getMessage()));
     }
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
         .body("<ul><li>" + Joiner.on("</li><li>").join(builder.build()) + "</li></ul>");
+  }
+
+  private String getPropertyFromPropertyPath(Path propertyPath) {
+    String resultProperty = null;
+
+    if (propertyPath != null) {
+      resultProperty = propertyPath.toString();
+      int lastDotIndex = resultProperty.lastIndexOf('.');
+      if (lastDotIndex != -1) {
+        resultProperty = resultProperty.substring(lastDotIndex + 1);
+      }
+    }
+
+    return resultProperty;
   }
 }
