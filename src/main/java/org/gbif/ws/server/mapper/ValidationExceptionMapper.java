@@ -49,11 +49,14 @@ public class ValidationExceptionMapper {
   public ResponseEntity<Object> toResponse(ConstraintViolationException exception) {
     ImmutableList.Builder<String> builder = ImmutableList.builder();
 
-    for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
-      LOG.debug("Validation of [{}] failed: {}", cv.getPropertyPath(), cv.getMessage());
-      builder.add(String.format("Validation of [%s] failed: %s",
-          getPropertyFromPropertyPath(cv.getPropertyPath()), cv.getMessage()));
-    }
+    exception.getConstraintViolations()
+        .stream()
+        .sorted(Comparator.comparing(cv -> getPropertyFromPropertyPath(cv.getPropertyPath()), Comparator.naturalOrder()))
+        .forEach(cv -> {
+          LOG.debug("Validation of [{}] failed: {}", cv.getPropertyPath(), cv.getMessage());
+          builder.add(String.format("Validation of [%s] failed: %s",
+              getPropertyFromPropertyPath(cv.getPropertyPath()), cv.getMessage()));
+        });
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
