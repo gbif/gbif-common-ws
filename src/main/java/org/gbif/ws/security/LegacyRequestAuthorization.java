@@ -1,13 +1,14 @@
 package org.gbif.ws.security;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
+import org.gbif.api.vocabulary.AppRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Class providing temporary authorization for legacy web service requests (GBRDS/IPT).
@@ -19,10 +20,12 @@ public class LegacyRequestAuthorization implements Authentication {
   private boolean authenticated = false;
   private final UUID userKey;
   private final UUID organizationKey;
+  private final Collection<GrantedAuthority> authorities;
 
   public LegacyRequestAuthorization(UUID userKey, UUID organizationKey) {
     this.userKey = userKey;
     this.organizationKey = organizationKey;
+    this.authorities = Collections.singleton(new SimpleGrantedAuthority(AppRole.IPT.name()));
     setAuthenticated(true);
   }
 
@@ -36,7 +39,7 @@ public class LegacyRequestAuthorization implements Authentication {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Collections.emptyList();
+    return authorities;
   }
 
   @Override
