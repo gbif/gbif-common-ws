@@ -10,6 +10,7 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.web.servlet.mvc.method.annotation.ExtendedServletRequestDataBinder;
 
 /** ServletRequestDataBinder which supports fields renaming using {@link ParamName} */
+@SuppressWarnings("NullableProblems")
 public class ParamNameDataBinder extends ExtendedServletRequestDataBinder {
 
   private static final Logger LOG = LoggerFactory.getLogger(ParamNameDataBinder.class);
@@ -53,6 +54,7 @@ public class ParamNameDataBinder extends ExtendedServletRequestDataBinder {
               getTarget().getClass().getDeclaredMethod(methodName, String.class);
           declaredMethod.invoke(
               getTarget(), mutablePropertyValues.getPropertyValue(paramName).getValue());
+          mutablePropertyValues.removePropertyValue(paramName);
         } catch (Exception e) {
           LOG.error("There was a problem to invoke a method {}", methodName);
         }
