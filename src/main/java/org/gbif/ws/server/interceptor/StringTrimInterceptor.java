@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
  * package.
  * This will recurse only 5 levels deep, to guard against potential circular looping.
  */
+@SuppressWarnings("NullableProblems")
 @ControllerAdvice
 public class StringTrimInterceptor implements RequestBodyAdvice {
 
