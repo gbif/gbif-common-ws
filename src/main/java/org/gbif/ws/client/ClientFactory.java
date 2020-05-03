@@ -3,6 +3,7 @@ package org.gbif.ws.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
+import feign.InvocationHandlerFactory;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -21,6 +22,7 @@ public class ClientFactory {
   private Encoder encoder;
   private ErrorDecoder errorDecoder;
   private Contract contract;
+  private InvocationHandlerFactory invocationHandlerFactory;
 
   public ClientFactory(String url) {
     this.url = url;
@@ -30,6 +32,7 @@ public class ClientFactory {
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
     this.contract = new ClientContract();
+    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();
   }
 
   public ClientFactory(String username, String url, String appKey, String secretKey) {
@@ -42,6 +45,7 @@ public class ClientFactory {
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
     this.contract = new ClientContract();
+    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();
   }
 
   public ClientFactory(String username, String url, String appKey, String secretKey,
@@ -55,6 +59,7 @@ public class ClientFactory {
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
     this.contract = new ClientContract();
+    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();
   }
 
   public <T> T newInstance(Class<T> clazz) {
@@ -62,7 +67,8 @@ public class ClientFactory {
         .encoder(encoder)
         .decoder(decoder)
         .errorDecoder(errorDecoder)
-        .contract(contract);
+        .contract(contract)
+        .invocationHandlerFactory(invocationHandlerFactory);
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
