@@ -99,7 +99,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       return true;
     }
     LOG.info("Invalid signature: {}", authHeader);
-    LOG.debug("StringToSign: {}", requestDataToSign.stringToSign());
+    LOG.debug("Request data to sign: {}", requestDataToSign.stringToSign());
     return false;
   }
 

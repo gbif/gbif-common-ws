@@ -2,17 +2,22 @@ package org.gbif.ws.client;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import java.util.Collection;
-import java.util.Map;
 import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.security.Md5EncodeService;
 import org.gbif.ws.security.PrivateKeyNotFoundException;
 import org.gbif.ws.security.RequestDataToSign;
 import org.gbif.ws.security.SigningService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
+import java.util.Collection;
+import java.util.Map;
+
 public class GbifAuthRequestInterceptor implements RequestInterceptor {
+
+  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);
 
   private SigningService signingService;
   private Md5EncodeService md5EncodeService;
@@ -53,6 +58,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
       String contentMd5 = md5EncodeService.encode(template.requestBody().asString());
       requestDataToSign.setContentTypeMd5(contentMd5);
+      LOG.debug("Client data to sign: {}", requestDataToSign.stringToSign());
 
       template.header("Content-MD5", contentMd5);
     }
