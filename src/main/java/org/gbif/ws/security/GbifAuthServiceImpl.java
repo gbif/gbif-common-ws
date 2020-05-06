@@ -86,11 +86,13 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     }
 
     final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);
+    LOG.debug("Request data to sign: {}", requestDataToSign.stringToSign());
     // sign
     final String signature;
     try {
       signature = signingService.buildSignature(requestDataToSign, appKey);
     } catch (PrivateKeyNotFoundException e) {
+      LOG.debug("Private key was not found for app key {}", appKey);
       return false;
     }
     // compare signatures
@@ -99,7 +101,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       return true;
     }
     LOG.info("Invalid signature: {}", authHeader);
-    LOG.debug("Request data to sign: {}", requestDataToSign.stringToSign());
+
     return false;
   }
 

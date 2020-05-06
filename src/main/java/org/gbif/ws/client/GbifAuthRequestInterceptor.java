@@ -45,7 +45,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
     requestDataToSign.setUrl(removeQueryParameters(template.url()));
     requestDataToSign.setUser(username);
 
-    if ("POST".equals(template.method()) || "PUT".equals(template.method())) {
+    if (isPostOrPutRequest(template) && isRequestBodyNotEmpty(template)) {
       Map<String, Collection<String>> headers = template.headers();
 
       Collection<String> contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);
@@ -58,10 +58,11 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
       String contentMd5 = md5EncodeService.encode(template.requestBody().asString());
       requestDataToSign.setContentTypeMd5(contentMd5);
-      LOG.debug("Client data to sign: {}", requestDataToSign.stringToSign());
 
       template.header("Content-MD5", contentMd5);
     }
+
+    LOG.debug("Client data to sign: {}", requestDataToSign.stringToSign());
 
     try {
       String signature = signingService.buildSignature(requestDataToSign, secretKey);
@@ -69,9 +70,18 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
       template.header("x-gbif-user", username);
       template.header("Authorization", "GBIF " + appKey + ":" + signature);
     } catch (PrivateKeyNotFoundException e) {
+      LOG.debug("Private key was not found for the application {}", appKey);
       throw new WebApplicationException(
           "Private key was not found for the application " + appKey, HttpStatus.UNAUTHORIZED);
     }
+  }
+
+  private boolean isPostOrPutRequest(RequestTemplate template) {
+    return "POST".equals(template.method()) || "PUT".equals(template.method());
+  }
+
+  private boolean isRequestBodyNotEmpty(RequestTemplate template) {
+    return template.requestBody().length() != 0;
   }
 
   /**
