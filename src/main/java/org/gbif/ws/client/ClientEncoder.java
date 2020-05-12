@@ -17,10 +17,15 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ClientEncoder implements Encoder {
+
+  private static final List<String> PUT_EXCLUDE_LIST =
+      Arrays.asList("/grscicoll/collection", "/grscicoll/institution", "/grscicoll/person");
 
   private JacksonEncoder jacksonEncoder;
 
@@ -38,7 +43,11 @@ public class ClientEncoder implements Encoder {
     if ("POST".equals(template.method())) {
       violations = validator.validate(object, javax.validation.groups.Default.class, PrePersist.class);
     } else if ("PUT".equals(template.method())) {
-      violations = validator.validate(object, javax.validation.groups.Default.class, PostPersist.class);
+      if (isMethodNotInExcludeList(template.url())) {
+        violations = validator.validate(object, javax.validation.groups.Default.class, PostPersist.class);
+      } else {
+        violations = validator.validate(object);
+      }
     }
 
     if (bodyType == String.class) {
@@ -55,5 +64,9 @@ public class ClientEncoder implements Encoder {
         jacksonEncoder.encode(object, bodyType, template);
       }
     }
+  }
+
+  private boolean isMethodNotInExcludeList(String url) {
+    return !PUT_EXCLUDE_LIST.contains(url);
   }
 }
