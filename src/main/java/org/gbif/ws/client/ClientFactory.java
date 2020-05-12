@@ -13,11 +13,14 @@ import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
+import java.util.Arrays;
+
 @SuppressWarnings("unused")
 public class ClientFactory {
 
   private String url;
   private GbifAuthRequestInterceptor requestInterceptor;
+  private ValidationRequestInterceptor validationRequestInterceptor;
   private Decoder decoder;
   private Encoder encoder;
   private ErrorDecoder errorDecoder;
@@ -28,6 +31,7 @@ public class ClientFactory {
     this.url = url;
     ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
     this.requestInterceptor = null;
+    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -41,6 +45,7 @@ public class ClientFactory {
     this.requestInterceptor =
         new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
             new Md5EncodeServiceImpl(objectMapper));
+    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -53,8 +58,8 @@ public class ClientFactory {
       Md5EncodeService md5EncodeService, ObjectMapper objectMapper) {
     this.url = url;
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService,
-            md5EncodeService);
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
+    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -72,6 +77,9 @@ public class ClientFactory {
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
+      builder.requestInterceptors(Arrays.asList(validationRequestInterceptor, requestInterceptor));
+    } else {
+      builder.requestInterceptor(validationRequestInterceptor);
     }
 
     return builder.target(clazz, url);

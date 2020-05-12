@@ -15,6 +15,9 @@ import org.springframework.http.HttpStatus;
 import java.util.Collection;
 import java.util.Map;
 
+import static org.gbif.ws.client.ClientUtils.isPostOrPutRequest;
+import static org.gbif.ws.client.ClientUtils.isRequestBodyNotEmpty;
+
 public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);
@@ -74,14 +77,6 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
       throw new WebApplicationException(
           "Private key was not found for the application " + appKey, HttpStatus.UNAUTHORIZED);
     }
-  }
-
-  private boolean isPostOrPutRequest(RequestTemplate template) {
-    return "POST".equals(template.method()) || "PUT".equals(template.method());
-  }
-
-  private boolean isRequestBodyNotEmpty(RequestTemplate template) {
-    return template.requestBody().length() != 0;
   }
 
   /**
