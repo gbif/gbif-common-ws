@@ -2,12 +2,19 @@ package org.gbif.ws.client;
 
 import feign.InvocationHandlerFactory;
 import feign.Target;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.executable.ExecutableValidator;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static feign.Util.checkNotNull;
 
@@ -23,14 +30,18 @@ public class ClientInvocationHandlerFactory implements InvocationHandlerFactory 
 
     private final Target target;
     private final Map<Method, MethodHandler> dispatch;
+    private final ExecutableValidator executableValidator;
 
     FeignInvocationHandler(Target target, Map<Method, MethodHandler> dispatch) {
       this.target = checkNotNull(target, "target");
       this.dispatch = checkNotNull(dispatch, "dispatch for %s", target);
+      this.executableValidator = (ExecutableValidator) Validation.buildDefaultValidatorFactory().getValidator();
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      validateMethodParameters(proxy, method, args);
+
       if ("equals".equals(method.getName())) {
         try {
           Object otherHandler =
@@ -46,6 +57,26 @@ public class ClientInvocationHandlerFactory implements InvocationHandlerFactory 
       }
 
       return getMethodHandler(method).invoke(args);
+    }
+
+    private void validateMethodParameters(Object proxy, Method method, Object[] args) {
+      if (method.getParameterCount() > 0) {
+        Optional<Class<?>[]> groups = Arrays.stream(method.getAnnotations())
+            .filter(p -> p.annotationType().equals(Validated.class))
+            .map(p -> ((Validated) p).value())
+            .findFirst();
+
+        Set<ConstraintViolation<Object>> constraintViolations;
+        if (groups.isPresent()) {
+          constraintViolations = executableValidator.validateParameters(proxy, method, args, groups.get());
+        } else {
+          constraintViolations = executableValidator.validateParameters(proxy, method, args);
+        }
+
+        if (!constraintViolations.isEmpty()) {
+          throw new ConstraintViolationException(constraintViolations);
+        }
+      }
     }
 
     private MethodHandler getMethodHandler(Method method) {

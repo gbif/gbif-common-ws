@@ -13,8 +13,6 @@ import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
-import java.util.Arrays;
-
 @SuppressWarnings("unused")
 public class ClientFactory {
 
@@ -77,9 +75,6 @@ public class ClientFactory {
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
-      builder.requestInterceptors(Arrays.asList(validationRequestInterceptor, requestInterceptor));
-    } else {
-      builder.requestInterceptor(validationRequestInterceptor);
     }
 
     return builder.target(clazz, url);
