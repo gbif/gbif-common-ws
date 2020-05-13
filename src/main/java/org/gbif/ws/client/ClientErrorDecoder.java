@@ -23,12 +23,14 @@ public class ClientErrorDecoder implements ErrorDecoder {
   public Exception decode(String methodKey, Response response) {
     String message = null;
 
-    try (Reader reader = response.body().asReader()) {
-      //Easy way to read the stream and get a String object
-      message = CharStreams.toString(reader);
-      LOG.error("Client exception: {}", message);
-    } catch (IOException e) {
-      LOG.error("Exception during reading client error response", e);
+    if (response.body() != null) {
+      try (Reader reader = response.body().asReader()) {
+        //Easy way to read the stream and get a String object
+        message = CharStreams.toString(reader);
+        LOG.error("Client exception: {}", message);
+      } catch (IOException e) {
+        LOG.error("Exception during reading client error response", e);
+      }
     }
 
     switch (response.status()) {
