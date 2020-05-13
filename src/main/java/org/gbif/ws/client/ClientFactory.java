@@ -18,7 +18,6 @@ public class ClientFactory {
 
   private String url;
   private GbifAuthRequestInterceptor requestInterceptor;
-  private ValidationRequestInterceptor validationRequestInterceptor;
   private Decoder decoder;
   private Encoder encoder;
   private ErrorDecoder errorDecoder;
@@ -29,7 +28,6 @@ public class ClientFactory {
     this.url = url;
     ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
     this.requestInterceptor = null;
-    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -43,7 +41,6 @@ public class ClientFactory {
     this.requestInterceptor =
         new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
             new Md5EncodeServiceImpl(objectMapper));
-    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -57,7 +54,6 @@ public class ClientFactory {
     this.url = url;
     this.requestInterceptor =
         new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
-    this.validationRequestInterceptor = new ValidationRequestInterceptor();
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
