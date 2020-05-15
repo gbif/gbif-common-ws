@@ -36,10 +36,9 @@
     <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.110-jackson2-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>0.110</gbif-api.version>
     <gbif-common.version>0.41</gbif-common.version>
     <guava.version>18.0</guava.version>
-    <guice.version>4.0</guice.version>
     <jackson.version>2.10.1</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
