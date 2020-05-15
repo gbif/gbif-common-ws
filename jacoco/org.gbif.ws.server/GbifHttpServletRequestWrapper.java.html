@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GbifHttpServletRequestWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server</a> &gt; <span class="el_source">GbifHttpServletRequestWrapper.java</span></div><h1>GbifHttpServletRequestWrapper.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server;
+
+import java.util.ArrayList;
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpHeaders;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Optional;
+
+public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
+
+  private String content;
+
+  private HttpHeaders httpHeaders;
+
+  public GbifHttpServletRequestWrapper(HttpServletRequest request) {
+<span class="fc" id="L26">    super(request);</span>
+
+    try {
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">      if (request.getInputStream() != null) {</span>
+<span class="fc" id="L30">        content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());</span>
+      } else {
+<span class="nc" id="L32">        content = null;</span>
+      }
+<span class="nc" id="L34">    } catch (IOException e) {</span>
+<span class="nc" id="L35">      throw new RuntimeException(&quot;Stream can't be read&quot;, e);</span>
+<span class="fc" id="L36">    }</span>
+
+<span class="fc" id="L38">    httpHeaders = getHttpHeaders(request);</span>
+<span class="fc" id="L39">  }</span>
+
+  @Override
+  public ServletInputStream getInputStream() {
+<span class="nc" id="L43">    final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content.getBytes());</span>
+<span class="nc" id="L44">    return new DelegatingServletInputStream(byteArrayInputStream);</span>
+  }
+
+  @Override
+  public BufferedReader getReader() {
+<span class="nc" id="L49">    return new BufferedReader(new InputStreamReader(this.getInputStream()));</span>
+  }
+
+  private HttpHeaders getHttpHeaders(HttpServletRequest request) {
+<span class="fc" id="L53">    final HttpHeaders requestHeaders = new HttpHeaders();</span>
+<span class="fc" id="L54">    Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span>
+
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (headerNames != null) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      while (headerNames.hasMoreElements()) {</span>
+<span class="nc" id="L58">        String currentHeaderName = headerNames.nextElement();</span>
+<span class="nc" id="L59">        requestHeaders.set(currentHeaderName, request.getHeader(currentHeaderName));</span>
+<span class="nc" id="L60">      }</span>
+    }
+
+<span class="fc" id="L63">    return requestHeaders;</span>
+  }
+
+  public String getContent() {
+<span class="nc" id="L67">    return content;</span>
+  }
+
+  public HttpHeaders getHttpHeaders() {
+<span class="nc" id="L71">    return new HttpHeaders(httpHeaders);</span>
+  }
+
+  public void overwriteLanguageHeader(String newValue) {
+<span class="nc" id="L75">    httpHeaders.set(HttpHeaders.ACCEPT_LANGUAGE, newValue);</span>
+<span class="nc" id="L76">  }</span>
+
+  @Override
+  public String getHeader(String name) {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (getHttpHeaders().containsKey(name)) {</span>
+<span class="fc" id="L81">      return getHttpHeaders().getFirst(name);</span>
+    }
+<span class="nc" id="L83">    return super.getHeader(name);</span>
+  }
+
+  @Override
+  public Enumeration&lt;String&gt; getHeaderNames() {
+<span class="nc" id="L88">    return Collections.enumeration(httpHeaders.keySet());</span>
+  }
+
+  @Override
+  public Enumeration&lt;String&gt; getHeaders(String name) {
+<span class="nc" id="L93">    List&lt;String&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (httpHeaders.containsKey(name)) {</span>
+<span class="nc" id="L95">      Optional.ofNullable(httpHeaders.get(name))</span>
+<span class="nc" id="L96">          .ifPresent(values::addAll);</span>
+    }
+<span class="nc" id="L98">    return Collections.enumeration(values);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -12,26 +12,7 @@
  */
 package org.gbif.ws.server.provider;
 
-import org.gbif.api.model.checklistbank.search.NameUsageSearchParameter;
-import org.gbif.api.model.checklistbank.search.NameUsageSuggestRequest;
-
-import java.lang.reflect.Type;
-
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.Provider;
-
-import com.google.inject.Singleton;
-import com.sun.jersey.spi.inject.InjectableProvider;
-
-@Provider
-@Singleton
-public class NameUsageSuggestRequestProvider
-  extends SearchRequestProvider&lt;NameUsageSuggestRequest, NameUsageSearchParameter&gt;
-  implements InjectableProvider&lt;Context, Type&gt; {
-
-  public NameUsageSuggestRequestProvider() {
-<span class="nc" id="L33">    super(NameUsageSuggestRequest.class, NameUsageSearchParameter.class);</span>
-<span class="nc" id="L34">  }</span>
-
+<span class="nc" id="L15">public class NameUsageSuggestRequestProvider {</span>
+// TODO: 15/01/2020 not implemented
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

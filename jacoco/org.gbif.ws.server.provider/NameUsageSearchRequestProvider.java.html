@@ -15,64 +15,7 @@
  */
 package org.gbif.ws.server.provider;
 
-import org.gbif.api.model.checklistbank.search.NameUsageSearchParameter;
-import org.gbif.api.model.checklistbank.search.NameUsageSearchRequest;
-import org.gbif.api.util.VocabularyUtils;
-
-import java.lang.reflect.Type;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
-
-import com.google.common.base.Strings;
-import com.google.inject.Singleton;
-import com.sun.jersey.spi.inject.InjectableProvider;
-
-import static org.gbif.ws.util.WebserviceParameter.PARAM_EXTENDED;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_CONTEXT;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT_FIELD;
-import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_FIELD;
-
-@Provider
-@Singleton
-public class NameUsageSearchRequestProvider extends FacetedSearchRequestProvider&lt;NameUsageSearchRequest, NameUsageSearchParameter&gt;
-  implements InjectableProvider&lt;Context, Type&gt; {
-
-  public NameUsageSearchRequestProvider() {
-<span class="fc" id="L42">    super(NameUsageSearchRequest.class, NameUsageSearchParameter.class);</span>
-<span class="fc" id="L43">  }</span>
-
-  @Override
-  protected void getSearchRequestFromQueryParams(NameUsageSearchRequest request, MultivaluedMap&lt;String, String&gt; params) {
-<span class="fc" id="L47">    super.getSearchRequestFromQueryParams(request, params);</span>
-
-<span class="fc" id="L49">    String p = params.getFirst(PARAM_EXTENDED);</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(p)) {</span>
-<span class="nc" id="L51">      request.setExtended(Boolean.parseBoolean(p));</span>
-    }
-
-<span class="fc" id="L54">    p = params.getFirst(PARAM_HIGHLIGHT_CONTEXT);</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (!Strings.isNullOrEmpty(p)) {</span>
-<span class="fc" id="L56">      request.setHighlightContext(Integer.parseInt(p));</span>
-    }
-
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">    if (params.containsKey(PARAM_HIGHLIGHT_FIELD)) {</span>
-<span class="fc" id="L60">      request.getHighlightFields().clear();</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">      for (String val : params.get(PARAM_HIGHLIGHT_FIELD)) {</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (!Strings.isNullOrEmpty(val)) {</span>
-<span class="fc" id="L63">          request.getHighlightFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.QueryField.class));</span>
-        }
-<span class="fc" id="L65">      }</span>
-    }
-
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (params.containsKey(PARAM_QUERY_FIELD)) {</span>
-<span class="fc" id="L69">      request.getQueryFields().clear();</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">      for (String val : params.get(PARAM_QUERY_FIELD)) {</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (!Strings.isNullOrEmpty(val)) {</span>
-<span class="fc" id="L72">          request.getQueryFields().add(VocabularyUtils.lookupEnum(val, NameUsageSearchRequest.QueryField.class));</span>
-        }
-<span class="fc" id="L74">      }</span>
-    }
-<span class="fc" id="L76">  }</span>
+<span class="nc" id="L18">public class NameUsageSearchRequestProvider {</span>
+  // TODO: 15/01/2020 not implemented
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

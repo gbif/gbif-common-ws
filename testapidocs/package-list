@@ -9,9 +9,9 @@ org.gbif.api.model.metrics
 org.gbif.api.model.metrics.cube
 org.gbif.api.model.occurrence
 org.gbif.api.model.occurrence.predicate
+org.gbif.api.model.pipelines
 org.gbif.api.model.registry
 org.gbif.api.model.registry.eml
-org.gbif.api.model.sql
 org.gbif.api.util
 org.gbif.api.util.comparators
 org.gbif.api.util.formatter
@@ -27,15 +27,7 @@ org.gbif.utils.html
 org.gbif.utils.number
 org.gbif.utils.rs
 org.gbif.utils.text
-org.gbif.varnish
-org.gbif.ws.client
-org.gbif.ws.client.filter
-org.gbif.ws.client.guice
-org.gbif.ws.client.guice.testclient
-org.gbif.ws.client.interceptor
-org.gbif.ws.mixin
 org.gbif.ws.security
 org.gbif.ws.server.filter
 org.gbif.ws.server.interceptor
-org.gbif.ws.server.provider
 org.gbif.ws.util

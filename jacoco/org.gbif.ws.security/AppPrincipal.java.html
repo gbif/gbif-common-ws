@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppPrincipal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">AppPrincipal.java</span></div><h1>AppPrincipal.java</h1><pre class="source lang-java linenums">package org.gbif.ws.security;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.validation.constraints.NotNull;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * @see org.gbif.api.model.common.AppPrincipal
+ */
+public class AppPrincipal implements UserDetails {
+
+  @NotNull
+  private final String appKey;
+
+  private List&lt;? extends GrantedAuthority&gt; authorities;
+
+<span class="fc" id="L21">  public AppPrincipal(String appKey, List&lt;? extends GrantedAuthority&gt; authorities) {</span>
+<span class="fc" id="L22">    Objects.requireNonNull(appKey, &quot;appKey shall be provided&quot;);</span>
+<span class="fc" id="L23">    this.appKey = appKey;</span>
+<span class="fc" id="L24">    this.authorities = authorities;</span>
+<span class="fc" id="L25">  }</span>
+
+  @Override
+  public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
+<span class="nc" id="L29">    return authorities;</span>
+  }
+
+  @Override
+  public String getPassword() {
+<span class="nc" id="L34">    throw new UnsupportedOperationException(&quot;There is no password for the AppPrincipal&quot;);</span>
+  }
+
+  @Override
+  public String getUsername() {
+<span class="fc" id="L39">    return appKey;</span>
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+<span class="nc" id="L44">    return true;</span>
+  }
+
+  @Override
+  public boolean isAccountNonLocked() {
+<span class="nc" id="L49">    return true;</span>
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+<span class="nc" id="L54">    return true;</span>
+  }
+
+  @Override
+  public boolean isEnabled() {
+<span class="nc" id="L59">    return true;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

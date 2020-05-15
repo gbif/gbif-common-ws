@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.ws.server.provider;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.gbif.api.util.VocabularyUtils;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.api.vocabulary.Country;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.springframework.core.MethodParameter;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.springframework.web.bind.support.WebDataBinderFactory;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.springframework.web.context.request.NativeWebRequest;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.springframework.web.method.support.HandlerMethodArgumentResolver;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.springframework.web.method.support.ModelAndViewContainer;<a name="line.9"></a>
+<span class="sourceLineNo">010</span><a name="line.10"></a>
+<span class="sourceLineNo">011</span>public class CountryHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {<a name="line.11"></a>
+<span class="sourceLineNo">012</span><a name="line.12"></a>
+<span class="sourceLineNo">013</span>  @Override<a name="line.13"></a>
+<span class="sourceLineNo">014</span>  public boolean supportsParameter(MethodParameter parameter) {<a name="line.14"></a>
+<span class="sourceLineNo">015</span>    return Country.class.equals(parameter.getParameterType());<a name="line.15"></a>
+<span class="sourceLineNo">016</span>  }<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>  @Override<a name="line.18"></a>
+<span class="sourceLineNo">019</span>  public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {<a name="line.19"></a>
+<span class="sourceLineNo">020</span>    final String paramName = parameter.getParameterName();<a name="line.20"></a>
+<span class="sourceLineNo">021</span>    final String countryCode = paramName != null ? webRequest.getParameter(paramName) : null;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>    Country result = Country.fromIsoCode(countryCode);<a name="line.22"></a>
+<span class="sourceLineNo">023</span><a name="line.23"></a>
+<span class="sourceLineNo">024</span>    if (result == null) {<a name="line.24"></a>
+<span class="sourceLineNo">025</span>      // if nothing found also try by enum name<a name="line.25"></a>
+<span class="sourceLineNo">026</span>      result = VocabularyUtils.lookupEnum(countryCode, Country.class);<a name="line.26"></a>
+<span class="sourceLineNo">027</span>    }<a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>    return result;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>  }<a name="line.30"></a>
+<span class="sourceLineNo">031</span>}<a name="line.31"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

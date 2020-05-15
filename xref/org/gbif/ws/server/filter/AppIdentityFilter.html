@@ -8,114 +8,113 @@
 <div id="overview"><a href="../../../../../../apidocs/org/gbif/ws/server/filter/AppIdentityFilter.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.gbif.ws.server.filter;
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.gbif.api.model.common.AppPrincipal;
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.gbif.api.model.common.ExtendedPrincipal;
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.gbif.api.vocabulary.AppRole;
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthService;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.security.Principal;
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.security.Principal;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.Collections;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> javax.servlet.FilterChain;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> javax.servlet.ServletException;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> javax.servlet.http.HttpServletRequest;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> javax.servlet.http.HttpServletResponse;
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> javax.validation.constraints.NotNull;
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.WebApplicationException;
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.Response;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> javax.ws.rs.core.SecurityContext;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> com.google.inject.Inject;
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> com.google.inject.name.Named;
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.spi.container.ContainerRequest;
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> com.sun.jersey.spi.container.ContainerRequestFilter;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang3.StringUtils;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * A filter that allows an application to identify itself as an application (as opposed to an application</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * impersonating a user).</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * In order to identify itself an application shall provide its appKey in the header x-gbif-user and sign the request</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * accordingly.</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * If the application can be authenticated AND its appKey is in the whitelist, the {@link Principal#getName()} will return the appKey and the</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * role {@link AppRole#APP} will be assigned to it.</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * We use an appKey whitelist to control which app should be allowed to have the {@link AppRole#APP} while letting</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * the user impersonation available in {@link IdentityFilter}. If at some point multiple {@link AppRole} should be</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * supported the whitelist should simply be changed for something more structured.</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * This filter must run AFTER {@link IdentityFilter} if user impersonation using appKey is required.</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> * This filter will be skipped if the {@link ContainerRequest} already has a {@link Principal} attached.</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> * This filter operates on {@link GbifAuthService#GBIF_SCHEME} only.</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> * If the appKeyWhitelist list is not provided no apps will be authenticated by this filter.</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/gbif/ws/server/filter/AppIdentityFilter.html">AppIdentityFilter</a> <strong class="jxr_keyword">implements</strong> ContainerRequestFilter {
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong>  String APPKEYS_WHITELIST = <span class="jxr_string">"identity.appkeys.whitelist"</span>;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>    <em class="jxr_comment">//FIXME should probably have its own scheme but that would requires to change {@link GbifAuthService)</em>
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String GBIF_SCHEME_PREFIX = GbifAuthService.GBIF_SCHEME + <span class="jxr_string">" "</span>;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(AppIdentityFilter.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../org/gbif/ws/security/GbifAuthService.html">GbifAuthService</a> authService;
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;String&gt; appKeyWhitelist;
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>    @Inject
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>    <strong class="jxr_keyword">public</strong> <a href="../../../../../org/gbif/ws/server/filter/AppIdentityFilter.html">AppIdentityFilter</a>(@NotNull <a href="../../../../../org/gbif/ws/security/GbifAuthService.html">GbifAuthService</a> authService, @Nullable @Named(APPKEYS_WHITELIST) List&lt;String&gt; appKeyWhitelist) {
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">this</strong>.authService = authService;
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <em class="jxr_comment">//defensive copy or creation</em>
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">this</strong>.appKeyWhitelist = appKeyWhitelist != <strong class="jxr_keyword">null</strong> ? <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(appKeyWhitelist) : <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>    }
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>    @Override
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>    <strong class="jxr_keyword">public</strong> ContainerRequest filter(<strong class="jxr_keyword">final</strong> ContainerRequest containerRequest) {
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <em class="jxr_comment">// Only try if no user principal is already there</em>
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">if</strong> (containerRequest.getSecurityContext() != <strong class="jxr_keyword">null</strong> &amp;&amp; containerRequest.getUserPrincipal() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>        <strong class="jxr_keyword">return</strong> containerRequest;
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      String authorization = containerRequest.getHeaderValue(ContainerRequest.AUTHORIZATION);
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">if</strong> (StringUtils.startsWith(authorization, GBIF_SCHEME_PREFIX)) {
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>        <strong class="jxr_keyword">if</strong> (!authService.isValidRequest(containerRequest)) {
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          LOG.warn(<span class="jxr_string">"Invalid GBIF authenticated request"</span>);
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> WebApplicationException(Response.Status.UNAUTHORIZED);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>        }
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>        String username = containerRequest.getHeaderValue(GbifAuthService.HEADER_GBIF_USER);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>        String appKey = GbifAuthService.getAppKeyFromRequest(containerRequest::getHeaderValue);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>        <em class="jxr_comment">//check if it's an app by ensuring the appkey used to sign the request is the one used as x-gbif-user</em>
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>        <strong class="jxr_keyword">if</strong> (StringUtils.equals(appKey, username) &amp;&amp; appKeyWhitelist.contains(appKey)) {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>          containerRequest.setSecurityContext(<strong class="jxr_keyword">new</strong> SecurityContext() {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>            <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ExtendedPrincipal principal = <strong class="jxr_keyword">new</strong> AppPrincipal(appKey, AppRole.APP.name());
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>            @Override
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>            <strong class="jxr_keyword">public</strong> Principal getUserPrincipal() {
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              <strong class="jxr_keyword">return</strong> principal;
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>            }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>            @Override
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>            <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isUserInRole(String s) {
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>              <strong class="jxr_keyword">return</strong> principal.hasRole(s);
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>            }
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>            @Override
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>            <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isSecure() {
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">return</strong> containerRequest.isSecure();
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang3.StringUtils;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.gbif.api.vocabulary.AppRole;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.AnonymousUserPrincipal;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.AppPrincipal;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.AppkeysConfigurationProperties;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthService;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthUtils;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.security.GbifAuthenticationToken;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.server.GbifHttpServletRequestWrapper;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.gbif.ws.util.SecurityConstants;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.springframework.http.HttpHeaders;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.springframework.http.HttpStatus;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.springframework.security.core.Authentication;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.springframework.security.core.authority.SimpleGrantedAuthority;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.springframework.security.core.context.SecurityContextHolder;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.springframework.stereotype.Component;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.springframework.web.filter.OncePerRequestFilter;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * A filter that allows an application to identify itself as an application (as opposed to an</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * application impersonating a user). In order to identify itself an application shall provide its</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * appKey in the header x-gbif-user and sign the request accordingly. If the application can be</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * authenticated AND its appKey is in the whitelist, the {@link Principal#getName()} will return the</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> * appKey and the role {@link AppRole#APP} will be assigned to it.</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;We use an appKey whitelist to control which app should be allowed to have the {@link</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment"> * AppRole#APP} while letting the user impersonation available in {@link IdentityFilter}. If at some</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment"> * point multiple {@link AppRole} should be supported the whitelist should simply be changed for</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment"> * something more structured.</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;This filter must run AFTER {@link IdentityFilter} if user impersonation using appKey is</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment"> * required. This filter will be skipped if the request already has a {@link Principal} attached.</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment"> * This filter operates on {@link SecurityConstants#GBIF_SCHEME} only. If the appKeyWhitelist list</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment"> * is not provided no apps will be authenticated by this filter.</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  @Component
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/gbif/ws/server/filter/AppIdentityFilter.html">AppIdentityFilter</a> <strong class="jxr_keyword">extends</strong> OncePerRequestFilter {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(AppIdentityFilter.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../org/gbif/ws/security/GbifAuthService.html">GbifAuthService</a> authService;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;String&gt; appKeyWhitelist;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>    <strong class="jxr_keyword">public</strong> <a href="../../../../../org/gbif/ws/server/filter/AppIdentityFilter.html">AppIdentityFilter</a>(
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>        @NotNull <a href="../../../../../org/gbif/ws/security/GbifAuthService.html">GbifAuthService</a> authService, <a href="../../../../../org/gbif/ws/security/AppkeysConfigurationProperties.html">AppkeysConfigurationProperties</a> appkeysConfiguration) {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">this</strong>.authService = authService;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <em class="jxr_comment">// defensive copy or creation</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">this</strong>.appKeyWhitelist =
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          appkeysConfiguration.getWhitelist() != <strong class="jxr_keyword">null</strong>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              ? <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(appkeysConfiguration.getWhitelist())
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              : <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>    }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>    @Override
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>    <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doFilterInternal(
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>        HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>        <strong class="jxr_keyword">throws</strong> ServletException, IOException {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">final</strong> Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <em class="jxr_comment">// Only try if no user principal is already there</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">if</strong> (authentication == <strong class="jxr_keyword">null</strong>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          || authentication.getPrincipal() == <strong class="jxr_keyword">null</strong>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          || authentication.getPrincipal() instanceof AnonymousUserPrincipal) {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>        <strong class="jxr_keyword">if</strong> (StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">if</strong> (authService.isValidRequest(
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              request instanceof <a href="../../../../../org/gbif/ws/server/GbifHttpServletRequestWrapper.html">GbifHttpServletRequestWrapper</a>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  ? (GbifHttpServletRequestWrapper) request
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>                  : <strong class="jxr_keyword">new</strong> <a href="../../../../../org/gbif/ws/server/GbifHttpServletRequestWrapper.html">GbifHttpServletRequestWrapper</a>(request))) {
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>            String username = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>            String appKey = GbifAuthUtils.getAppKeyFromRequest(authorization);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>            <em class="jxr_comment">// check if it's an app by ensuring the appkey used to sign the request is the one used as</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>            <em class="jxr_comment">// x-gbif-user</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>            <strong class="jxr_keyword">if</strong> (StringUtils.equals(appKey, username) &amp;&amp; appKeyWhitelist.contains(appKey)) {
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <strong class="jxr_keyword">final</strong> List&lt;SimpleGrantedAuthority&gt; authorities =
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>                  Collections.singletonList(<strong class="jxr_keyword">new</strong> SimpleGrantedAuthority(AppRole.APP.name()));
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">final</strong> <a href="../../../../../org/gbif/ws/security/AppPrincipal.html">AppPrincipal</a> principal = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/gbif/ws/security/AppPrincipal.html">AppPrincipal</a>(appKey, authorities);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">final</strong> Authentication newAuthentication =
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                  <strong class="jxr_keyword">new</strong> <a href="../../../../../org/gbif/ws/security/GbifAuthenticationToken.html">GbifAuthenticationToken</a>(principal, SecurityConstants.GBIF_SCHEME, authorities);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              SecurityContextHolder.getContext().setAuthentication(newAuthentication);
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>            }
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>            @Override
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>           <strong class="jxr_keyword">public</strong> String getAuthenticationScheme() {
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>             <strong class="jxr_keyword">return</strong> GbifAuthService.GBIF_SCHEME;
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>           }
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>         });
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>       }
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">return</strong> containerRequest;
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>   }
-<a class="jxr_linenumber" name="L108" href="#L108">108</a> }
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>            LOG.warn(<span class="jxr_string">"Invalid GBIF authenticated request"</span>);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>           response.setStatus(HttpStatus.UNAUTHORIZED.value());
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         }
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>       }
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     }
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     filterChain.doFilter(request, response);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>   }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2019 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
 </body>
 </html>

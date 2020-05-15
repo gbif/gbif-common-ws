@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthResponseFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.advice</a> &gt; <span class="el_source">AuthResponseFilter.java</span></div><h1>AuthResponseFilter.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.advice;
+
+import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+import javax.validation.constraints.NotNull;
+
+/**
+ * Response filter that adds a WWW-Authenticate header if response status is Unauthenticated,
+ * indicating a Basic Authentication scheme to be used.
+ */
+@ControllerAdvice
+<span class="nc" id="L20">public class AuthResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+
+  @Override
+  public boolean supports(@NotNull MethodParameter returnType,
+                          @NotNull Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
+<span class="nc" id="L25">    return true;</span>
+  }
+
+  @Override
+  public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType,
+                                @NotNull MediaType selectedContentType,
+                                @NotNull Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
+                                @NotNull ServerHttpRequest request,
+                                @NotNull ServerHttpResponse response) {
+<span class="nc bnc" id="L34" title="All 2 branches missed.">    if (response instanceof ServletServerHttpResponse) {</span>
+<span class="nc" id="L35">      int responseStatusCode = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+
+<span class="nc bnc" id="L37" title="All 2 branches missed.">      if (responseStatusCode == HttpStatus.UNAUTHORIZED.value()) {</span>
+        // TODO: 10/01/2020 realm GBIF only?
+<span class="nc" id="L39">        response.getHeaders().add(&quot;WWW-Authenticate&quot;, &quot;Basic realm=\&quot;GBIF\&quot;&quot;);</span>
+      }
+    }
+
+<span class="nc" id="L43">    return body;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -1,78 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XSSFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.filter</a> &gt; <span class="el_source">XSSFilter.java</span></div><h1>XSSFilter.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.filter;
 
-import org.gbif.api.model.common.messaging.Response;
-import org.gbif.ws.util.XSSUtil;
-
-import java.io.IOException;
-import java.util.Enumeration;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.google.inject.Singleton;
 /**
- * Request filter that detects XSS in paramater, header or querystring values and responds with a 400 bad request in such cases.
+ * Request filter that detects XSS in parameter, header or querystring values and responds with a 400 bad request in such cases.
  */
-@Singleton
-<span class="nc" id="L22">public class XSSFilter implements Filter {</span>
-
-  @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
-<span class="nc" id="L26">  }</span>
-
-  @Override
-  public void destroy() {
-<span class="nc" id="L30">  }</span>
-
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-<span class="nc bnc" id="L34" title="All 2 branches missed.">    if (request instanceof HttpServletRequest) {</span>
-<span class="nc" id="L35">      HttpServletRequest httpRequest = (HttpServletRequest) request;</span>
-      // test for xss in headers
-<span class="nc" id="L37">      checkParams(httpRequest.getHeaderNames(),httpRequest,response);</span>
-
-      // test for xss in querystring
-      // note: servlet container does not decode querystring when creating HttpServletRequest object
-<span class="nc bnc" id="L41" title="All 2 branches missed.">      if (XSSUtil.containsXSS(httpRequest.getQueryString())) {</span>
-<span class="nc" id="L42">        respondBadRequest(response);</span>
-      }
-      // test for xss in parameters
-      // note: servlet container decodes parameter strings when creating HttpServletRequest object
-<span class="nc" id="L46">      checkParams(httpRequest.getParameterNames(),httpRequest,response);</span>
-    }
-<span class="nc" id="L48">    chain.doFilter(request, response);</span>
-<span class="nc" id="L49">  }</span>
-
-  /**
-   * Utility method that validates a enumeration of http parameters.
-   */
-  private static void checkParams(Enumeration&lt;String&gt; params, HttpServletRequest request,
-                                          ServletResponse response) throws IOException {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    while(params.hasMoreElements()) {</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">      if (XSSUtil.containsXSS(request.getParameter(params.nextElement()))) {</span>
-<span class="nc" id="L58">        respondBadRequest(response);</span>
-      }
-    }
-<span class="nc" id="L61">  }</span>
-
-  /**
-   * Sends a Response.StatusCode.BAD_REQUEST error response, provided the response hasn't already been committed.
-   *
-   * @param response response that will contain the error
-   *
-   * @throws IOException if there is a problem committing response
-   */
-  private static void respondBadRequest(ServletResponse response) throws IOException {
-<span class="nc" id="L71">    HttpServletResponse resp = (HttpServletResponse) response;</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (!resp.isCommitted()) {</span>
-<span class="nc" id="L73">      resp.sendError(Response.StatusCode.BAD_REQUEST.getCode());</span>
-    }
-<span class="nc" id="L75">  }</span>
-
+<span class="nc" id="L6">public class XSSFilter {</span>
+  // TODO: 15/01/2020 not implemented
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

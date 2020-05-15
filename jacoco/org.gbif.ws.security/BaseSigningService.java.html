@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseSigningService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">BaseSigningService.java</span></div><h1>BaseSigningService.java</h1><pre class="source lang-java linenums">package org.gbif.ws.security;
+
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+<span class="fc" id="L10">public abstract class BaseSigningService implements SigningService {</span>
+
+  private static final String ALGORITHM = &quot;HmacSHA1&quot;;
+
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 signature of the passed request data with the secret key.
+   * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
+   *
+   * @param requestDataToSign the request data to be signed
+   * @param secretKey         the secret key
+   */
+  @Override
+  public String buildSignature(RequestDataToSign requestDataToSign, String secretKey) {
+    try {
+<span class="fc" id="L24">      Mac mac = Mac.getInstance(ALGORITHM);</span>
+<span class="fc" id="L25">      SecretKeySpec secret = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8),</span>
+          ALGORITHM);
+<span class="fc" id="L27">      mac.init(secret);</span>
+<span class="fc" id="L28">      byte[] digest = mac.doFinal(requestDataToSign.stringToSign().getBytes());</span>
+
+<span class="fc" id="L30">      return new String(Base64.getEncoder().encode(digest), StandardCharsets.US_ASCII);</span>
+<span class="nc" id="L31">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L32">      throw new RuntimeException(&quot;Cant find &quot; + ALGORITHM + &quot; message digester&quot;, e);</span>
+<span class="nc" id="L33">    } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L34">      throw new RuntimeException(&quot;Invalid secret key &quot; + secretKey, e);</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

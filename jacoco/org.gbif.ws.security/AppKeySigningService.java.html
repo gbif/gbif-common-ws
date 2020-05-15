@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppKeySigningService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">AppKeySigningService.java</span></div><h1>AppKeySigningService.java</h1><pre class="source lang-java linenums">package org.gbif.ws.security;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+@Primary
+@Service
+public class AppKeySigningService extends BaseSigningService {
+
+<span class="fc" id="L12">  private static final Logger LOG = LoggerFactory.getLogger(AppKeySigningService.class);</span>
+
+  private final KeyStore keyStore;
+
+<span class="fc" id="L16">  public AppKeySigningService(KeyStore keyStore) {</span>
+<span class="fc" id="L17">    this.keyStore = keyStore;</span>
+<span class="fc" id="L18">  }</span>
+
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 signature of the passed request data with the secret key
+   * associated with the given application key. See Message Authentication Code specs
+   * http://tools.ietf.org/html/rfc2104
+   *
+   * @param requestDataToSign the request data to be signed
+   * @param appKey            the application key
+   */
+  @Override
+  public String buildSignature(RequestDataToSign requestDataToSign, String appKey) {
+    // find private key for this app
+<span class="fc" id="L31">    final String secretKey = keyStore.getPrivateKey(appKey);</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">    if (secretKey == null) {</span>
+<span class="nc" id="L33">      LOG.error(&quot;Unknown application key: {}&quot;, appKey);</span>
+<span class="nc" id="L34">      throw new PrivateKeyNotFoundException();</span>
+    }
+
+    // sign
+<span class="fc" id="L38">    return super.buildSignature(requestDataToSign, secretKey);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

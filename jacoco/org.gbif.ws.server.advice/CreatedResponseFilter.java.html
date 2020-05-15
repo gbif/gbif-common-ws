@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreatedResponseFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.advice</a> &gt; <span class="el_source">CreatedResponseFilter.java</span></div><h1>CreatedResponseFilter.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.advice;
+
+import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+/**
+ * Filter that updates http headers when a new resource is successfully created via a POST request unless
+ * the response returns 204 No Content.
+ * &lt;p&gt;
+ * The following headers are added or replaced if they existed:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Http response code 201&lt;/li&gt;
+ *   &lt;li&gt;Location header is set accordingly based on returned key&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@ControllerAdvice
+<span class="nc" id="L25">public class CreatedResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+
+  @Override
+  public boolean supports(MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
+<span class="nc" id="L29">    return true;</span>
+  }
+
+  @Override
+  public Object beforeBodyWrite(Object body,
+                                MethodParameter returnType,
+                                MediaType selectedContentType,
+                                Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
+                                ServerHttpRequest request,
+                                ServerHttpResponse response) {
+<span class="nc" id="L39">    final int intStatus = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+<span class="nc" id="L40">    final HttpStatus httpStatus = HttpStatus.resolve(intStatus);</span>
+
+<span class="nc bnc" id="L42" title="All 8 branches missed.">    if (request.getMethod() != null &amp;&amp; httpStatus != null &amp;&amp; request.getMethod() == HttpMethod.POST</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        &amp;&amp; httpStatus != HttpStatus.NO_CONTENT &amp;&amp; httpStatus.is2xxSuccessful()) {</span>
+<span class="nc" id="L44">      response.setStatusCode(HttpStatus.CREATED);</span>
+
+      // TODO: 15/01/2020 if response contains the key, also set Location
+    }
+
+<span class="nc" id="L49">    return body;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
