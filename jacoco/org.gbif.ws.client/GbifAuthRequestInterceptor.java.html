@@ -18,9 +18,24 @@ import java.util.Map;
 import static org.gbif.ws.client.ClientUtils.isPostOrPutRequest;
 import static org.gbif.ws.client.ClientUtils.isRequestBodyNotEmpty;
 
+/**
+ * An authentication request interceptor for trusted GBIF applications.
+ * It requires an application key and can then act on behalf of any username.
+ *
+ * Request interceptor adding an HTTP Authentication header to the HTTP request using the custom GBIF schema
+ * for trusted applications.
+ * In addition to the Authentication this request interceptor will add these headers to the request:
+ * &lt;ul&gt;
+ * &lt;li&gt;Content-MD5: the MD5 hash for the request body&lt;/li&gt;
+ * &lt;li&gt;x-gbif-user: the username of the proxied user&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * Note that the users role still depends on the roles defined in the user account and will not default
+ * to ADMIN. The user also has to exist for the webservice authorization to work.
+ */
 public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
-<span class="nc" id="L23">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);</span>
+<span class="nc" id="L38">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);</span>
 
   private SigningService signingService;
   private Md5EncodeService md5EncodeService;
@@ -33,57 +48,57 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
       String appKey,
       String secretKey,
       SigningService signingService,
-<span class="nc" id="L36">      Md5EncodeService md5EncodeService) {</span>
-<span class="nc" id="L37">    this.signingService = signingService;</span>
-<span class="nc" id="L38">    this.md5EncodeService = md5EncodeService;</span>
-<span class="nc" id="L39">    this.username = username;</span>
-<span class="nc" id="L40">    this.appKey = appKey;</span>
-<span class="nc" id="L41">    this.secretKey = secretKey;</span>
-<span class="nc" id="L42">  }</span>
+<span class="nc" id="L51">      Md5EncodeService md5EncodeService) {</span>
+<span class="nc" id="L52">    this.signingService = signingService;</span>
+<span class="nc" id="L53">    this.md5EncodeService = md5EncodeService;</span>
+<span class="nc" id="L54">    this.username = username;</span>
+<span class="nc" id="L55">    this.appKey = appKey;</span>
+<span class="nc" id="L56">    this.secretKey = secretKey;</span>
+<span class="nc" id="L57">  }</span>
 
   @Override
   public void apply(RequestTemplate template) {
-<span class="nc" id="L46">    RequestDataToSign requestDataToSign = new RequestDataToSign();</span>
-<span class="nc" id="L47">    requestDataToSign.setMethod(template.method());</span>
-<span class="nc" id="L48">    requestDataToSign.setUrl(removeQueryParameters(template.url()));</span>
-<span class="nc" id="L49">    requestDataToSign.setUser(username);</span>
+<span class="nc" id="L61">    RequestDataToSign requestDataToSign = new RequestDataToSign();</span>
+<span class="nc" id="L62">    requestDataToSign.setMethod(template.method());</span>
+<span class="nc" id="L63">    requestDataToSign.setUrl(removeQueryParameters(template.url()));</span>
+<span class="nc" id="L64">    requestDataToSign.setUser(username);</span>
 
-<span class="nc bnc" id="L51" title="All 4 branches missed.">    if (isPostOrPutRequest(template) &amp;&amp; isRequestBodyNotEmpty(template)) {</span>
-<span class="nc" id="L52">      Map&lt;String, Collection&lt;String&gt;&gt; headers = template.headers();</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">    if (isPostOrPutRequest(template) &amp;&amp; isRequestBodyNotEmpty(template)) {</span>
+<span class="nc" id="L67">      Map&lt;String, Collection&lt;String&gt;&gt; headers = template.headers();</span>
 
-<span class="nc" id="L54">      Collection&lt;String&gt; contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);</span>
+<span class="nc" id="L69">      Collection&lt;String&gt; contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);</span>
 
-<span class="nc bnc" id="L56" title="All 2 branches missed.">      String contentType =</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
-<span class="nc" id="L58">              ? contentTypeHeaders.iterator().next()</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">      String contentType =</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
+<span class="nc" id="L73">              ? contentTypeHeaders.iterator().next()</span>
               : &quot;application/json&quot;;
-<span class="nc" id="L60">      requestDataToSign.setContentType(contentType);</span>
+<span class="nc" id="L75">      requestDataToSign.setContentType(contentType);</span>
 
-<span class="nc" id="L62">      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());</span>
-<span class="nc" id="L63">      requestDataToSign.setContentTypeMd5(contentMd5);</span>
+<span class="nc" id="L77">      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());</span>
+<span class="nc" id="L78">      requestDataToSign.setContentTypeMd5(contentMd5);</span>
 
-<span class="nc" id="L65">      template.header(&quot;Content-MD5&quot;, contentMd5);</span>
+<span class="nc" id="L80">      template.header(&quot;Content-MD5&quot;, contentMd5);</span>
     }
 
-<span class="nc" id="L68">    LOG.debug(&quot;Client data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
+<span class="nc" id="L83">    LOG.debug(&quot;Client data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
 
     try {
-<span class="nc" id="L71">      String signature = signingService.buildSignature(requestDataToSign, secretKey);</span>
+<span class="nc" id="L86">      String signature = signingService.buildSignature(requestDataToSign, secretKey);</span>
 
-<span class="nc" id="L73">      template.header(&quot;x-gbif-user&quot;, username);</span>
-<span class="nc" id="L74">      template.header(&quot;Authorization&quot;, &quot;GBIF &quot; + appKey + &quot;:&quot; + signature);</span>
-<span class="nc" id="L75">    } catch (PrivateKeyNotFoundException e) {</span>
-<span class="nc" id="L76">      LOG.debug(&quot;Private key was not found for the application {}&quot;, appKey);</span>
-<span class="nc" id="L77">      throw new WebApplicationException(</span>
+<span class="nc" id="L88">      template.header(&quot;x-gbif-user&quot;, username);</span>
+<span class="nc" id="L89">      template.header(&quot;Authorization&quot;, &quot;GBIF &quot; + appKey + &quot;:&quot; + signature);</span>
+<span class="nc" id="L90">    } catch (PrivateKeyNotFoundException e) {</span>
+<span class="nc" id="L91">      LOG.debug(&quot;Private key was not found for the application {}&quot;, appKey);</span>
+<span class="nc" id="L92">      throw new WebApplicationException(</span>
           &quot;Private key was not found for the application &quot; + appKey, HttpStatus.UNAUTHORIZED);
-<span class="nc" id="L79">    }</span>
-<span class="nc" id="L80">  }</span>
+<span class="nc" id="L94">    }</span>
+<span class="nc" id="L95">  }</span>
 
   /**
    * Remove query parameters from the URL.
    */
   private String removeQueryParameters(String url) {
-<span class="nc" id="L86">    return url.split(&quot;\\?&quot;)[0];</span>
+<span class="nc" id="L101">    return url.split(&quot;\\?&quot;)[0];</span>
   }
 
 }
