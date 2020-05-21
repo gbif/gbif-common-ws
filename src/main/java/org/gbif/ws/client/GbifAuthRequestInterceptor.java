@@ -18,6 +18,21 @@ import java.util.Map;
 import static org.gbif.ws.client.ClientUtils.isPostOrPutRequest;
 import static org.gbif.ws.client.ClientUtils.isRequestBodyNotEmpty;
 
+/**
+ * An authentication request interceptor for trusted GBIF applications.
+ * It requires an application key and can then act on behalf of any username.
+ *
+ * Request interceptor adding an HTTP Authentication header to the HTTP request using the custom GBIF schema
+ * for trusted applications.
+ * In addition to the Authentication this request interceptor will add these headers to the request:
+ * <ul>
+ * <li>Content-MD5: the MD5 hash for the request body</li>
+ * <li>x-gbif-user: the username of the proxied user</li>
+ * </ul>
+ *
+ * Note that the users role still depends on the roles defined in the user account and will not default
+ * to ADMIN. The user also has to exist for the webservice authorization to work.
+ */
 public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);

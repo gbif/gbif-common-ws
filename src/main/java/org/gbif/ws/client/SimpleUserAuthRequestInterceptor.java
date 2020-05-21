@@ -8,8 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * Request Interceptor adding HTTP Basic Authentication header to the HTTP request.
- * Analogue of Jersey's HTTPBasicAuthFilter.
+ * A small request interceptor for a single, fixed user. Request Interceptor adding HTTP Basic Authentication header
+ * to the HTTP request. Analogue of Jersey's HTTPBasicAuthFilter.
+ *
+ * If application need to write to webservices, e.g the registry, you need to make sure the user has admin rights.
  */
 public class SimpleUserAuthRequestInterceptor implements RequestInterceptor {
 
