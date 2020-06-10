@@ -7,6 +7,7 @@ GBIF Common Web service,org.gbif.ws.server.mapper,ValidationExceptionMapper,158,
 GBIF Common Web service,org.gbif.ws.server.mapper,UnsupportedOperationExceptionMapper,11,0,0,0,4,0,2,0,2,0
 GBIF Common Web service,org.gbif.ws.server.advice,AuthResponseFilter,24,0,4,0,7,0,5,0,3,0
 GBIF Common Web service,org.gbif.ws.server.advice,CreatedResponseFilter,33,0,10,0,8,0,8,0,3,0
+GBIF Common Web service,org.gbif.ws.server.advice,NoContentResponseFilter,12,0,2,0,5,0,4,0,3,0
 GBIF Common Web service,org.gbif.ws.server.advice,JsonpResponseFilter,3,0,0,0,1,0,1,0,1,0
 GBIF Common Web service,org.gbif.ws.json,JacksonJsonObjectMapperProvider,0,26,0,0,0,6,0,1,0,1
 GBIF Common Web service,org.gbif.ws.util,XSSUtil,4,158,3,9,2,30,3,6,0,3

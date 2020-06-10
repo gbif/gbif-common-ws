@@ -16,31 +16,32 @@ import javax.validation.constraints.NotNull;
  * Response filter that adds a WWW-Authenticate header if response status is Unauthenticated,
  * indicating a Basic Authentication scheme to be used.
  */
+@SuppressWarnings(&quot;NullableProblems&quot;)
 @ControllerAdvice
-<span class="nc" id="L20">public class AuthResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+<span class="nc" id="L21">public class AuthResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
 
   @Override
-  public boolean supports(@NotNull MethodParameter returnType,
-                          @NotNull Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
+  public boolean supports(MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
 <span class="nc" id="L25">    return true;</span>
   }
 
   @Override
-  public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType,
-                                @NotNull MediaType selectedContentType,
-                                @NotNull Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
-                                @NotNull ServerHttpRequest request,
-                                @NotNull ServerHttpResponse response) {
-<span class="nc bnc" id="L34" title="All 2 branches missed.">    if (response instanceof ServletServerHttpResponse) {</span>
-<span class="nc" id="L35">      int responseStatusCode = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+  public Object beforeBodyWrite(Object body,
+                                MethodParameter returnType,
+                                MediaType selectedContentType,
+                                Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
+                                ServerHttpRequest request,
+                                ServerHttpResponse response) {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    if (response instanceof ServletServerHttpResponse) {</span>
+<span class="nc" id="L36">      int responseStatusCode = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
 
-<span class="nc bnc" id="L37" title="All 2 branches missed.">      if (responseStatusCode == HttpStatus.UNAUTHORIZED.value()) {</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">      if (responseStatusCode == HttpStatus.UNAUTHORIZED.value()) {</span>
         // TODO: 10/01/2020 realm GBIF only?
-<span class="nc" id="L39">        response.getHeaders().add(&quot;WWW-Authenticate&quot;, &quot;Basic realm=\&quot;GBIF\&quot;&quot;);</span>
+<span class="nc" id="L40">        response.getHeaders().add(&quot;WWW-Authenticate&quot;, &quot;Basic realm=\&quot;GBIF\&quot;&quot;);</span>
       }
     }
 
-<span class="nc" id="L43">    return body;</span>
+<span class="nc" id="L44">    return body;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

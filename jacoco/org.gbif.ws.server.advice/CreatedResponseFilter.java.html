@@ -21,12 +21,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  *   &lt;li&gt;Location header is set accordingly based on returned key&lt;/li&gt;
  * &lt;/ul&gt;
  */
+@SuppressWarnings(&quot;NullableProblems&quot;)
 @ControllerAdvice
-<span class="nc" id="L25">public class CreatedResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+<span class="nc" id="L26">public class CreatedResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
 
   @Override
   public boolean supports(MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
-<span class="nc" id="L29">    return true;</span>
+<span class="nc" id="L30">    return true;</span>
   }
 
   @Override
@@ -36,17 +37,17 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
                                 Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
                                 ServerHttpRequest request,
                                 ServerHttpResponse response) {
-<span class="nc" id="L39">    final int intStatus = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
-<span class="nc" id="L40">    final HttpStatus httpStatus = HttpStatus.resolve(intStatus);</span>
+<span class="nc" id="L40">    final int intStatus = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+<span class="nc" id="L41">    final HttpStatus httpStatus = HttpStatus.resolve(intStatus);</span>
 
-<span class="nc bnc" id="L42" title="All 8 branches missed.">    if (request.getMethod() != null &amp;&amp; httpStatus != null &amp;&amp; request.getMethod() == HttpMethod.POST</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        &amp;&amp; httpStatus != HttpStatus.NO_CONTENT &amp;&amp; httpStatus.is2xxSuccessful()) {</span>
-<span class="nc" id="L44">      response.setStatusCode(HttpStatus.CREATED);</span>
+<span class="nc bnc" id="L43" title="All 8 branches missed.">    if (request.getMethod() != null &amp;&amp; httpStatus != null &amp;&amp; request.getMethod() == HttpMethod.POST</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        &amp;&amp; httpStatus != HttpStatus.NO_CONTENT &amp;&amp; httpStatus.is2xxSuccessful()) {</span>
+<span class="nc" id="L45">      response.setStatusCode(HttpStatus.CREATED);</span>
 
       // TODO: 15/01/2020 if response contains the key, also set Location
     }
 
-<span class="nc" id="L49">    return body;</span>
+<span class="nc" id="L50">    return body;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

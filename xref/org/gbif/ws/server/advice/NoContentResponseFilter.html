@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>NoContentResponseFilter xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/gbif/ws/server/advice/NoContentResponseFilter.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.gbif.ws.server.advice;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.springframework.core.MethodParameter;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.springframework.http.HttpStatus;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.springframework.http.MediaType;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.springframework.http.converter.HttpMessageConverter;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.springframework.http.server.ServerHttpRequest;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.springframework.http.server.ServerHttpResponse;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.springframework.web.bind.annotation.ControllerAdvice;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment"> * Response filter that converts response status to 204 NO_CONTENT if response body is null.</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  @SuppressWarnings(<span class="jxr_string">"NullableProblems"</span>)
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  @ControllerAdvice
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/gbif/ws/server/advice/NoContentResponseFilter.html">NoContentResponseFilter</a> <strong class="jxr_keyword">implements</strong> ResponseBodyAdvice&lt;Object&gt; {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>    @Override
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> supports(MethodParameter returnType, Class&lt;? <strong class="jxr_keyword">extends</strong> HttpMessageConverter&lt;?&gt;&gt; converterType) {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>    }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>    @Override
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>    <strong class="jxr_keyword">public</strong> Object beforeBodyWrite(Object body,
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>                                  MethodParameter returnType,
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>                                  MediaType selectedContentType,
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>                                  Class&lt;? <strong class="jxr_keyword">extends</strong> HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>                                  ServerHttpRequest request,
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>                                  ServerHttpResponse response) {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">if</strong> (body == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>        response.setStatusCode(HttpStatus.NO_CONTENT);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">return</strong> body;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>    }
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.gbif.org">Global Biodiversity Information Facility</a>. All rights reserved.</div>
+</body>
+</html>
