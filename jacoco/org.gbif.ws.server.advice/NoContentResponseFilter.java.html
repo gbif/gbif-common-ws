@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
@@ -14,11 +15,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  */
 @SuppressWarnings(&quot;NullableProblems&quot;)
 @ControllerAdvice
-<span class="nc" id="L17">public class NoContentResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+<span class="nc" id="L18">public class NoContentResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
 
   @Override
   public boolean supports(MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
-<span class="nc" id="L21">    return true;</span>
+<span class="nc" id="L22">    return true;</span>
   }
 
   @Override
@@ -28,11 +29,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
                                 Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
                                 ServerHttpRequest request,
                                 ServerHttpResponse response) {
-<span class="nc bnc" id="L31" title="All 2 branches missed.">    if (body == null) {</span>
-<span class="nc" id="L32">      response.setStatusCode(HttpStatus.NO_CONTENT);</span>
+<span class="nc" id="L32">    final int intStatus = ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+<span class="nc" id="L33">    final HttpStatus httpStatus = HttpStatus.resolve(intStatus);</span>
+
+<span class="nc bnc" id="L35" title="All 4 branches missed.">    if (body == null &amp;&amp; httpStatus == HttpStatus.OK) {</span>
+<span class="nc" id="L36">      response.setStatusCode(HttpStatus.NO_CONTENT);</span>
     }
 
-<span class="nc" id="L35">    return body;</span>
+<span class="nc" id="L39">    return body;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
