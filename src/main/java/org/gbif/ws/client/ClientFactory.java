@@ -8,14 +8,29 @@ import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
+import feign.httpclient.ApacheHttpClient;
+import lombok.Builder;
+import lombok.Data;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClients;
+
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.Md5EncodeService;
 import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 @SuppressWarnings("unused")
 public class ClientFactory {
+
+  private static final String HTTP_PROTOCOL = "http";
+  private static final String HTTPS_PROTOCOL = "https";
 
   private String url;
   private RequestInterceptor requestInterceptor;
@@ -24,6 +39,7 @@ public class ClientFactory {
   private ErrorDecoder errorDecoder;
   private Contract contract;
   private InvocationHandlerFactory invocationHandlerFactory;
+  private ConnectionPoolConfig connectionPoolConfig;
 
   /**
    * Read-only clients factory.
@@ -85,18 +101,44 @@ public class ClientFactory {
     this.invocationHandlerFactory = new ClientInvocationHandlerFactory();
   }
 
+  private static HttpClient newMultithreadedClient(ConnectionPoolConfig connectionPoolConfig) {
+
+    return HttpClients.custom()
+            .setMaxConnTotal(connectionPoolConfig.getMaxConnections())
+            .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())
+            .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())
+            .setDefaultConnectionConfig(ConnectionConfig.custom().setCharset(Charset.forName(StandardCharsets.UTF_8.name())).build())
+            .setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectionPoolConfig.getTimeout())
+                                       .setConnectionRequestTimeout(connectionPoolConfig.getTimeout()).build())
+            .build();
+  }
+
   public <T> T newInstance(Class<T> clazz) {
+    return newInstance(clazz, null);
+  }
+
+  public <T> T newInstance(Class<T> clazz, ConnectionPoolConfig connectionPoolConfig) {
     Feign.Builder builder = Feign.builder()
-        .encoder(encoder)
-        .decoder(decoder)
-        .errorDecoder(errorDecoder)
-        .contract(contract)
-        .invocationHandlerFactory(invocationHandlerFactory);
+      .encoder(encoder)
+      .decoder(decoder)
+      .errorDecoder(errorDecoder)
+      .contract(contract)
+      .invocationHandlerFactory(invocationHandlerFactory);
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
     }
-
+    if (connectionPoolConfig != null) {
+      builder.client(new ApacheHttpClient(newMultithreadedClient(connectionPoolConfig)));
+    }
     return builder.target(clazz, url);
+  }
+
+  @Data
+  @Builder
+  public static class ConnectionPoolConfig {
+    private final Integer timeout;
+    private final Integer maxConnections;
+    private final Integer maxPerRoute;
   }
 }

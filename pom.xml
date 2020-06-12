@@ -34,6 +34,8 @@
     <jdkLevel>1.8</jdkLevel>
     <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
     <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
+    <!-- Tools-->
+    <lombok.version>1.18.10</lombok.version>
 
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.110</gbif-api.version>
@@ -73,6 +75,13 @@
   </repositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Spring dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -118,6 +127,11 @@
     <dependency>
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-jackson</artifactId>
+      <version>${feign.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-httpclient</artifactId>
       <version>${feign.version}</version>
     </dependency>
     <dependency>
