@@ -16,21 +16,22 @@ import javax.validation.constraints.NotNull;
  * Response filter that adds a WWW-Authenticate header if response status is Unauthenticated,
  * indicating a Basic Authentication scheme to be used.
  */
+@SuppressWarnings("NullableProblems")
 @ControllerAdvice
 public class AuthResponseFilter implements ResponseBodyAdvice<Object> {
 
   @Override
-  public boolean supports(@NotNull MethodParameter returnType,
-                          @NotNull Class<? extends HttpMessageConverter<?>> converterType) {
+  public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
     return true;
   }
 
   @Override
-  public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType,
-                                @NotNull MediaType selectedContentType,
-                                @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType,
-                                @NotNull ServerHttpRequest request,
-                                @NotNull ServerHttpResponse response) {
+  public Object beforeBodyWrite(Object body,
+                                MethodParameter returnType,
+                                MediaType selectedContentType,
+                                Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                ServerHttpRequest request,
+                                ServerHttpResponse response) {
     if (response instanceof ServletServerHttpResponse) {
       int responseStatusCode = ((ServletServerHttpResponse) response).getServletResponse().getStatus();
 
