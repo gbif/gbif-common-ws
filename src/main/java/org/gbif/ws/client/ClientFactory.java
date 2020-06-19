@@ -3,8 +3,11 @@ package org.gbif.ws.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
 import feign.Feign;
+import feign.FeignException;
 import feign.InvocationHandlerFactory;
 import feign.RequestInterceptor;
+import feign.Response;
+import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -16,6 +19,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.http.HttpStatus;
 
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.Md5EncodeService;
@@ -23,6 +27,8 @@ import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -49,7 +55,7 @@ public class ClientFactory {
     ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
     this.requestInterceptor = null;
     this.encoder = new ClientEncoder(objectMapper);
-    this.decoder = new ClientDecoder(objectMapper);
+    this.decoder = new NullAwareDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
     this.contract = new ClientContract();
     this.invocationHandlerFactory = new ClientInvocationHandlerFactory();
@@ -141,5 +147,25 @@ public class ClientFactory {
     private final Integer timeout;
     private final Integer maxConnections;
     private final Integer maxPerRoute;
+  }
+
+  /**
+   * Decoder that returns null on NOT_FOUND errors.
+   */
+  private static class NullAwareDecoder extends ClientDecoder {
+
+    public NullAwareDecoder(ObjectMapper objectMapper) {
+      super(objectMapper);
+    }
+
+    @Override
+    public Object decode(Response response, Type type) throws IOException, DecodeException, FeignException {
+      //Ignores NOT_FOUND content
+      if( HttpStatus.NOT_FOUND.value() == response.status()) {
+        return null;
+      } else {
+        return super.decode(response, type);
+      }
+    }
   }
 }
