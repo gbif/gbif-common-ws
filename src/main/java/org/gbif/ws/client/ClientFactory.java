@@ -123,6 +123,7 @@ public class ClientFactory {
       .decoder(decoder)
       .errorDecoder(errorDecoder)
       .contract(contract)
+      .decode404()
       .invocationHandlerFactory(invocationHandlerFactory);
 
     if (requestInterceptor != null) {
