@@ -7,6 +7,8 @@ import feign.Util;
 import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.jackson.JacksonDecoder;
+import org.springframework.http.HttpStatus;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 
@@ -14,17 +16,22 @@ public class ClientDecoder implements Decoder {
 
   private JacksonDecoder jacksonDecoder;
 
-<span class="nc" id="L17">  public ClientDecoder(ObjectMapper objectMapper) {</span>
-<span class="nc" id="L18">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
-<span class="nc" id="L19">  }</span>
+<span class="nc" id="L19">  public ClientDecoder(ObjectMapper objectMapper) {</span>
+<span class="nc" id="L20">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
+<span class="nc" id="L21">  }</span>
 
   @Override
   public Object decode(Response response, Type type)
       throws IOException, DecodeException, FeignException {
-<span class="nc bnc" id="L24" title="All 2 branches missed.">    if (byte[].class.equals(type)) {</span>
-<span class="nc" id="L25">      return Util.toByteArray(response.body().asInputStream());</span>
+<span class="nc" id="L26">    HttpStatus responseStatus = HttpStatus.resolve(response.status());</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">    if (HttpStatus.NOT_FOUND  == responseStatus) {</span>
+<span class="nc" id="L28">      return null;</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">    } else if(responseStatus.isError()) {</span>
+<span class="nc" id="L30">      throw new DecodeException(response.status(), response.toString(), response.request());</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">    } else if (byte[].class.equals(type)) {</span>
+<span class="nc" id="L32">      return Util.toByteArray(response.body().asInputStream());</span>
     } else {
-<span class="nc" id="L27">      return jacksonDecoder.decode(response, type);</span>
+<span class="nc" id="L34">      return jacksonDecoder.decode(response, type);</span>
     }
   }
 }

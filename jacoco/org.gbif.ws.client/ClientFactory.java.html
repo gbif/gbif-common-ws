@@ -8,14 +8,29 @@ import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
+import feign.httpclient.ApacheHttpClient;
+import lombok.Builder;
+import lombok.Data;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClients;
+
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.Md5EncodeService;
 import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 @SuppressWarnings(&quot;unused&quot;)
 public class ClientFactory {
+
+  private static final String HTTP_PROTOCOL = &quot;http&quot;;
+  private static final String HTTPS_PROTOCOL = &quot;https&quot;;
 
   private String url;
   private RequestInterceptor requestInterceptor;
@@ -24,44 +39,29 @@ public class ClientFactory {
   private ErrorDecoder errorDecoder;
   private Contract contract;
   private InvocationHandlerFactory invocationHandlerFactory;
+  private ConnectionPoolConfig connectionPoolConfig;
 
   /**
    * Read-only clients factory.
    */
-<span class="nc" id="L31">  public ClientFactory(String url) {</span>
-<span class="nc" id="L32">    this.url = url;</span>
-<span class="nc" id="L33">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
-<span class="nc" id="L34">    this.requestInterceptor = null;</span>
-<span class="nc" id="L35">    this.encoder = new ClientEncoder(objectMapper);</span>
-<span class="nc" id="L36">    this.decoder = new ClientDecoder(objectMapper);</span>
-<span class="nc" id="L37">    this.errorDecoder = new ClientErrorDecoder();</span>
-<span class="nc" id="L38">    this.contract = new ClientContract();</span>
-<span class="nc" id="L39">    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
-<span class="nc" id="L40">  }</span>
+<span class="nc" id="L47">  public ClientFactory(String url) {</span>
+<span class="nc" id="L48">    this.url = url;</span>
+<span class="nc" id="L49">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
+<span class="nc" id="L50">    this.requestInterceptor = null;</span>
+<span class="nc" id="L51">    this.encoder = new ClientEncoder(objectMapper);</span>
+<span class="nc" id="L52">    this.decoder = new ClientDecoder(objectMapper);</span>
+<span class="nc" id="L53">    this.errorDecoder = new ClientErrorDecoder();</span>
+<span class="nc" id="L54">    this.contract = new ClientContract();</span>
+<span class="nc" id="L55">    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
+<span class="nc" id="L56">  }</span>
 
   /**
    * Read-write clients factory using simple user basic authentication.
    */
-<span class="nc" id="L45">  public ClientFactory(String username, String password, String url) {</span>
-<span class="nc" id="L46">    this.url = url;</span>
-<span class="nc" id="L47">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
-<span class="nc" id="L48">    this.requestInterceptor = new SimpleUserAuthRequestInterceptor(username, password);</span>
-<span class="nc" id="L49">    this.encoder = new ClientEncoder(objectMapper);</span>
-<span class="nc" id="L50">    this.decoder = new ClientDecoder(objectMapper);</span>
-<span class="nc" id="L51">    this.errorDecoder = new ClientErrorDecoder();</span>
-<span class="nc" id="L52">    this.contract = new ClientContract();</span>
-<span class="nc" id="L53">    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
-<span class="nc" id="L54">  }</span>
-
-  /**
-   * Read-write client factory using GBIF authentication by application key.
-   */
-<span class="nc" id="L59">  public ClientFactory(String username, String url, String appKey, String secretKey) {</span>
-<span class="nc" id="L60">    this.url = url;</span>
-<span class="nc" id="L61">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
-<span class="nc" id="L62">    this.requestInterceptor =</span>
-        new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
-            new Md5EncodeServiceImpl(objectMapper));
+<span class="nc" id="L61">  public ClientFactory(String username, String password, String url) {</span>
+<span class="nc" id="L62">    this.url = url;</span>
+<span class="nc" id="L63">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
+<span class="nc" id="L64">    this.requestInterceptor = new SimpleUserAuthRequestInterceptor(username, password);</span>
 <span class="nc" id="L65">    this.encoder = new ClientEncoder(objectMapper);</span>
 <span class="nc" id="L66">    this.decoder = new ClientDecoder(objectMapper);</span>
 <span class="nc" id="L67">    this.errorDecoder = new ClientErrorDecoder();</span>
@@ -70,14 +70,14 @@ public class ClientFactory {
 <span class="nc" id="L70">  }</span>
 
   /**
-   * Read-write client factory using GBIF authentication by application key. Uses custom services.
+   * Read-write client factory using GBIF authentication by application key.
    */
-  public ClientFactory(String username, String url, String appKey, String secretKey,
-      SigningService signingService,
-<span class="nc" id="L77">      Md5EncodeService md5EncodeService, ObjectMapper objectMapper) {</span>
-<span class="nc" id="L78">    this.url = url;</span>
-<span class="nc" id="L79">    this.requestInterceptor =</span>
-        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
+<span class="nc" id="L75">  public ClientFactory(String username, String url, String appKey, String secretKey) {</span>
+<span class="nc" id="L76">    this.url = url;</span>
+<span class="nc" id="L77">    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();</span>
+<span class="nc" id="L78">    this.requestInterceptor =</span>
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
+            new Md5EncodeServiceImpl(objectMapper));
 <span class="nc" id="L81">    this.encoder = new ClientEncoder(objectMapper);</span>
 <span class="nc" id="L82">    this.decoder = new ClientDecoder(objectMapper);</span>
 <span class="nc" id="L83">    this.errorDecoder = new ClientErrorDecoder();</span>
@@ -85,19 +85,63 @@ public class ClientFactory {
 <span class="nc" id="L85">    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
 <span class="nc" id="L86">  }</span>
 
-  public &lt;T&gt; T newInstance(Class&lt;T&gt; clazz) {
-<span class="nc" id="L89">    Feign.Builder builder = Feign.builder()</span>
-<span class="nc" id="L90">        .encoder(encoder)</span>
-<span class="nc" id="L91">        .decoder(decoder)</span>
-<span class="nc" id="L92">        .errorDecoder(errorDecoder)</span>
-<span class="nc" id="L93">        .contract(contract)</span>
-<span class="nc" id="L94">        .invocationHandlerFactory(invocationHandlerFactory);</span>
+  /**
+   * Read-write client factory using GBIF authentication by application key. Uses custom services.
+   */
+  public ClientFactory(String username, String url, String appKey, String secretKey,
+      SigningService signingService,
+<span class="nc" id="L93">      Md5EncodeService md5EncodeService, ObjectMapper objectMapper) {</span>
+<span class="nc" id="L94">    this.url = url;</span>
+<span class="nc" id="L95">    this.requestInterceptor =</span>
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
+<span class="nc" id="L97">    this.encoder = new ClientEncoder(objectMapper);</span>
+<span class="nc" id="L98">    this.decoder = new ClientDecoder(objectMapper);</span>
+<span class="nc" id="L99">    this.errorDecoder = new ClientErrorDecoder();</span>
+<span class="nc" id="L100">    this.contract = new ClientContract();</span>
+<span class="nc" id="L101">    this.invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
+<span class="nc" id="L102">  }</span>
 
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (requestInterceptor != null) {</span>
-<span class="nc" id="L97">      builder.requestInterceptor(requestInterceptor);</span>
-    }
+  private static HttpClient newMultithreadedClient(ConnectionPoolConfig connectionPoolConfig) {
 
-<span class="nc" id="L100">    return builder.target(clazz, url);</span>
+<span class="nc" id="L106">    return HttpClients.custom()</span>
+<span class="nc" id="L107">            .setMaxConnTotal(connectionPoolConfig.getMaxConnections())</span>
+<span class="nc" id="L108">            .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())</span>
+<span class="nc" id="L109">            .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())</span>
+<span class="nc" id="L110">            .setDefaultConnectionConfig(ConnectionConfig.custom().setCharset(Charset.forName(StandardCharsets.UTF_8.name())).build())</span>
+<span class="nc" id="L111">            .setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectionPoolConfig.getTimeout())</span>
+<span class="nc" id="L112">                                       .setConnectionRequestTimeout(connectionPoolConfig.getTimeout()).build())</span>
+<span class="nc" id="L113">            .build();</span>
   }
+
+  public &lt;T&gt; T newInstance(Class&lt;T&gt; clazz) {
+<span class="nc" id="L117">    return newInstance(clazz, null);</span>
+  }
+
+  public &lt;T&gt; T newInstance(Class&lt;T&gt; clazz, ConnectionPoolConfig connectionPoolConfig) {
+<span class="nc" id="L121">    Feign.Builder builder = Feign.builder()</span>
+<span class="nc" id="L122">      .encoder(encoder)</span>
+<span class="nc" id="L123">      .decoder(decoder)</span>
+<span class="nc" id="L124">      .errorDecoder(errorDecoder)</span>
+<span class="nc" id="L125">      .contract(contract)</span>
+<span class="nc" id="L126">      .decode404()</span>
+<span class="nc" id="L127">      .invocationHandlerFactory(invocationHandlerFactory);</span>
+
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    if (requestInterceptor != null) {</span>
+<span class="nc" id="L130">      builder.requestInterceptor(requestInterceptor);</span>
+    }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    if (connectionPoolConfig != null) {</span>
+<span class="nc" id="L133">      builder.client(new ApacheHttpClient(newMultithreadedClient(connectionPoolConfig)));</span>
+    }
+<span class="nc" id="L135">    return builder.target(clazz, url);</span>
+  }
+
+<span class="nc bnc" id="L138" title="All 30 branches missed.">  @Data</span>
+<span class="nc" id="L139">  @Builder</span>
+  public static class ConnectionPoolConfig {
+<span class="nc" id="L141">    private final Integer timeout;</span>
+<span class="nc" id="L142">    private final Integer maxConnections;</span>
+<span class="nc" id="L143">    private final Integer maxPerRoute;</span>
+  }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
