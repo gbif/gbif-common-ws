@@ -8,22 +8,27 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+@SuppressWarnings(&quot;NullableProblems&quot;)
 public class DatasetSuggestRequestHandlerMethodArgumentResolver
     extends SearchRequestProvider&lt;DatasetSuggestRequest, DatasetSearchParameter&gt;
     implements HandlerMethodArgumentResolver {
 
   public DatasetSuggestRequestHandlerMethodArgumentResolver() {
-<span class="nc" id="L16">    super(DatasetSuggestRequest.class, DatasetSearchParameter.class);</span>
-<span class="nc" id="L17">  }</span>
+<span class="nc" id="L17">    super(DatasetSuggestRequest.class, DatasetSearchParameter.class);</span>
+<span class="nc" id="L18">  }</span>
+
+  public DatasetSuggestRequestHandlerMethodArgumentResolver(Integer maxPageSize) {
+<span class="nc" id="L21">    super(DatasetSuggestRequest.class, DatasetSearchParameter.class, maxPageSize);</span>
+<span class="nc" id="L22">  }</span>
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-<span class="nc" id="L21">    return DatasetSuggestRequest.class.equals(parameter.getParameterType());</span>
+<span class="nc" id="L26">    return DatasetSuggestRequest.class.equals(parameter.getParameterType());</span>
   }
 
   @Override
   public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-<span class="nc" id="L26">    return getValue(webRequest);</span>
+<span class="nc" id="L31">    return getValue(webRequest);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

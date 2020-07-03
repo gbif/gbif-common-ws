@@ -39,76 +39,80 @@
 <span class="sourceLineNo">031</span>    super(requestType, searchParameterClass);<a name="line.31"></a>
 <span class="sourceLineNo">032</span>  }<a name="line.32"></a>
 <span class="sourceLineNo">033</span><a name="line.33"></a>
-<span class="sourceLineNo">034</span>  @Override<a name="line.34"></a>
-<span class="sourceLineNo">035</span>  protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {<a name="line.35"></a>
-<span class="sourceLineNo">036</span>    RT request = super.getSearchRequest(webRequest, searchRequest);<a name="line.36"></a>
+<span class="sourceLineNo">034</span>  public FacetedSearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {<a name="line.34"></a>
+<span class="sourceLineNo">035</span>    super(requestType, searchParameterClass, maxPageSize);<a name="line.35"></a>
+<span class="sourceLineNo">036</span>  }<a name="line.36"></a>
 <span class="sourceLineNo">037</span><a name="line.37"></a>
-<span class="sourceLineNo">038</span>    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();<a name="line.38"></a>
-<span class="sourceLineNo">039</span><a name="line.39"></a>
-<span class="sourceLineNo">040</span>    final String facetMultiSelectValue = getFirstIgnoringCase(PARAM_FACET_MULTISELECT, params);<a name="line.40"></a>
-<span class="sourceLineNo">041</span>    if (facetMultiSelectValue != null) {<a name="line.41"></a>
-<span class="sourceLineNo">042</span>      searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));<a name="line.42"></a>
-<span class="sourceLineNo">043</span>    }<a name="line.43"></a>
-<span class="sourceLineNo">044</span><a name="line.44"></a>
-<span class="sourceLineNo">045</span>    final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);<a name="line.45"></a>
-<span class="sourceLineNo">046</span>    if (facetMinCountValue != null) {<a name="line.46"></a>
-<span class="sourceLineNo">047</span>      searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));<a name="line.47"></a>
-<span class="sourceLineNo">048</span>    }<a name="line.48"></a>
-<span class="sourceLineNo">049</span><a name="line.49"></a>
-<span class="sourceLineNo">050</span>    final String facetLimit = getFirstIgnoringCase(PARAM_FACET_LIMIT, params);<a name="line.50"></a>
-<span class="sourceLineNo">051</span>    if (facetLimit != null) {<a name="line.51"></a>
-<span class="sourceLineNo">052</span>      searchRequest.setFacetLimit(Integer.parseInt(facetLimit));<a name="line.52"></a>
-<span class="sourceLineNo">053</span>    }<a name="line.53"></a>
-<span class="sourceLineNo">054</span><a name="line.54"></a>
-<span class="sourceLineNo">055</span>    final String facetOffset = getFirstIgnoringCase(PARAM_FACET_OFFSET, params);<a name="line.55"></a>
-<span class="sourceLineNo">056</span>    if (facetOffset != null) {<a name="line.56"></a>
-<span class="sourceLineNo">057</span>      searchRequest.setFacetOffset(Integer.parseInt(facetOffset));<a name="line.57"></a>
-<span class="sourceLineNo">058</span>    }<a name="line.58"></a>
-<span class="sourceLineNo">059</span><a name="line.59"></a>
-<span class="sourceLineNo">060</span>    final List&lt;String&gt; facets = params.get(PARAM_FACET) != null ? Arrays.asList(params.get(PARAM_FACET)) : Collections.emptyList();<a name="line.60"></a>
-<span class="sourceLineNo">061</span>    if (!facets.isEmpty()) {<a name="line.61"></a>
-<span class="sourceLineNo">062</span>      for (String f : facets) {<a name="line.62"></a>
-<span class="sourceLineNo">063</span>        P p = findSearchParam(f);<a name="line.63"></a>
-<span class="sourceLineNo">064</span>        if (p != null) {<a name="line.64"></a>
-<span class="sourceLineNo">065</span>          searchRequest.addFacets(p);<a name="line.65"></a>
-<span class="sourceLineNo">066</span>          String pFacetOffset = getFirstIgnoringCase(f + '.' + PARAM_FACET_OFFSET, params);<a name="line.66"></a>
-<span class="sourceLineNo">067</span>          String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);<a name="line.67"></a>
-<span class="sourceLineNo">068</span>          if (pFacetLimit != null) {<a name="line.68"></a>
-<span class="sourceLineNo">069</span>            if (pFacetOffset != null) {<a name="line.69"></a>
-<span class="sourceLineNo">070</span>              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));<a name="line.70"></a>
-<span class="sourceLineNo">071</span>            } else {<a name="line.71"></a>
-<span class="sourceLineNo">072</span>              searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));<a name="line.72"></a>
-<span class="sourceLineNo">073</span>            }<a name="line.73"></a>
-<span class="sourceLineNo">074</span>          } else if (pFacetOffset != null) {<a name="line.74"></a>
-<span class="sourceLineNo">075</span>            searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), DEFAULT_FACET_LIMIT);<a name="line.75"></a>
-<span class="sourceLineNo">076</span>          }<a name="line.76"></a>
-<span class="sourceLineNo">077</span>        }<a name="line.77"></a>
-<span class="sourceLineNo">078</span>      }<a name="line.78"></a>
-<span class="sourceLineNo">079</span>    }<a name="line.79"></a>
-<span class="sourceLineNo">080</span><a name="line.80"></a>
-<span class="sourceLineNo">081</span>    return request;<a name="line.81"></a>
-<span class="sourceLineNo">082</span>  }<a name="line.82"></a>
-<span class="sourceLineNo">083</span><a name="line.83"></a>
-<span class="sourceLineNo">084</span>  /**<a name="line.84"></a>
-<span class="sourceLineNo">085</span>   * Get the first parameter value, the parameter is searched in a case-insensitive manner.<a name="line.85"></a>
-<span class="sourceLineNo">086</span>   * First tries with the exact match, then the lowercase and finally the uppercase value of the parameter.<a name="line.86"></a>
-<span class="sourceLineNo">087</span>   */<a name="line.87"></a>
-<span class="sourceLineNo">088</span>  private static String getFirstIgnoringCase(String parameter, Map&lt;String, String[]&gt; params) {<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    String value = getFirst(params, parameter);<a name="line.89"></a>
-<span class="sourceLineNo">090</span>    if (!Strings.isNullOrEmpty(value)) {<a name="line.90"></a>
-<span class="sourceLineNo">091</span>      return value;<a name="line.91"></a>
-<span class="sourceLineNo">092</span>    }<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    value = getFirst(params, parameter.toLowerCase());<a name="line.93"></a>
+<span class="sourceLineNo">038</span>  @Override<a name="line.38"></a>
+<span class="sourceLineNo">039</span>  protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    RT request = super.getSearchRequest(webRequest, searchRequest);<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span>    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>    final String facetMultiSelectValue = getFirstIgnoringCase(PARAM_FACET_MULTISELECT, params);<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    if (facetMultiSelectValue != null) {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>      searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    }<a name="line.47"></a>
+<span class="sourceLineNo">048</span><a name="line.48"></a>
+<span class="sourceLineNo">049</span>    final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    if (facetMinCountValue != null) {<a name="line.50"></a>
+<span class="sourceLineNo">051</span>      searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));<a name="line.51"></a>
+<span class="sourceLineNo">052</span>    }<a name="line.52"></a>
+<span class="sourceLineNo">053</span><a name="line.53"></a>
+<span class="sourceLineNo">054</span>    final String facetLimit = getFirstIgnoringCase(PARAM_FACET_LIMIT, params);<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    if (facetLimit != null) {<a name="line.55"></a>
+<span class="sourceLineNo">056</span>      searchRequest.setFacetLimit(Integer.parseInt(facetLimit));<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    }<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>    final String facetOffset = getFirstIgnoringCase(PARAM_FACET_OFFSET, params);<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    if (facetOffset != null) {<a name="line.60"></a>
+<span class="sourceLineNo">061</span>      searchRequest.setFacetOffset(Integer.parseInt(facetOffset));<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    }<a name="line.62"></a>
+<span class="sourceLineNo">063</span><a name="line.63"></a>
+<span class="sourceLineNo">064</span>    final List&lt;String&gt; facets = params.get(PARAM_FACET) != null ? Arrays.asList(params.get(PARAM_FACET)) : Collections.emptyList();<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    if (!facets.isEmpty()) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>      for (String f : facets) {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        P p = findSearchParam(f);<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        if (p != null) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>          searchRequest.addFacets(p);<a name="line.69"></a>
+<span class="sourceLineNo">070</span>          String pFacetOffset = getFirstIgnoringCase(f + '.' + PARAM_FACET_OFFSET, params);<a name="line.70"></a>
+<span class="sourceLineNo">071</span>          String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);<a name="line.71"></a>
+<span class="sourceLineNo">072</span>          if (pFacetLimit != null) {<a name="line.72"></a>
+<span class="sourceLineNo">073</span>            if (pFacetOffset != null) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));<a name="line.74"></a>
+<span class="sourceLineNo">075</span>            } else {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>              searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));<a name="line.76"></a>
+<span class="sourceLineNo">077</span>            }<a name="line.77"></a>
+<span class="sourceLineNo">078</span>          } else if (pFacetOffset != null) {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>            searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), DEFAULT_FACET_LIMIT);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>          }<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        }<a name="line.81"></a>
+<span class="sourceLineNo">082</span>      }<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    }<a name="line.83"></a>
+<span class="sourceLineNo">084</span><a name="line.84"></a>
+<span class="sourceLineNo">085</span>    return request;<a name="line.85"></a>
+<span class="sourceLineNo">086</span>  }<a name="line.86"></a>
+<span class="sourceLineNo">087</span><a name="line.87"></a>
+<span class="sourceLineNo">088</span>  /**<a name="line.88"></a>
+<span class="sourceLineNo">089</span>   * Get the first parameter value, the parameter is searched in a case-insensitive manner.<a name="line.89"></a>
+<span class="sourceLineNo">090</span>   * First tries with the exact match, then the lowercase and finally the uppercase value of the parameter.<a name="line.90"></a>
+<span class="sourceLineNo">091</span>   */<a name="line.91"></a>
+<span class="sourceLineNo">092</span>  private static String getFirstIgnoringCase(String parameter, Map&lt;String, String[]&gt; params) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>    String value = getFirst(params, parameter);<a name="line.93"></a>
 <span class="sourceLineNo">094</span>    if (!Strings.isNullOrEmpty(value)) {<a name="line.94"></a>
 <span class="sourceLineNo">095</span>      return value;<a name="line.95"></a>
 <span class="sourceLineNo">096</span>    }<a name="line.96"></a>
-<span class="sourceLineNo">097</span>    value = getFirst(params, parameter.toUpperCase());<a name="line.97"></a>
+<span class="sourceLineNo">097</span>    value = getFirst(params, parameter.toLowerCase());<a name="line.97"></a>
 <span class="sourceLineNo">098</span>    if (!Strings.isNullOrEmpty(value)) {<a name="line.98"></a>
 <span class="sourceLineNo">099</span>      return value;<a name="line.99"></a>
 <span class="sourceLineNo">100</span>    }<a name="line.100"></a>
-<span class="sourceLineNo">101</span>    return null;<a name="line.101"></a>
-<span class="sourceLineNo">102</span>  }<a name="line.102"></a>
-<span class="sourceLineNo">103</span>}<a name="line.103"></a>
+<span class="sourceLineNo">101</span>    value = getFirst(params, parameter.toUpperCase());<a name="line.101"></a>
+<span class="sourceLineNo">102</span>    if (!Strings.isNullOrEmpty(value)) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>      return value;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>    return null;<a name="line.105"></a>
+<span class="sourceLineNo">106</span>  }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>}<a name="line.107"></a>
 
 
 

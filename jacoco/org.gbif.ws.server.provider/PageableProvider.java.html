@@ -29,56 +29,66 @@ import static org.gbif.ws.util.CommonWsUtils.getFirst;
  * &lt;/pre&gt;
  * &lt;p/&gt;
  */
-<span class="nc" id="L32">public class PageableProvider implements ContextProvider&lt;Pageable&gt; {</span>
+public class PageableProvider implements ContextProvider&lt;Pageable&gt; {
 
 <span class="nc" id="L34">  private static final Logger LOG = LoggerFactory.getLogger(PageableProvider.class);</span>
+
+  private final Integer maxPageSize;
 
   @VisibleForTesting
   static final int LIMIT_CAP = 1000;
 
+<span class="nc" id="L41">  public PageableProvider() {</span>
+<span class="nc" id="L42">    this.maxPageSize = LIMIT_CAP;</span>
+<span class="nc" id="L43">  }</span>
+
+<span class="nc" id="L45">  public PageableProvider(Integer maxPageSize) {</span>
+<span class="nc" id="L46">    this.maxPageSize = maxPageSize;</span>
+<span class="nc" id="L47">  }</span>
+
   @Override
   public Pageable getValue(WebRequest webRequest) {
-<span class="nc" id="L41">    return getPagingRequest(webRequest);</span>
+<span class="nc" id="L51">    return getPagingRequest(webRequest, maxPageSize);</span>
   }
 
-  public static PagingRequest getPagingRequest(WebRequest webRequest) {
-<span class="nc" id="L45">    Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
+  public static PagingRequest getPagingRequest(WebRequest webRequest, int maxPageSize) {
+<span class="nc" id="L55">    Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
 
-<span class="nc" id="L47">    int limit = DEFAULT_PARAM_LIMIT;</span>
-<span class="nc" id="L48">    String limitParam = getFirst(params, PARAM_LIMIT);</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">    if (limitParam != null) {</span>
+<span class="nc" id="L57">    int limit = DEFAULT_PARAM_LIMIT;</span>
+<span class="nc" id="L58">    String limitParam = getFirst(params, PARAM_LIMIT);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (limitParam != null) {</span>
       try {
-<span class="nc" id="L51">        limit = Integer.parseInt(limitParam);</span>
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (limit &lt; 0) {</span>
-<span class="nc" id="L53">          LOG.info(&quot;Limit parameter was no positive integer [{}]. Using default {}&quot;,</span>
-<span class="nc" id="L54">              limitParam, DEFAULT_PARAM_LIMIT);</span>
-<span class="nc" id="L55">          limit = DEFAULT_PARAM_LIMIT;</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        } else if (limit &gt; LIMIT_CAP) {</span>
-<span class="nc" id="L57">          LOG.debug(&quot;Limit parameter too high. Use maximum {}&quot;, LIMIT_CAP);</span>
-<span class="nc" id="L58">          limit = LIMIT_CAP;</span>
+<span class="nc" id="L61">        limit = Integer.parseInt(limitParam);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (limit &lt; 0) {</span>
+<span class="nc" id="L63">          LOG.info(&quot;Limit parameter was no positive integer [{}]. Using default {}&quot;,</span>
+<span class="nc" id="L64">              limitParam, DEFAULT_PARAM_LIMIT);</span>
+<span class="nc" id="L65">          limit = DEFAULT_PARAM_LIMIT;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        } else if (limit &gt; maxPageSize) {</span>
+<span class="nc" id="L67">          LOG.debug(&quot;Limit parameter too high. Use maximum {}&quot;, maxPageSize);</span>
+<span class="nc" id="L68">          limit = maxPageSize;</span>
         }
-<span class="nc" id="L60">      } catch (NumberFormatException e) {</span>
-<span class="nc" id="L61">        LOG.warn(&quot;Unparsable value supplied for limit [{}]. Using default {}&quot;, limitParam,</span>
-<span class="nc" id="L62">            DEFAULT_PARAM_LIMIT);</span>
-<span class="nc" id="L63">      }</span>
+<span class="nc" id="L70">      } catch (NumberFormatException e) {</span>
+<span class="nc" id="L71">        LOG.warn(&quot;Unparsable value supplied for limit [{}]. Using default {}&quot;, limitParam,</span>
+<span class="nc" id="L72">            DEFAULT_PARAM_LIMIT);</span>
+<span class="nc" id="L73">      }</span>
     }
 
-<span class="nc" id="L66">    long offset = DEFAULT_PARAM_OFFSET;</span>
-<span class="nc" id="L67">    String offsetParam = getFirst(params, PARAM_OFFSET);</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">    if (offsetParam != null) {</span>
+<span class="nc" id="L76">    long offset = DEFAULT_PARAM_OFFSET;</span>
+<span class="nc" id="L77">    String offsetParam = getFirst(params, PARAM_OFFSET);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (offsetParam != null) {</span>
       try {
-<span class="nc" id="L70">        offset = Long.parseLong(offsetParam);</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (offset &lt; 0) {</span>
-<span class="nc" id="L72">          LOG.warn(&quot;Offset parameter is a negative integer [{}]. Using default {}&quot;, offsetParam,</span>
-<span class="nc" id="L73">              DEFAULT_PARAM_OFFSET);</span>
-<span class="nc" id="L74">          offset = DEFAULT_PARAM_OFFSET;</span>
+<span class="nc" id="L80">        offset = Long.parseLong(offsetParam);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (offset &lt; 0) {</span>
+<span class="nc" id="L82">          LOG.warn(&quot;Offset parameter is a negative integer [{}]. Using default {}&quot;, offsetParam,</span>
+<span class="nc" id="L83">              DEFAULT_PARAM_OFFSET);</span>
+<span class="nc" id="L84">          offset = DEFAULT_PARAM_OFFSET;</span>
         }
-<span class="nc" id="L76">      } catch (NumberFormatException e) {</span>
-<span class="nc" id="L77">        LOG.warn(&quot;Unparsable value supplied for offset [{}]. Using default {}&quot;, offsetParam,</span>
-<span class="nc" id="L78">            DEFAULT_PARAM_OFFSET);</span>
-<span class="nc" id="L79">      }</span>
+<span class="nc" id="L86">      } catch (NumberFormatException e) {</span>
+<span class="nc" id="L87">        LOG.warn(&quot;Unparsable value supplied for offset [{}]. Using default {}&quot;, offsetParam,</span>
+<span class="nc" id="L88">            DEFAULT_PARAM_OFFSET);</span>
+<span class="nc" id="L89">      }</span>
     }
-<span class="nc" id="L81">    return new PagingRequest(offset, limit);</span>
+<span class="nc" id="L91">    return new PagingRequest(offset, limit);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

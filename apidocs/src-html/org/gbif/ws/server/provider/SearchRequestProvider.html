@@ -36,110 +36,120 @@
 <span class="sourceLineNo">028</span> */<a name="line.28"></a>
 <span class="sourceLineNo">029</span>public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P extends Enum&lt;?&gt; &amp; SearchParameter&gt; implements ContextProvider&lt;RT&gt; {<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>  private final Class&lt;P&gt; searchParameterClass;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>  private final Class&lt;RT&gt; requestType;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>  private static final int NON_SPELL_CHECK_COUNT = -1;<a name="line.33"></a>
-<span class="sourceLineNo">034</span><a name="line.34"></a>
-<span class="sourceLineNo">035</span>  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {<a name="line.35"></a>
-<span class="sourceLineNo">036</span>    this.requestType = requestType;<a name="line.36"></a>
-<span class="sourceLineNo">037</span>    this.searchParameterClass = searchParameterClass;<a name="line.37"></a>
-<span class="sourceLineNo">038</span>  }<a name="line.38"></a>
-<span class="sourceLineNo">039</span><a name="line.39"></a>
-<span class="sourceLineNo">040</span>  @Override<a name="line.40"></a>
-<span class="sourceLineNo">041</span>  public RT getValue(WebRequest webRequest) {<a name="line.41"></a>
-<span class="sourceLineNo">042</span>    try {<a name="line.42"></a>
-<span class="sourceLineNo">043</span>      RT req = requestType.newInstance();<a name="line.43"></a>
-<span class="sourceLineNo">044</span>      return getSearchRequest(webRequest, req);<a name="line.44"></a>
-<span class="sourceLineNo">045</span>    } catch (InstantiationException | IllegalAccessException e) {<a name="line.45"></a>
-<span class="sourceLineNo">046</span>      // should never happen<a name="line.46"></a>
-<span class="sourceLineNo">047</span>      throw new CommonRuntimeException(e);<a name="line.47"></a>
-<span class="sourceLineNo">048</span>    }<a name="line.48"></a>
-<span class="sourceLineNo">049</span>  }<a name="line.49"></a>
-<span class="sourceLineNo">050</span><a name="line.50"></a>
-<span class="sourceLineNo">051</span>  protected P findSearchParam(String name) {<a name="line.51"></a>
+<span class="sourceLineNo">031</span>  private static final int MAX_PAGE_SIZE = 1000;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>  private static final int NON_SPELL_CHECK_COUNT = -1;<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span>  private final Class&lt;P&gt; searchParameterClass;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>  private final Class&lt;RT&gt; requestType;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>  private final Integer maxPageSize;<a name="line.36"></a>
+<span class="sourceLineNo">037</span><a name="line.37"></a>
+<span class="sourceLineNo">038</span>  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {<a name="line.38"></a>
+<span class="sourceLineNo">039</span>    this.requestType = requestType;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    this.searchParameterClass = searchParameterClass;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    this.maxPageSize = MAX_PAGE_SIZE;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>  }<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    this.requestType = requestType;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>    this.searchParameterClass = searchParameterClass;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    this.maxPageSize = maxPageSize;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>  }<a name="line.48"></a>
+<span class="sourceLineNo">049</span><a name="line.49"></a>
+<span class="sourceLineNo">050</span>  @Override<a name="line.50"></a>
+<span class="sourceLineNo">051</span>  public RT getValue(WebRequest webRequest) {<a name="line.51"></a>
 <span class="sourceLineNo">052</span>    try {<a name="line.52"></a>
-<span class="sourceLineNo">053</span>      return VocabularyUtils.lookupEnum(name, searchParameterClass);<a name="line.53"></a>
-<span class="sourceLineNo">054</span>    } catch (IllegalArgumentException e) {<a name="line.54"></a>
-<span class="sourceLineNo">055</span>      // we have all params here, not only the enum ones, so this is ok to end up here a few times<a name="line.55"></a>
-<span class="sourceLineNo">056</span>    }<a name="line.56"></a>
-<span class="sourceLineNo">057</span>    return null;<a name="line.57"></a>
-<span class="sourceLineNo">058</span>  }<a name="line.58"></a>
-<span class="sourceLineNo">059</span><a name="line.59"></a>
-<span class="sourceLineNo">060</span>  protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {<a name="line.60"></a>
-<span class="sourceLineNo">061</span>    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest));<a name="line.61"></a>
-<span class="sourceLineNo">062</span><a name="line.62"></a>
-<span class="sourceLineNo">063</span>    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();<a name="line.63"></a>
-<span class="sourceLineNo">064</span><a name="line.64"></a>
-<span class="sourceLineNo">065</span>    getSearchRequestFromQueryParams(searchRequest, params);<a name="line.65"></a>
-<span class="sourceLineNo">066</span><a name="line.66"></a>
-<span class="sourceLineNo">067</span>    return searchRequest;<a name="line.67"></a>
+<span class="sourceLineNo">053</span>      RT req = requestType.newInstance();<a name="line.53"></a>
+<span class="sourceLineNo">054</span>      return getSearchRequest(webRequest, req);<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    } catch (InstantiationException | IllegalAccessException e) {<a name="line.55"></a>
+<span class="sourceLineNo">056</span>      // should never happen<a name="line.56"></a>
+<span class="sourceLineNo">057</span>      throw new CommonRuntimeException(e);<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    }<a name="line.58"></a>
+<span class="sourceLineNo">059</span>  }<a name="line.59"></a>
+<span class="sourceLineNo">060</span><a name="line.60"></a>
+<span class="sourceLineNo">061</span>  protected P findSearchParam(String name) {<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    try {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>      return VocabularyUtils.lookupEnum(name, searchParameterClass);<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    } catch (IllegalArgumentException e) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>      // we have all params here, not only the enum ones, so this is ok to end up here a few times<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    }<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    return null;<a name="line.67"></a>
 <span class="sourceLineNo">068</span>  }<a name="line.68"></a>
 <span class="sourceLineNo">069</span><a name="line.69"></a>
-<span class="sourceLineNo">070</span>  /**<a name="line.70"></a>
-<span class="sourceLineNo">071</span>   * Override this method for populating specific search/suggest requests<a name="line.71"></a>
-<span class="sourceLineNo">072</span>   */<a name="line.72"></a>
-<span class="sourceLineNo">073</span>  protected void getSearchRequestFromQueryParams(RT searchRequest, final Map&lt;String, String[]&gt; params) {<a name="line.73"></a>
-<span class="sourceLineNo">074</span>    final String q = getFirst(params, PARAM_QUERY_STRING);<a name="line.74"></a>
-<span class="sourceLineNo">075</span>    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);<a name="line.75"></a>
-<span class="sourceLineNo">076</span>    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);<a name="line.76"></a>
-<span class="sourceLineNo">077</span>    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);<a name="line.77"></a>
-<span class="sourceLineNo">078</span><a name="line.78"></a>
-<span class="sourceLineNo">079</span>    if (!Strings.isNullOrEmpty(q)) {<a name="line.79"></a>
-<span class="sourceLineNo">080</span>      searchRequest.setQ(q);<a name="line.80"></a>
-<span class="sourceLineNo">081</span>    }<a name="line.81"></a>
-<span class="sourceLineNo">082</span><a name="line.82"></a>
-<span class="sourceLineNo">083</span>    if (!Strings.isNullOrEmpty(highlightValue)) {<a name="line.83"></a>
-<span class="sourceLineNo">084</span>      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));<a name="line.84"></a>
-<span class="sourceLineNo">085</span>    }<a name="line.85"></a>
-<span class="sourceLineNo">086</span><a name="line.86"></a>
-<span class="sourceLineNo">087</span>    if (!Strings.isNullOrEmpty(spellCheck)) {<a name="line.87"></a>
-<span class="sourceLineNo">088</span>      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));<a name="line.88"></a>
-<span class="sourceLineNo">089</span>    }<a name="line.89"></a>
-<span class="sourceLineNo">090</span><a name="line.90"></a>
-<span class="sourceLineNo">091</span>    if (!Strings.isNullOrEmpty(spellCheckCount)) {<a name="line.91"></a>
-<span class="sourceLineNo">092</span>      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    } else {<a name="line.93"></a>
-<span class="sourceLineNo">094</span>      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);<a name="line.94"></a>
+<span class="sourceLineNo">070</span>  protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));<a name="line.71"></a>
+<span class="sourceLineNo">072</span><a name="line.72"></a>
+<span class="sourceLineNo">073</span>    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();<a name="line.73"></a>
+<span class="sourceLineNo">074</span><a name="line.74"></a>
+<span class="sourceLineNo">075</span>    getSearchRequestFromQueryParams(searchRequest, params);<a name="line.75"></a>
+<span class="sourceLineNo">076</span><a name="line.76"></a>
+<span class="sourceLineNo">077</span>    return searchRequest;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>  }<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>  /**<a name="line.80"></a>
+<span class="sourceLineNo">081</span>   * Override this method for populating specific search/suggest requests<a name="line.81"></a>
+<span class="sourceLineNo">082</span>   */<a name="line.82"></a>
+<span class="sourceLineNo">083</span>  protected void getSearchRequestFromQueryParams(RT searchRequest, final Map&lt;String, String[]&gt; params) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    final String q = getFirst(params, PARAM_QUERY_STRING);<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);<a name="line.87"></a>
+<span class="sourceLineNo">088</span><a name="line.88"></a>
+<span class="sourceLineNo">089</span>    if (!Strings.isNullOrEmpty(q)) {<a name="line.89"></a>
+<span class="sourceLineNo">090</span>      searchRequest.setQ(q);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>    }<a name="line.91"></a>
+<span class="sourceLineNo">092</span><a name="line.92"></a>
+<span class="sourceLineNo">093</span>    if (!Strings.isNullOrEmpty(highlightValue)) {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));<a name="line.94"></a>
 <span class="sourceLineNo">095</span>    }<a name="line.95"></a>
 <span class="sourceLineNo">096</span><a name="line.96"></a>
-<span class="sourceLineNo">097</span>    // find search parameter enum based filters<a name="line.97"></a>
-<span class="sourceLineNo">098</span>    setSearchParams(searchRequest, params);<a name="line.98"></a>
-<span class="sourceLineNo">099</span>  }<a name="line.99"></a>
+<span class="sourceLineNo">097</span>    if (!Strings.isNullOrEmpty(spellCheck)) {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    }<a name="line.99"></a>
 <span class="sourceLineNo">100</span><a name="line.100"></a>
-<span class="sourceLineNo">101</span>  /**<a name="line.101"></a>
-<span class="sourceLineNo">102</span>   * Removes all empty and null parameters from the list.<a name="line.102"></a>
-<span class="sourceLineNo">103</span>   * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.<a name="line.103"></a>
-<span class="sourceLineNo">104</span>   */<a name="line.104"></a>
-<span class="sourceLineNo">105</span>  private static List&lt;String&gt; removeEmptyParameters(List&lt;String&gt; parameters) {<a name="line.105"></a>
-<span class="sourceLineNo">106</span>    List&lt;String&gt; cleanParameters = Lists.newArrayListWithCapacity(parameters.size());<a name="line.106"></a>
-<span class="sourceLineNo">107</span>    for (String param : parameters) {<a name="line.107"></a>
-<span class="sourceLineNo">108</span>      String cleanParam = Strings.nullToEmpty(param).trim();<a name="line.108"></a>
-<span class="sourceLineNo">109</span>      if (!cleanParam.isEmpty()) {<a name="line.109"></a>
-<span class="sourceLineNo">110</span>        cleanParameters.add(cleanParam);<a name="line.110"></a>
-<span class="sourceLineNo">111</span>      }<a name="line.111"></a>
-<span class="sourceLineNo">112</span>    }<a name="line.112"></a>
-<span class="sourceLineNo">113</span>    return cleanParameters;<a name="line.113"></a>
-<span class="sourceLineNo">114</span>  }<a name="line.114"></a>
-<span class="sourceLineNo">115</span><a name="line.115"></a>
-<span class="sourceLineNo">116</span>  /**<a name="line.116"></a>
-<span class="sourceLineNo">117</span>   * Iterates over the params map and adds to the search request the recognized parameters (i.e.: those that have a<a name="line.117"></a>
-<span class="sourceLineNo">118</span>   * correspondent value in the P generic parameter).<a name="line.118"></a>
-<span class="sourceLineNo">119</span>   * Empty (of all size) and null parameters are discarded.<a name="line.119"></a>
-<span class="sourceLineNo">120</span>   */<a name="line.120"></a>
-<span class="sourceLineNo">121</span>  private void setSearchParams(RT searchRequest, Map&lt;String, String[]&gt; params) {<a name="line.121"></a>
-<span class="sourceLineNo">122</span>    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {<a name="line.122"></a>
-<span class="sourceLineNo">123</span>      P p = findSearchParam(entry.getKey());<a name="line.123"></a>
-<span class="sourceLineNo">124</span>      if (p != null) {<a name="line.124"></a>
-<span class="sourceLineNo">125</span>        final List&lt;String&gt; list = entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();<a name="line.125"></a>
-<span class="sourceLineNo">126</span>        for (String val : removeEmptyParameters(list)) {<a name="line.126"></a>
-<span class="sourceLineNo">127</span>          // validate value for certain types<a name="line.127"></a>
-<span class="sourceLineNo">128</span>          SearchTypeValidator.validate(p, val);<a name="line.128"></a>
-<span class="sourceLineNo">129</span>          searchRequest.addParameter(p, val);<a name="line.129"></a>
-<span class="sourceLineNo">130</span>        }<a name="line.130"></a>
-<span class="sourceLineNo">131</span>      }<a name="line.131"></a>
-<span class="sourceLineNo">132</span>    }<a name="line.132"></a>
-<span class="sourceLineNo">133</span>  }<a name="line.133"></a>
-<span class="sourceLineNo">134</span>}<a name="line.134"></a>
+<span class="sourceLineNo">101</span>    if (!Strings.isNullOrEmpty(spellCheckCount)) {<a name="line.101"></a>
+<span class="sourceLineNo">102</span>      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));<a name="line.102"></a>
+<span class="sourceLineNo">103</span>    } else {<a name="line.103"></a>
+<span class="sourceLineNo">104</span>      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);<a name="line.104"></a>
+<span class="sourceLineNo">105</span>    }<a name="line.105"></a>
+<span class="sourceLineNo">106</span><a name="line.106"></a>
+<span class="sourceLineNo">107</span>    // find search parameter enum based filters<a name="line.107"></a>
+<span class="sourceLineNo">108</span>    setSearchParams(searchRequest, params);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>  }<a name="line.109"></a>
+<span class="sourceLineNo">110</span><a name="line.110"></a>
+<span class="sourceLineNo">111</span>  /**<a name="line.111"></a>
+<span class="sourceLineNo">112</span>   * Removes all empty and null parameters from the list.<a name="line.112"></a>
+<span class="sourceLineNo">113</span>   * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.<a name="line.113"></a>
+<span class="sourceLineNo">114</span>   */<a name="line.114"></a>
+<span class="sourceLineNo">115</span>  private static List&lt;String&gt; removeEmptyParameters(List&lt;String&gt; parameters) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>    List&lt;String&gt; cleanParameters = Lists.newArrayListWithCapacity(parameters.size());<a name="line.116"></a>
+<span class="sourceLineNo">117</span>    for (String param : parameters) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>      String cleanParam = Strings.nullToEmpty(param).trim();<a name="line.118"></a>
+<span class="sourceLineNo">119</span>      if (!cleanParam.isEmpty()) {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        cleanParameters.add(cleanParam);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>      }<a name="line.121"></a>
+<span class="sourceLineNo">122</span>    }<a name="line.122"></a>
+<span class="sourceLineNo">123</span>    return cleanParameters;<a name="line.123"></a>
+<span class="sourceLineNo">124</span>  }<a name="line.124"></a>
+<span class="sourceLineNo">125</span><a name="line.125"></a>
+<span class="sourceLineNo">126</span>  /**<a name="line.126"></a>
+<span class="sourceLineNo">127</span>   * Iterates over the params map and adds to the search request the recognized parameters (i.e.: those that have a<a name="line.127"></a>
+<span class="sourceLineNo">128</span>   * correspondent value in the P generic parameter).<a name="line.128"></a>
+<span class="sourceLineNo">129</span>   * Empty (of all size) and null parameters are discarded.<a name="line.129"></a>
+<span class="sourceLineNo">130</span>   */<a name="line.130"></a>
+<span class="sourceLineNo">131</span>  private void setSearchParams(RT searchRequest, Map&lt;String, String[]&gt; params) {<a name="line.131"></a>
+<span class="sourceLineNo">132</span>    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>      P p = findSearchParam(entry.getKey());<a name="line.133"></a>
+<span class="sourceLineNo">134</span>      if (p != null) {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        final List&lt;String&gt; list = entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        for (String val : removeEmptyParameters(list)) {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>          // validate value for certain types<a name="line.137"></a>
+<span class="sourceLineNo">138</span>          SearchTypeValidator.validate(p, val);<a name="line.138"></a>
+<span class="sourceLineNo">139</span>          searchRequest.addParameter(p, val);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
+<span class="sourceLineNo">141</span>      }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>    }<a name="line.142"></a>
+<span class="sourceLineNo">143</span>  }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>}<a name="line.144"></a>
 
 
 
