@@ -7,7 +7,15 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+@SuppressWarnings("NullableProblems")
 public class PageableHandlerMethodArgumentResolver extends PageableProvider implements HandlerMethodArgumentResolver {
+
+  public PageableHandlerMethodArgumentResolver() {
+  }
+
+  public PageableHandlerMethodArgumentResolver(Integer maxPageSize) {
+    super(maxPageSize);
+  }
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {

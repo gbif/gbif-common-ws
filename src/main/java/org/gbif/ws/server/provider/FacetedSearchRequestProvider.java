@@ -31,6 +31,10 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
     super(requestType, searchParameterClass);
   }
 
+  public FacetedSearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
+    super(requestType, searchParameterClass, maxPageSize);
+  }
+
   @Override
   protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {
     RT request = super.getSearchRequest(webRequest, searchRequest);

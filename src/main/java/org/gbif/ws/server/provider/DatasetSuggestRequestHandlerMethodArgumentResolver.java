@@ -8,12 +8,17 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+@SuppressWarnings("NullableProblems")
 public class DatasetSuggestRequestHandlerMethodArgumentResolver
     extends SearchRequestProvider<DatasetSuggestRequest, DatasetSearchParameter>
     implements HandlerMethodArgumentResolver {
 
   public DatasetSuggestRequestHandlerMethodArgumentResolver() {
     super(DatasetSuggestRequest.class, DatasetSearchParameter.class);
+  }
+
+  public DatasetSuggestRequestHandlerMethodArgumentResolver(Integer maxPageSize) {
+    super(DatasetSuggestRequest.class, DatasetSearchParameter.class, maxPageSize);
   }
 
   @Override

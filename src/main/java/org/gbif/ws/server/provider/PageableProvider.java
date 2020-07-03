@@ -33,15 +33,25 @@ public class PageableProvider implements ContextProvider<Pageable> {
 
   private static final Logger LOG = LoggerFactory.getLogger(PageableProvider.class);
 
+  private final Integer maxPageSize;
+
   @VisibleForTesting
   static final int LIMIT_CAP = 1000;
 
-  @Override
-  public Pageable getValue(WebRequest webRequest) {
-    return getPagingRequest(webRequest);
+  public PageableProvider() {
+    this.maxPageSize = LIMIT_CAP;
   }
 
-  public static PagingRequest getPagingRequest(WebRequest webRequest) {
+  public PageableProvider(Integer maxPageSize) {
+    this.maxPageSize = maxPageSize;
+  }
+
+  @Override
+  public Pageable getValue(WebRequest webRequest) {
+    return getPagingRequest(webRequest, maxPageSize);
+  }
+
+  public static PagingRequest getPagingRequest(WebRequest webRequest, int maxPageSize) {
     Map<String, String[]> params = webRequest.getParameterMap();
 
     int limit = DEFAULT_PARAM_LIMIT;
@@ -53,9 +63,9 @@ public class PageableProvider implements ContextProvider<Pageable> {
           LOG.info("Limit parameter was no positive integer [{}]. Using default {}",
               limitParam, DEFAULT_PARAM_LIMIT);
           limit = DEFAULT_PARAM_LIMIT;
-        } else if (limit > LIMIT_CAP) {
-          LOG.debug("Limit parameter too high. Use maximum {}", LIMIT_CAP);
-          limit = LIMIT_CAP;
+        } else if (limit > maxPageSize) {
+          LOG.debug("Limit parameter too high. Use maximum {}", maxPageSize);
+          limit = maxPageSize;
         }
       } catch (NumberFormatException e) {
         LOG.warn("Unparsable value supplied for limit [{}]. Using default {}", limitParam,

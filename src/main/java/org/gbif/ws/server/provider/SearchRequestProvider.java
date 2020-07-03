@@ -28,13 +28,23 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
  */
 public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter> implements ContextProvider<RT> {
 
+  private static final int MAX_PAGE_SIZE = 1000;
+  private static final int NON_SPELL_CHECK_COUNT = -1;
+
   private final Class<P> searchParameterClass;
   private final Class<RT> requestType;
-  private static final int NON_SPELL_CHECK_COUNT = -1;
+  private final Integer maxPageSize;
 
   public SearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass) {
     this.requestType = requestType;
     this.searchParameterClass = searchParameterClass;
+    this.maxPageSize = MAX_PAGE_SIZE;
+  }
+
+  public SearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
+    this.requestType = requestType;
+    this.searchParameterClass = searchParameterClass;
+    this.maxPageSize = maxPageSize;
   }
 
   @Override
@@ -58,7 +68,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   }
 
   protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {
-    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest));
+    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));
 
     final Map<String, String[]> params = webRequest.getParameterMap();
 
