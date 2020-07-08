@@ -4,6 +4,7 @@ import com.google.common.io.CharStreams;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,8 @@ public class ClientErrorDecoder implements ErrorDecoder {
         return new AccessDeniedException("Forbidden request received");
       case 404:
         return new NotFoundException("Resource not found", URI.create(response.request().url()));
+      case 405:
+        return new MethodNotAllowedException("Method not allowed to user");
       case 422:
         return message != null
             ? new ValidationException(extractValidationErrorMessage(message))
