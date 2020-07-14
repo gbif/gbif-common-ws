@@ -4,6 +4,7 @@ import com.google.common.io.CharStreams;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,50 +16,52 @@ import java.io.Reader;
 import java.net.URI;
 
 @SuppressWarnings(&quot;UnstableApiUsage&quot;)
-<span class="nc" id="L18">public class ClientErrorDecoder implements ErrorDecoder {</span>
+<span class="nc" id="L19">public class ClientErrorDecoder implements ErrorDecoder {</span>
 
-<span class="nc" id="L20">  private static final Logger LOG = LoggerFactory.getLogger(ClientErrorDecoder.class);</span>
+<span class="nc" id="L21">  private static final Logger LOG = LoggerFactory.getLogger(ClientErrorDecoder.class);</span>
 
   @Override
   public Exception decode(String methodKey, Response response) {
-<span class="nc" id="L24">    String message = null;</span>
+<span class="nc" id="L25">    String message = null;</span>
 
-<span class="nc bnc" id="L26" title="All 2 branches missed.">    if (response.body() != null) {</span>
-<span class="nc" id="L27">      try (Reader reader = response.body().asReader()) {</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">    if (response.body() != null) {</span>
+<span class="nc" id="L28">      try (Reader reader = response.body().asReader()) {</span>
         //Easy way to read the stream and get a String object
-<span class="nc" id="L29">        message = CharStreams.toString(reader);</span>
-<span class="nc" id="L30">        LOG.error(&quot;Client exception: {}&quot;, message);</span>
-<span class="nc" id="L31">      } catch (IOException e) {</span>
-<span class="nc" id="L32">        LOG.error(&quot;Exception during reading client error response&quot;, e);</span>
-<span class="nc" id="L33">      }</span>
+<span class="nc" id="L30">        message = CharStreams.toString(reader);</span>
+<span class="nc" id="L31">        LOG.error(&quot;Client exception: {}&quot;, message);</span>
+<span class="nc" id="L32">      } catch (IOException e) {</span>
+<span class="nc" id="L33">        LOG.error(&quot;Exception during reading client error response&quot;, e);</span>
+<span class="nc" id="L34">      }</span>
     }
 
-<span class="nc bnc" id="L36" title="All 8 branches missed.">    switch (response.status()) {</span>
+<span class="nc bnc" id="L37" title="All 9 branches missed.">    switch (response.status()) {</span>
       case 400:
-<span class="nc" id="L38">        return new IllegalArgumentException(&quot;A bad request received&quot;);</span>
+<span class="nc" id="L39">        return new IllegalArgumentException(&quot;A bad request received&quot;);</span>
       case 401:
-<span class="nc" id="L40">        return new AccessDeniedException(&quot;Unauthorized request received&quot;);</span>
+<span class="nc" id="L41">        return new AccessDeniedException(&quot;Unauthorized request received&quot;);</span>
       case 403:
-<span class="nc" id="L42">        return new AccessDeniedException(&quot;Forbidden request received&quot;);</span>
+<span class="nc" id="L43">        return new AccessDeniedException(&quot;Forbidden request received&quot;);</span>
       case 404:
-<span class="nc" id="L44">        return new NotFoundException(&quot;Resource not found&quot;, URI.create(response.request().url()));</span>
+<span class="nc" id="L45">        return new NotFoundException(&quot;Resource not found&quot;, URI.create(response.request().url()));</span>
+      case 405:
+<span class="nc" id="L47">        return new MethodNotAllowedException(&quot;Method not allowed to user&quot;);</span>
       case 422:
-<span class="nc bnc" id="L46" title="All 2 branches missed.">        return message != null</span>
-<span class="nc" id="L47">            ? new ValidationException(extractValidationErrorMessage(message))</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        return message != null</span>
+<span class="nc" id="L50">            ? new ValidationException(extractValidationErrorMessage(message))</span>
             : new ValidationException();
       case 500:
-<span class="nc" id="L50">        return new ServiceUnavailableException(&quot;An internal server error occurred, please try again later&quot;);</span>
+<span class="nc" id="L53">        return new ServiceUnavailableException(&quot;An internal server error occurred, please try again later&quot;);</span>
       case 501:
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        return new UnsupportedOperationException(message != null ? message : &quot;Method not implement yet&quot;);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        return new UnsupportedOperationException(message != null ? message : &quot;Method not implement yet&quot;);</span>
       default:
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        return new RuntimeException(message != null ? message : &quot;Unexpected exception&quot;);</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        return new RuntimeException(message != null ? message : &quot;Unexpected exception&quot;);</span>
     }
   }
 
   private String extractValidationErrorMessage(String message) {
-<span class="nc" id="L59">    return message.replace(&quot;&lt;ul&gt;&lt;li&gt;&quot;, &quot;&quot;)</span>
-<span class="nc" id="L60">        .replace(&quot;&lt;/li&gt;&lt;/ul&gt;&quot;, &quot;&quot;)</span>
-<span class="nc" id="L61">        .replace(&quot;&lt;li&gt;&lt;/li&gt;&quot;, &quot;, &quot;);</span>
+<span class="nc" id="L62">    return message.replace(&quot;&lt;ul&gt;&lt;li&gt;&quot;, &quot;&quot;)</span>
+<span class="nc" id="L63">        .replace(&quot;&lt;/li&gt;&lt;/ul&gt;&quot;, &quot;&quot;)</span>
+<span class="nc" id="L64">        .replace(&quot;&lt;li&gt;&lt;/li&gt;&quot;, &quot;, &quot;);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

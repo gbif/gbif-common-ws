@@ -7,32 +7,55 @@ import feign.Util;
 import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.jackson.JacksonDecoder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 
 public class ClientDecoder implements Decoder {
 
-  private JacksonDecoder jacksonDecoder;
+  private final JacksonDecoder jacksonDecoder;
 
-<span class="nc" id="L19">  public ClientDecoder(ObjectMapper objectMapper) {</span>
-<span class="nc" id="L20">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
-<span class="nc" id="L21">  }</span>
+<span class="nc" id="L22">  public ClientDecoder(ObjectMapper objectMapper) {</span>
+<span class="nc" id="L23">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
+<span class="nc" id="L24">  }</span>
 
   @Override
   public Object decode(Response response, Type type)
-      throws IOException, DecodeException, FeignException {
-<span class="nc" id="L26">    HttpStatus responseStatus = HttpStatus.resolve(response.status());</span>
-<span class="nc bnc" id="L27" title="All 2 branches missed.">    if (HttpStatus.NOT_FOUND  == responseStatus) {</span>
-<span class="nc" id="L28">      return null;</span>
-<span class="nc bnc" id="L29" title="All 2 branches missed.">    } else if(responseStatus.isError()) {</span>
-<span class="nc" id="L30">      throw new DecodeException(response.status(), response.toString(), response.request());</span>
-<span class="nc bnc" id="L31" title="All 2 branches missed.">    } else if (byte[].class.equals(type)) {</span>
-<span class="nc" id="L32">      return Util.toByteArray(response.body().asInputStream());</span>
-    } else {
-<span class="nc" id="L34">      return jacksonDecoder.decode(response, type);</span>
+      throws IOException, FeignException {
+<span class="nc" id="L29">    HttpStatus responseStatus = HttpStatus.resolve(response.status());</span>
+
+<span class="nc bnc" id="L31" title="All 2 branches missed.">    if (HttpStatus.NOT_FOUND == responseStatus) {</span>
+<span class="nc" id="L32">      return null;</span>
+<span class="nc bnc" id="L33" title="All 4 branches missed.">    } else if (responseStatus != null &amp;&amp; responseStatus.isError()) {</span>
+<span class="nc" id="L34">      throw new DecodeException(response.status(), response.toString(), response.request());</span>
     }
+
+<span class="nc" id="L37">    MediaType contentType = getContentType(response);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">    if (MediaType.APPLICATION_JSON.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L39">      return jacksonDecoder.decode(response, type);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    } else if (MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L41">      return Util.toString(response.body().asReader());</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">    } else if (MediaType.APPLICATION_OCTET_STREAM.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L43">      return Util.toByteArray(response.body().asInputStream());</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">    } else if (byte[].class.equals(type)) {</span>
+<span class="nc" id="L45">      return Util.toByteArray(response.body().asInputStream());</span>
+    } else {
+<span class="nc" id="L47">      throw new DecodeException(response.status(), &quot;Unsupported response type&quot;, response.request());</span>
+    }
+  }
+
+  /**
+   * Gets the first MediaType listed in the Content-Type header.
+   */
+  private static MediaType getContentType(Response response) {
+<span class="nc" id="L55">    return response.headers().get(HttpHeaders.CONTENT_TYPE).stream()</span>
+<span class="nc" id="L56">        .findFirst()</span>
+<span class="nc" id="L57">        .filter(StringUtils::hasLength)</span>
+<span class="nc" id="L58">        .map(MediaType::parseMediaType).orElse(null);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
