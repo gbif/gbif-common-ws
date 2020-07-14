@@ -38,8 +38,8 @@
     <lombok.version>1.18.10</lombok.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.110</gbif-api.version>
-    <gbif-common.version>0.41</gbif-common.version>
+    <gbif-api.version>0.113</gbif-api.version>
+    <gbif-common.version>0.47</gbif-common.version>
     <guava.version>18.0</guava.version>
     <jackson.version>2.10.1</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
