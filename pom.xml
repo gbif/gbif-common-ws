@@ -38,10 +38,11 @@
     <lombok.version>1.18.10</lombok.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.113</gbif-api.version>
+    <gbif-api.version>0.114</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <guava.version>18.0</guava.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.9.9</jackson.version>
+    <jackson-databind.version>2.9.9.3</jackson-databind.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
     <junit.version>4.12</junit.version>
@@ -52,6 +53,7 @@
     <validation-api.version>1.1.0.Final</validation-api.version>
     <feign.version>10.4.0</feign.version>
     <commons-codec.version>1.13</commons-codec.version>
+    <commons-beanutils.version>1.9.3</commons-beanutils.version>
 
     <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
@@ -109,6 +111,24 @@
       <version>${spring-cloud-openfeign.version}</version>
     </dependency>
 
+    <!-- Jackson -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson-databind.version}</version>
+    </dependency>
+
+    <!-- Feign -->
     <dependency>
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-core</artifactId>
@@ -155,6 +175,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>${commons-beanutils.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.validation</groupId>
