@@ -381,6 +381,7 @@ public abstract class ReflectionUtils {
   public static Method[] getAllDeclaredMethods(Class leafClass) throws IllegalArgumentException {
     final List list = new LinkedList();
     doWithMethods(leafClass, new MethodCallback() {
+      @Override
       public void doWith(Method m) {
         list.add(m);
       }
@@ -449,6 +450,7 @@ public abstract class ReflectionUtils {
                                          + "]");
     }
     doWithFields(src.getClass(), new ReflectionUtils.FieldCallback() {
+      @Override
       public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
         makeAccessible(field);
         Object srcValue = field.get(src);
@@ -518,6 +520,7 @@ public abstract class ReflectionUtils {
    * Pre-built FieldFilter that matches all non-static, non-final fields.
    */
   public static FieldFilter COPYABLE_FIELDS = new FieldFilter() {
+    @Override
     public boolean matches(Field field) {
       return !(Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()));
     }

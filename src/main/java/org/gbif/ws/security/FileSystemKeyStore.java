@@ -29,6 +29,7 @@ public class FileSystemKeyStore implements KeyStore {
     LOG.info("Initialised appkey store with {} keys", store.size());
   }
 
+  @Override
   public String getPrivateKey(final String applicationKey) {
     return store.get(applicationKey);
   }
