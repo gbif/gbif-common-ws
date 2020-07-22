@@ -153,6 +153,10 @@ public class ClientBuilder {
                                     .build();
 
       builder = Resilience4jFeign.builder(decorators);
+
+    } else {
+      //Feign builder do not support invocation handler
+      builder.invocationHandlerFactory(invocationHandlerFactory);
     }
 
     builder
@@ -160,8 +164,7 @@ public class ClientBuilder {
       .decoder(decoder)
       .errorDecoder(errorDecoder)
       .contract(contract)
-      .decode404()
-      .invocationHandlerFactory(invocationHandlerFactory);
+      .decode404();
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
