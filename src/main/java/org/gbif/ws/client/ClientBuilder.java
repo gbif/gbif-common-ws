@@ -33,6 +33,8 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ClientBuilder used to create Feign Clients.
@@ -44,17 +46,19 @@ public class ClientBuilder {
   private static final String HTTPS_PROTOCOL = "https";
 
   private static final RetryRegistry RETRY_REGISTRY = RetryRegistry.ofDefaults();
+  private static final Logger LOG = LoggerFactory.getLogger(ClientBuilder.class);
 
   private String url;
   private RequestInterceptor requestInterceptor;
   private Decoder decoder;
   private Encoder encoder;
-  private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
-  private final Contract contract = new ClientContract();
-  private final InvocationHandlerFactory invocationHandlerFactory = new ClientInvocationHandlerFactory();
   private ConnectionPoolConfig connectionPoolConfig;
   private RetryConfig retryConfig;
   private ObjectMapper objectMapper;
+
+  private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
+  private final Contract contract = new ClientContract();
+  private final InvocationHandlerFactory invocationHandlerFactory = new ClientInvocationHandlerFactory();
 
   /**
    * Creates a builder instance, by default uses the GBIF Jackson ObjectMapper.
@@ -140,6 +144,9 @@ public class ClientBuilder {
 
     if (Objects.nonNull(retryConfig)) {
       Retry retry = RETRY_REGISTRY.retry(clazz.getName(), retryConfig);
+      //logging
+      retry.getEventPublisher().onError(event -> LOG.error(event.toString()));
+
       FeignDecorators decorators = FeignDecorators
                                     .builder()
                                     .withRetry(retry)
