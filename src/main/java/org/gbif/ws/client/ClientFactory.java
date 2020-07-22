@@ -27,6 +27,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings("unused")
+/**
+ * @deprecated see {@link ClientBuilder}.
+ */
+@Deprecated
 public class ClientFactory {
 
   private static final String HTTP_PROTOCOL = "http";

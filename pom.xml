@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>37</version>
+    <version>46</version>
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
@@ -54,6 +54,7 @@
     <feign.version>10.4.0</feign.version>
     <commons-codec.version>1.13</commons-codec.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
+    <resilience4j.version>1.5.0</resilience4j.version>
 
     <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
@@ -163,6 +164,16 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>${jsr305.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-retry</artifactId>
+      <version>${resilience4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-feign</artifactId>
+      <version>${resilience4j.version}</version>
     </dependency>
     <dependency>
       <!-- dependency:analyze reports a false positive: RolesAllowedResourceFilterFactory needs jsr250 -->
