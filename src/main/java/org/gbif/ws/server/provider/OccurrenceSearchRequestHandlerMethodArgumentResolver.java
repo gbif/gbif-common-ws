@@ -16,7 +16,7 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
     extends FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
     implements HandlerMethodArgumentResolver {
 
-  private static final String MATCH_VERBATIM_PARAM = "matchVerbatim";
+  private static final String MATCH_CASE_PARAM = "matchCase";
 
   public OccurrenceSearchRequestHandlerMethodArgumentResolver() {
     super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);
@@ -35,8 +35,8 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
   @Override
   protected OccurrenceSearchRequest getSearchRequest(WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
     OccurrenceSearchRequest occurrenceSearchRequest = super.getSearchRequest(webRequest, searchRequest);
-    Optional.ofNullable(webRequest.getParameter(MATCH_VERBATIM_PARAM))
-      .ifPresent(matchVerbatim -> occurrenceSearchRequest.setVerbatimMatch(Boolean.parseBoolean(matchVerbatim)));
+    Optional.ofNullable(webRequest.getParameter(MATCH_CASE_PARAM))
+      .ifPresent(matchVerbatim -> occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
     return occurrenceSearchRequest;
   }
 }
