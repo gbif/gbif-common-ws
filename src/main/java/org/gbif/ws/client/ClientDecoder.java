@@ -28,7 +28,7 @@ public class ClientDecoder implements Decoder {
       throws IOException, FeignException {
     HttpStatus responseStatus = HttpStatus.resolve(response.status());
 
-    if (HttpStatus.NOT_FOUND == responseStatus) {
+    if (responseStatus == HttpStatus.NOT_FOUND || responseStatus == HttpStatus.NO_CONTENT) {
       return null;
     } else if (responseStatus != null && responseStatus.isError()) {
       throw new DecodeException(response.status(), response.toString(), response.request());
