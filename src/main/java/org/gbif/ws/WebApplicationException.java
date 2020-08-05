@@ -1,9 +1,10 @@
 package org.gbif.ws;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
- * analogue of JAX-RS' one
+ * Analogue of JAX-RS' WebApplicationException.
  */
 public class WebApplicationException extends RuntimeException {
 
@@ -12,24 +13,45 @@ public class WebApplicationException extends RuntimeException {
   /**
    * HTTP status code of the response. Required.
    */
-  private Integer status;
+  private final Integer status;
 
   /**
-   * Construct a new instance with a message, and an HTTP status code
+   * Content media type of the response. Optional.
+   */
+  private final MediaType contentType;
+
+  /**
+   * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, Integer status) {
     super(message);
     this.status = status;
+    this.contentType = MediaType.TEXT_PLAIN;
   }
 
   /**
-   * Construct a new instance with a message, and an HTTP status code
+   * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, HttpStatus status) {
-    this(message, status.value());
+    super(message);
+    this.status = status.value();
+    this.contentType = MediaType.TEXT_PLAIN;
+  }
+
+  /**
+   * Construct a new instance with a message, an HTTP status code, and content media type.
+   */
+  public WebApplicationException(String message, HttpStatus status, MediaType contentType) {
+    super(message);
+    this.status = status.value();
+    this.contentType = contentType;
   }
 
   public Integer getStatus() {
     return status;
+  }
+
+  public MediaType getContentType() {
+    return contentType;
   }
 }

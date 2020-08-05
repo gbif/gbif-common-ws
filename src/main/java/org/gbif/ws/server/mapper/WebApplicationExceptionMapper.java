@@ -2,7 +2,6 @@ package org.gbif.ws.server.mapper;
 
 import org.gbif.ws.NotFoundException;
 import org.gbif.ws.WebApplicationException;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,7 +14,7 @@ public class WebApplicationExceptionMapper {
   public ResponseEntity handleWebApplicationException(WebApplicationException e) {
     return ResponseEntity
         .status(e.getStatus())
-        .contentType(MediaType.TEXT_PLAIN)
+        .contentType(e.getContentType())
         .body(e.getMessage());
   }
 
@@ -24,7 +23,7 @@ public class WebApplicationExceptionMapper {
   public ResponseEntity handleNotException(NotFoundException e) {
     return ResponseEntity
         .status(e.getStatus())
-        .contentType(MediaType.TEXT_PLAIN)
+        .contentType(e.getContentType())
         .body(e.getMessage());
   }
 }
