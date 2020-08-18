@@ -16,10 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-<span class="nc bnc" id="L19" title="All 2 branches missed.">    final GbifHttpServletRequestWrapper requestWrapper =</span>
-        request instanceof GbifHttpServletRequestWrapper
-            ? (GbifHttpServletRequestWrapper) request
-            : new GbifHttpServletRequestWrapper(request);
+    final GbifHttpServletRequestWrapper requestWrapper =
+<span class="nc bnc" id="L20" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
+<span class="nc" id="L21">            ? (GbifHttpServletRequestWrapper) request</span>
+<span class="nc" id="L22">            : new GbifHttpServletRequestWrapper(request);</span>
 
 <span class="nc" id="L24">    filterChain.doFilter(requestWrapper, response);</span>
 <span class="nc" id="L25">  }</span>

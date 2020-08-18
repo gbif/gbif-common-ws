@@ -2,30 +2,29 @@
 
 import org.gbif.ws.NotFoundException;
 import org.gbif.ws.WebApplicationException;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-<span class="nc" id="L11">public class WebApplicationExceptionMapper {</span>
+<span class="nc" id="L10">public class WebApplicationExceptionMapper {</span>
 
   @SuppressWarnings(&quot;rawtypes&quot;)
   @ExceptionHandler(WebApplicationException.class)
   public ResponseEntity handleWebApplicationException(WebApplicationException e) {
-<span class="nc" id="L16">    return ResponseEntity</span>
-<span class="nc" id="L17">        .status(e.getStatus())</span>
-<span class="nc" id="L18">        .contentType(MediaType.TEXT_PLAIN)</span>
-<span class="nc" id="L19">        .body(e.getMessage());</span>
+<span class="nc" id="L15">    return ResponseEntity</span>
+<span class="nc" id="L16">        .status(e.getStatus())</span>
+<span class="nc" id="L17">        .contentType(e.getContentType())</span>
+<span class="nc" id="L18">        .body(e.getMessage());</span>
   }
 
   @SuppressWarnings(&quot;rawtypes&quot;)
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity handleNotException(NotFoundException e) {
-<span class="nc" id="L25">    return ResponseEntity</span>
-<span class="nc" id="L26">        .status(e.getStatus())</span>
-<span class="nc" id="L27">        .contentType(MediaType.TEXT_PLAIN)</span>
-<span class="nc" id="L28">        .body(e.getMessage());</span>
+<span class="nc" id="L24">    return ResponseEntity</span>
+<span class="nc" id="L25">        .status(e.getStatus())</span>
+<span class="nc" id="L26">        .contentType(e.getContentType())</span>
+<span class="nc" id="L27">        .body(e.getMessage());</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

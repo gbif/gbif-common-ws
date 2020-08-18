@@ -125,8 +125,8 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
 <span class="nc" id="L125">      LOG.warn(&quot;Missing GBIF Authentication Service&quot;);</span>
 <span class="nc" id="L126">      throw new WebApplicationException(&quot;Missing GBIF Authentication Service&quot;, HttpStatus.UNAUTHORIZED);</span>
     }
-<span class="nc bnc" id="L128" title="All 2 branches missed.">    GbifHttpServletRequestWrapper requestObject =</span>
-        request instanceof GbifHttpServletRequestWrapper ? ((GbifHttpServletRequestWrapper) request) : new GbifHttpServletRequestWrapper(request);
+    GbifHttpServletRequestWrapper requestObject =
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper ? ((GbifHttpServletRequestWrapper) request) : new GbifHttpServletRequestWrapper(request);</span>
 <span class="nc bnc" id="L130" title="All 2 branches missed.">    if (!authService.isValidRequest(requestObject)) {</span>
 <span class="nc" id="L131">      LOG.warn(&quot;Invalid GBIF authenticated request&quot;);</span>
 <span class="nc" id="L132">      throw new WebApplicationException(&quot;Invalid GBIF authenticated request&quot;, HttpStatus.UNAUTHORIZED);</span>

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebApplicationException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws</a> &gt; <span class="el_source">WebApplicationException.java</span></div><h1>WebApplicationException.java</h1><pre class="source lang-java linenums">package org.gbif.ws;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
- * analogue of JAX-RS' one
+ * Analogue of JAX-RS' WebApplicationException.
  */
 public class WebApplicationException extends RuntimeException {
 
@@ -12,25 +13,46 @@ public class WebApplicationException extends RuntimeException {
   /**
    * HTTP status code of the response. Required.
    */
-  private Integer status;
+  private final Integer status;
 
   /**
-   * Construct a new instance with a message, and an HTTP status code
+   * Content media type of the response. Optional.
+   */
+  private final MediaType contentType;
+
+  /**
+   * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, Integer status) {
-<span class="fc" id="L21">    super(message);</span>
-<span class="fc" id="L22">    this.status = status;</span>
-<span class="fc" id="L23">  }</span>
+<span class="nc" id="L27">    super(message);</span>
+<span class="nc" id="L28">    this.status = status;</span>
+<span class="nc" id="L29">    this.contentType = MediaType.TEXT_PLAIN;</span>
+<span class="nc" id="L30">  }</span>
 
   /**
-   * Construct a new instance with a message, and an HTTP status code
+   * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, HttpStatus status) {
-<span class="fc" id="L29">    this(message, status.value());</span>
-<span class="fc" id="L30">  }</span>
+<span class="fc" id="L36">    super(message);</span>
+<span class="fc" id="L37">    this.status = status.value();</span>
+<span class="fc" id="L38">    this.contentType = MediaType.TEXT_PLAIN;</span>
+<span class="fc" id="L39">  }</span>
+
+  /**
+   * Construct a new instance with a message, an HTTP status code, and content media type.
+   */
+  public WebApplicationException(String message, HttpStatus status, MediaType contentType) {
+<span class="nc" id="L45">    super(message);</span>
+<span class="nc" id="L46">    this.status = status.value();</span>
+<span class="nc" id="L47">    this.contentType = contentType;</span>
+<span class="nc" id="L48">  }</span>
 
   public Integer getStatus() {
-<span class="fc" id="L33">    return status;</span>
+<span class="fc" id="L51">    return status;</span>
+  }
+
+  public MediaType getContentType() {
+<span class="nc" id="L55">    return contentType;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

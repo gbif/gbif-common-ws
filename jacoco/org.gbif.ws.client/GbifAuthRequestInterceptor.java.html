@@ -68,10 +68,10 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
 <span class="nc" id="L69">      Collection&lt;String&gt; contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);</span>
 
-<span class="nc bnc" id="L71" title="All 2 branches missed.">      String contentType =</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
+      String contentType =
+<span class="nc bnc" id="L72" title="All 4 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
 <span class="nc" id="L73">              ? contentTypeHeaders.iterator().next()</span>
-              : &quot;application/json&quot;;
+<span class="nc" id="L74">              : &quot;application/json&quot;;</span>
 <span class="nc" id="L75">      requestDataToSign.setContentType(contentType);</span>
 
 <span class="nc" id="L77">      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());</span>

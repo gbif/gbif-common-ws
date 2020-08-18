@@ -32,10 +32,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">    GbifHttpServletRequestWrapper httpRequestWrapper =</span>
-        request instanceof GbifHttpServletRequestWrapper
-            ? (GbifHttpServletRequestWrapper) request
-            : new GbifHttpServletRequestWrapper((request));
+    GbifHttpServletRequestWrapper httpRequestWrapper =
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
+<span class="nc" id="L37">            ? (GbifHttpServletRequestWrapper) request</span>
+<span class="nc" id="L38">            : new GbifHttpServletRequestWrapper((request));</span>
 
     // update language headers
 <span class="nc" id="L41">    processLanguage(httpRequestWrapper);</span>

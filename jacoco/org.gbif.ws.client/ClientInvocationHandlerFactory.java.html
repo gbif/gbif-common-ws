@@ -33,8 +33,8 @@ import static feign.Util.checkNotNull;
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 <span class="nc bnc" id="L34" title="All 2 branches missed.">      if (&quot;equals&quot;.equals(method.getName())) {</span>
         try {
-<span class="nc bnc" id="L36" title="All 4 branches missed.">          Object otherHandler =</span>
-<span class="nc" id="L37">              args.length &gt; 0 &amp;&amp; args[0] != null ? Proxy.getInvocationHandler(args[0]) : null;</span>
+          Object otherHandler =
+<span class="nc bnc" id="L37" title="All 4 branches missed.">              args.length &gt; 0 &amp;&amp; args[0] != null ? Proxy.getInvocationHandler(args[0]) : null;</span>
 <span class="nc" id="L38">          return equals(otherHandler);</span>
 <span class="nc" id="L39">        } catch (IllegalArgumentException e) {</span>
 <span class="nc" id="L40">          return false;</span>

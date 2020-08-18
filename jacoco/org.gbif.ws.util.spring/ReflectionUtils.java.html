@@ -381,11 +381,12 @@ import java.util.List;
   public static Method[] getAllDeclaredMethods(Class leafClass) throws IllegalArgumentException {
 <span class="nc" id="L382">    final List list = new LinkedList();</span>
 <span class="nc" id="L383">    doWithMethods(leafClass, new MethodCallback() {</span>
+      @Override
       public void doWith(Method m) {
-<span class="nc" id="L385">        list.add(m);</span>
-<span class="nc" id="L386">      }</span>
+<span class="nc" id="L386">        list.add(m);</span>
+<span class="nc" id="L387">      }</span>
     });
-<span class="nc" id="L388">    return (Method[]) list.toArray(new Method[list.size()]);</span>
+<span class="nc" id="L389">    return (Method[]) list.toArray(new Method[list.size()]);</span>
   }
 
 
@@ -397,8 +398,8 @@ import java.util.List;
    * @param fc          the callback to invoke for each field
    */
   public static void doWithFields(Class targetClass, FieldCallback fc) throws IllegalArgumentException {
-<span class="nc" id="L400">    doWithFields(targetClass, fc, null);</span>
-<span class="nc" id="L401">  }</span>
+<span class="nc" id="L401">    doWithFields(targetClass, fc, null);</span>
+<span class="nc" id="L402">  }</span>
 
   /**
    * Invoke the given callback on all fields in the target class,
@@ -413,21 +414,21 @@ import java.util.List;
     // Keep backing up the inheritance hierarchy.
     do {
       // Copy each field declared on this class unless it's static or file.
-<span class="nc" id="L416">      Field[] fields = targetClass.getDeclaredFields();</span>
-<span class="nc bnc" id="L417" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
+<span class="nc" id="L417">      Field[] fields = targetClass.getDeclaredFields();</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
         // Skip static and final fields.
-<span class="nc bnc" id="L419" title="All 4 branches missed.">        if (ff != null &amp;&amp; !ff.matches(fields[i])) {</span>
-<span class="nc" id="L420">          continue;</span>
+<span class="nc bnc" id="L420" title="All 4 branches missed.">        if (ff != null &amp;&amp; !ff.matches(fields[i])) {</span>
+<span class="nc" id="L421">          continue;</span>
         }
         try {
-<span class="nc" id="L423">          fc.doWith(fields[i]);</span>
-<span class="nc" id="L424">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L425">          throw new IllegalStateException(&quot;Shouldn't be illegal to access field '&quot; + fields[i].getName() + &quot;': &quot; + ex);</span>
-<span class="nc" id="L426">        }</span>
+<span class="nc" id="L424">          fc.doWith(fields[i]);</span>
+<span class="nc" id="L425">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L426">          throw new IllegalStateException(&quot;Shouldn't be illegal to access field '&quot; + fields[i].getName() + &quot;': &quot; + ex);</span>
+<span class="nc" id="L427">        }</span>
       }
-<span class="nc" id="L428">      targetClass = targetClass.getSuperclass();</span>
-<span class="nc bnc" id="L429" title="All 4 branches missed.">    } while (targetClass != null &amp;&amp; targetClass != Object.class);</span>
-<span class="nc" id="L430">  }</span>
+<span class="nc" id="L429">      targetClass = targetClass.getSuperclass();</span>
+<span class="nc bnc" id="L430" title="All 4 branches missed.">    } while (targetClass != null &amp;&amp; targetClass != Object.class);</span>
+<span class="nc" id="L431">  }</span>
 
   /**
    * Given the source object and the destination, which must be the same class
@@ -437,25 +438,26 @@ import java.util.List;
    * @throws IllegalArgumentException if the arguments are incompatible
    */
   public static void shallowCopyFieldState(final Object src, final Object dest) throws IllegalArgumentException {
-<span class="nc bnc" id="L440" title="All 2 branches missed.">    if (src == null) {</span>
-<span class="nc" id="L441">      throw new IllegalArgumentException(&quot;Source for field copy cannot be null&quot;);</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">    if (src == null) {</span>
+<span class="nc" id="L442">      throw new IllegalArgumentException(&quot;Source for field copy cannot be null&quot;);</span>
     }
-<span class="nc bnc" id="L443" title="All 2 branches missed.">    if (dest == null) {</span>
-<span class="nc" id="L444">      throw new IllegalArgumentException(&quot;Destination for field copy cannot be null&quot;);</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">    if (dest == null) {</span>
+<span class="nc" id="L445">      throw new IllegalArgumentException(&quot;Destination for field copy cannot be null&quot;);</span>
     }
-<span class="nc bnc" id="L446" title="All 2 branches missed.">    if (!src.getClass().isAssignableFrom(dest.getClass())) {</span>
-<span class="nc" id="L447">      throw new IllegalArgumentException(&quot;Destination class [&quot; + dest.getClass().getName() +</span>
-<span class="nc" id="L448">                                         &quot;] must be same or subclass as source class [&quot; + src.getClass().getName()</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">    if (!src.getClass().isAssignableFrom(dest.getClass())) {</span>
+<span class="nc" id="L448">      throw new IllegalArgumentException(&quot;Destination class [&quot; + dest.getClass().getName() +</span>
+<span class="nc" id="L449">                                         &quot;] must be same or subclass as source class [&quot; + src.getClass().getName()</span>
                                          + &quot;]&quot;);
     }
-<span class="nc" id="L451">    doWithFields(src.getClass(), new ReflectionUtils.FieldCallback() {</span>
+<span class="nc" id="L452">    doWithFields(src.getClass(), new ReflectionUtils.FieldCallback() {</span>
+      @Override
       public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-<span class="nc" id="L453">        makeAccessible(field);</span>
-<span class="nc" id="L454">        Object srcValue = field.get(src);</span>
-<span class="nc" id="L455">        field.set(dest, srcValue);</span>
-<span class="nc" id="L456">      }</span>
+<span class="nc" id="L455">        makeAccessible(field);</span>
+<span class="nc" id="L456">        Object srcValue = field.get(src);</span>
+<span class="nc" id="L457">        field.set(dest, srcValue);</span>
+<span class="nc" id="L458">      }</span>
     }, ReflectionUtils.COPYABLE_FIELDS);
-<span class="nc" id="L458">  }</span>
+<span class="nc" id="L460">  }</span>
 
 
   /**
@@ -517,9 +519,10 @@ import java.util.List;
   /**
    * Pre-built FieldFilter that matches all non-static, non-final fields.
    */
-<span class="nc" id="L520">  public static FieldFilter COPYABLE_FIELDS = new FieldFilter() {</span>
+<span class="nc" id="L522">  public static FieldFilter COPYABLE_FIELDS = new FieldFilter() {</span>
+    @Override
     public boolean matches(Field field) {
-<span class="nc bnc" id="L522" title="All 4 branches missed.">      return !(Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()));</span>
+<span class="nc bnc" id="L525" title="All 4 branches missed.">      return !(Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()));</span>
     }
   };
 

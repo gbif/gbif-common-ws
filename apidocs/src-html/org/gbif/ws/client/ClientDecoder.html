@@ -36,7 +36,7 @@
 <span class="sourceLineNo">028</span>      throws IOException, FeignException {<a name="line.28"></a>
 <span class="sourceLineNo">029</span>    HttpStatus responseStatus = HttpStatus.resolve(response.status());<a name="line.29"></a>
 <span class="sourceLineNo">030</span><a name="line.30"></a>
-<span class="sourceLineNo">031</span>    if (HttpStatus.NOT_FOUND == responseStatus) {<a name="line.31"></a>
+<span class="sourceLineNo">031</span>    if (responseStatus == HttpStatus.NOT_FOUND || responseStatus == HttpStatus.NO_CONTENT) {<a name="line.31"></a>
 <span class="sourceLineNo">032</span>      return null;<a name="line.32"></a>
 <span class="sourceLineNo">033</span>    } else if (responseStatus != null &amp;&amp; responseStatus.isError()) {<a name="line.33"></a>
 <span class="sourceLineNo">034</span>      throw new DecodeException(response.status(), response.toString(), response.request());<a name="line.34"></a>

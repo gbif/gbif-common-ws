@@ -48,7 +48,7 @@ import java.net.URI;
       case 422:
 <span class="nc bnc" id="L49" title="All 2 branches missed.">        return message != null</span>
 <span class="nc" id="L50">            ? new ValidationException(extractValidationErrorMessage(message))</span>
-            : new ValidationException();
+<span class="nc" id="L51">            : new ValidationException();</span>
       case 500:
 <span class="nc" id="L53">        return new ServiceUnavailableException(&quot;An internal server error occurred, please try again later&quot;);</span>
       case 501:
