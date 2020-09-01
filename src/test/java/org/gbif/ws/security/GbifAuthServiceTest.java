@@ -1,16 +1,32 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.security;
 
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
+
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Paths;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpHeaders;
-
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Paths;
 
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
@@ -40,14 +56,14 @@ public class GbifAuthServiceTest {
     URL resource = GbifAuthServiceTest.class.getClassLoader().getResource("appkeys.properties");
     String stringPath = Paths.get(resource.toURI()).toAbsolutePath().toString();
 
-    AppkeysConfigurationProperties mockAppkeysConfiguration = mock(AppkeysConfigurationProperties.class);
+    AppkeysConfigurationProperties mockAppkeysConfiguration =
+        mock(AppkeysConfigurationProperties.class);
     when(mockAppkeysConfiguration.getFile()).thenReturn(stringPath);
 
     return new GbifAuthServiceImpl(
         new AppKeySigningService(new FileSystemKeyStore(mockAppkeysConfiguration)),
         new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
-        () -> APPKEY
-    );
+        () -> APPKEY);
   }
 
   @Test
@@ -105,7 +121,8 @@ public class GbifAuthServiceTest {
 
     // when
     service.signRequest("heinz", requestObjectMock);
-    String actualAppKey = GbifAuthUtils.getAppKeyFromRequest(requestObjectMock.getHeader(AUTHORIZATION));
+    String actualAppKey =
+        GbifAuthUtils.getAppKeyFromRequest(requestObjectMock.getHeader(AUTHORIZATION));
 
     // then
     assertEquals(APPKEY, actualAppKey);

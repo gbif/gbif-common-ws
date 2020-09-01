@@ -1,13 +1,28 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.client;
-
-import feign.InvocationHandlerFactory;
-import feign.Target;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Optional;
+
+import feign.InvocationHandlerFactory;
+import feign.Target;
 
 import static feign.Util.checkNotNull;
 
@@ -57,20 +72,23 @@ public class ClientInvocationHandlerFactory implements InvocationHandlerFactory 
       }
 
       // if not we have to find another handler
-      Optional<Method> anotherMethod = dispatch.keySet().stream()
-          .filter(methodFromDispatch -> !methodFromDispatch.equals(method))
-          .filter(methodFromDispatch -> methodFromDispatch.getName().equals(method.getName()))
-          .filter(methodFromDispatch -> methodFromDispatch.getParameterCount() == method.getParameterCount())
-          .findFirst();
+      Optional<Method> anotherMethod =
+          dispatch.keySet().stream()
+              .filter(methodFromDispatch -> !methodFromDispatch.equals(method))
+              .filter(methodFromDispatch -> methodFromDispatch.getName().equals(method.getName()))
+              .filter(
+                  methodFromDispatch ->
+                      methodFromDispatch.getParameterCount() == method.getParameterCount())
+              .findFirst();
 
-      return anotherMethod.map(dispatch::get)
-          .orElse(null);
+      return anotherMethod.map(dispatch::get).orElse(null);
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof ClientInvocationHandlerFactory.FeignInvocationHandler) {
-        ClientInvocationHandlerFactory.FeignInvocationHandler other = (ClientInvocationHandlerFactory.FeignInvocationHandler) obj;
+        ClientInvocationHandlerFactory.FeignInvocationHandler other =
+            (ClientInvocationHandlerFactory.FeignInvocationHandler) obj;
         return target.equals(other.target);
       }
       return false;

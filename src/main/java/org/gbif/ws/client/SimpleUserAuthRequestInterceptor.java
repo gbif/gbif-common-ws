@@ -1,11 +1,26 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.client;
-
-import feign.RequestInterceptor;
-import feign.RequestTemplate;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 
 /**
  * A small request interceptor for a single, fixed user. Request Interceptor adding HTTP Basic Authentication header
@@ -16,7 +31,7 @@ import java.util.Base64;
 public class SimpleUserAuthRequestInterceptor implements RequestInterceptor {
 
   private final String authentication;
-  static private final Charset CHARACTER_SET = StandardCharsets.ISO_8859_1;
+  private static final Charset CHARACTER_SET = StandardCharsets.ISO_8859_1;
 
   /**
    * Creates a new request interceptor using provided username
@@ -30,7 +45,9 @@ public class SimpleUserAuthRequestInterceptor implements RequestInterceptor {
     System.arraycopy(prefix, 0, usernamePassword, 0, prefix.length);
     System.arraycopy(password, 0, usernamePassword, prefix.length, password.length);
 
-    authentication = "Basic " + new String(Base64.getEncoder().encode(usernamePassword), StandardCharsets.US_ASCII);
+    authentication =
+        "Basic "
+            + new String(Base64.getEncoder().encode(usernamePassword), StandardCharsets.US_ASCII);
   }
 
   /**

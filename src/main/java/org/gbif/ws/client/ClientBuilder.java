@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.client;
 
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -11,7 +26,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
@@ -28,13 +52,6 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.client.HttpClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ClientBuilder used to create Feign Clients.
@@ -58,7 +75,8 @@ public class ClientBuilder {
 
   private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
   private final Contract contract = new ClientContract();
-  private final InvocationHandlerFactory invocationHandlerFactory = new ClientInvocationHandlerFactory();
+  private final InvocationHandlerFactory invocationHandlerFactory =
+      new ClientInvocationHandlerFactory();
 
   /**
    * Creates a builder instance, by default uses the GBIF Jackson ObjectMapper.
@@ -70,11 +88,13 @@ public class ClientBuilder {
   /**
    * Exponential backoff retry configuration.
    */
-  public ClientBuilder withExponentialBackoffRetry(Duration initialInterval, double multiplier, int maxAttempts) {
-    retryConfig = RetryConfig.custom()
-                              .maxAttempts(maxAttempts)
-                              .intervalFunction(IntervalFunction.ofExponentialBackoff(initialInterval, multiplier))
-                              .build();
+  public ClientBuilder withExponentialBackoffRetry(
+      Duration initialInterval, double multiplier, int maxAttempts) {
+    retryConfig =
+        RetryConfig.custom()
+            .maxAttempts(maxAttempts)
+            .intervalFunction(IntervalFunction.ofExponentialBackoff(initialInterval, multiplier))
+            .build();
     return this;
   }
 
@@ -99,8 +119,12 @@ public class ClientBuilder {
    */
   public ClientBuilder withAppKeyCredentials(String username, String appKey, String secretKey) {
     this.requestInterceptor =
-      new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
-                                     new Md5EncodeServiceImpl(objectMapper));
+        new GbifAuthRequestInterceptor(
+            username,
+            appKey,
+            secretKey,
+            new SecretKeySigningService(),
+            new Md5EncodeServiceImpl(objectMapper));
     return this;
   }
 
@@ -125,13 +149,15 @@ public class ClientBuilder {
   /**
    * Custom GBIF authentication.
    */
-  public ClientBuilder withCustomGbifAuth(String username,
-                                          String appKey,
-                                          String secretKey,
-                                          SigningService signingService,
-                                          Md5EncodeService md5EncodeService) {
+  public ClientBuilder withCustomGbifAuth(
+      String username,
+      String appKey,
+      String secretKey,
+      SigningService signingService,
+      Md5EncodeService md5EncodeService) {
     this.requestInterceptor =
-      new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
+        new GbifAuthRequestInterceptor(
+            username, appKey, secretKey, signingService, md5EncodeService);
     return this;
   }
 
@@ -144,27 +170,24 @@ public class ClientBuilder {
 
     if (Objects.nonNull(retryConfig)) {
       Retry retry = RETRY_REGISTRY.retry(clazz.getName(), retryConfig);
-      //logging
+      // logging
       retry.getEventPublisher().onError(event -> LOG.error(event.toString()));
 
-      FeignDecorators decorators = FeignDecorators
-                                    .builder()
-                                    .withRetry(retry)
-                                    .build();
+      FeignDecorators decorators = FeignDecorators.builder().withRetry(retry).build();
 
       builder = Resilience4jFeign.builder(decorators);
 
     } else {
-      //Feign builder do not support invocation handler
+      // Feign builder do not support invocation handler
       builder.invocationHandlerFactory(invocationHandlerFactory);
     }
 
     builder
-      .encoder(encoder)
-      .decoder(decoder)
-      .errorDecoder(errorDecoder)
-      .contract(contract)
-      .decode404();
+        .encoder(encoder)
+        .decoder(decoder)
+        .errorDecoder(errorDecoder)
+        .contract(contract)
+        .decode404();
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
@@ -181,15 +204,21 @@ public class ClientBuilder {
   private static HttpClient newMultithreadedClient(ConnectionPoolConfig connectionPoolConfig) {
 
     return HttpClients.custom()
-            .setMaxConnTotal(connectionPoolConfig.getMaxConnections())
-            .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())
-            .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())
-            .setDefaultConnectionConfig(ConnectionConfig.custom().setCharset(Charset.forName(StandardCharsets.UTF_8.name())).build())
-            .setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectionPoolConfig.getTimeout())
-                                       .setConnectionRequestTimeout(connectionPoolConfig.getTimeout()).build())
-            .build();
+        .setMaxConnTotal(connectionPoolConfig.getMaxConnections())
+        .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())
+        .setDefaultSocketConfig(
+            SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())
+        .setDefaultConnectionConfig(
+            ConnectionConfig.custom()
+                .setCharset(Charset.forName(StandardCharsets.UTF_8.name()))
+                .build())
+        .setDefaultRequestConfig(
+            RequestConfig.custom()
+                .setConnectTimeout(connectionPoolConfig.getTimeout())
+                .setConnectionRequestTimeout(connectionPoolConfig.getTimeout())
+                .build())
+        .build();
   }
-
 
   @Data
   @Builder
@@ -198,5 +227,4 @@ public class ClientBuilder {
     private final Integer maxConnections;
     private final Integer maxPerRoute;
   }
-
 }

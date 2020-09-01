@@ -1,19 +1,36 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.client;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import feign.FeignException;
 import feign.Response;
 import feign.Util;
 import feign.codec.DecodeException;
 import feign.codec.Decoder;
 import feign.jackson.JacksonDecoder;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
 
 public class ClientDecoder implements Decoder {
 
@@ -24,8 +41,7 @@ public class ClientDecoder implements Decoder {
   }
 
   @Override
-  public Object decode(Response response, Type type)
-      throws IOException, FeignException {
+  public Object decode(Response response, Type type) throws IOException, FeignException {
     HttpStatus responseStatus = HttpStatus.resolve(response.status());
 
     if (responseStatus == HttpStatus.NOT_FOUND || responseStatus == HttpStatus.NO_CONTENT) {
@@ -55,6 +71,7 @@ public class ClientDecoder implements Decoder {
     return response.headers().get(HttpHeaders.CONTENT_TYPE).stream()
         .findFirst()
         .filter(StringUtils::hasLength)
-        .map(MediaType::parseMediaType).orElse(null);
+        .map(MediaType::parseMediaType)
+        .orElse(null);
   }
 }

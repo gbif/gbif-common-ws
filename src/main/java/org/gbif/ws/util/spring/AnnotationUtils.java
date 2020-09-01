@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gbif.ws.util.spring;
 
 import java.lang.annotation.Annotation;
@@ -55,7 +54,6 @@ public abstract class AnnotationUtils {
    */
   static final String VALUE = "value";
 
-
   /**
    * <p>
    * Get all {@link Annotation Annotations} from the supplied {@link Method}.
@@ -88,7 +86,8 @@ public abstract class AnnotationUtils {
    *
    * @return the annotations found
    */
-  public static <A extends Annotation> A getAnnotation(final Method method, final Class<A> annotationType) {
+  public static <A extends Annotation> A getAnnotation(
+      final Method method, final Class<A> annotationType) {
     return BridgeMethodResolver.findBridgedMethod(method).getAnnotation(annotationType);
   }
 
@@ -108,7 +107,8 @@ public abstract class AnnotationUtils {
    *
    * @return the annotation of the given type found, or <code>null</code>
    */
-  public static <A extends Annotation> A findAnnotation(final Method method, final Class<A> annotationType) {
+  public static <A extends Annotation> A findAnnotation(
+      final Method method, final Class<A> annotationType) {
     A annotation = getAnnotation(method, annotationType);
     Class<?> cl = method.getDeclaringClass();
     while (annotation == null) {
@@ -117,7 +117,8 @@ public abstract class AnnotationUtils {
         break;
       }
       try {
-        Method equivalentMethod = cl.getDeclaredMethod(method.getName(), method.getParameterTypes());
+        Method equivalentMethod =
+            cl.getDeclaredMethod(method.getName(), method.getParameterTypes());
         annotation = getAnnotation(equivalentMethod, annotationType);
       } catch (NoSuchMethodException ex) {
         // We're done...
@@ -143,7 +144,8 @@ public abstract class AnnotationUtils {
    *
    * @return the annotation of the given type found, or <code>null</code>
    */
-  public static <A extends Annotation> A findAnnotation(final Class<?> clazz, final Class<A> annotationType) {
+  public static <A extends Annotation> A findAnnotation(
+      final Class<?> clazz, final Class<A> annotationType) {
     Assert.notNull(clazz, "Class must not be null");
     A annotation = clazz.getAnnotation(annotationType);
     if (annotation != null) {
@@ -192,15 +194,16 @@ public abstract class AnnotationUtils {
    * @see Class#isAnnotationPresent(Class)
    * @see Class#getDeclaredAnnotations()
    */
-  public static Class<?> findAnnotationDeclaringClass(final Class<? extends Annotation> annotationType,
-    final Class<?> clazz) {
+  public static Class<?> findAnnotationDeclaringClass(
+      final Class<? extends Annotation> annotationType, final Class<?> clazz) {
     Assert.notNull(annotationType, "annotationType must not be null");
     if ((clazz == null) || clazz.equals(Object.class)) {
       return null;
     }
     // else...
-    return (isAnnotationDeclaredLocally(annotationType, clazz)) ? clazz
-      : findAnnotationDeclaringClass(annotationType, clazz.getSuperclass());
+    return (isAnnotationDeclaredLocally(annotationType, clazz))
+        ? clazz
+        : findAnnotationDeclaringClass(annotationType, clazz.getSuperclass());
   }
 
   /**
@@ -227,8 +230,8 @@ public abstract class AnnotationUtils {
    * @see Class#getDeclaredAnnotations()
    * @see #isAnnotationInherited(Class, Class)
    */
-  public static boolean isAnnotationDeclaredLocally(final Class<? extends Annotation> annotationType,
-    final Class<?> clazz) {
+  public static boolean isAnnotationDeclaredLocally(
+      final Class<? extends Annotation> annotationType, final Class<?> clazz) {
     Assert.notNull(annotationType, "annotationType must not be null");
     Assert.notNull(clazz, "clazz must not be null");
     boolean declaredLocally = false;
@@ -269,10 +272,12 @@ public abstract class AnnotationUtils {
    * @see Class#isAnnotationPresent(Class)
    * @see #isAnnotationDeclaredLocally(Class, Class)
    */
-  public static boolean isAnnotationInherited(final Class<? extends Annotation> annotationType, final Class<?> clazz) {
+  public static boolean isAnnotationInherited(
+      final Class<? extends Annotation> annotationType, final Class<?> clazz) {
     Assert.notNull(annotationType, "annotationType must not be null");
     Assert.notNull(clazz, "clazz must not be null");
-    return (clazz.isAnnotationPresent(annotationType) && !isAnnotationDeclaredLocally(annotationType, clazz));
+    return (clazz.isAnnotationPresent(annotationType)
+        && !isAnnotationDeclaredLocally(annotationType, clazz));
   }
 
   /**
@@ -326,7 +331,8 @@ public abstract class AnnotationUtils {
    */
   public static Object getValue(final Annotation annotation, final String attributeName) {
     try {
-      final Method method = annotation.annotationType().getDeclaredMethod(attributeName, new Class[0]);
+      final Method method =
+          annotation.annotationType().getDeclaredMethod(attributeName, new Class[0]);
       return method.invoke(annotation);
     } catch (final Exception ex) {
       return null;
@@ -395,7 +401,8 @@ public abstract class AnnotationUtils {
    *
    * @see #getDefaultValue(Annotation, String)
    */
-  public static Object getDefaultValue(final Class<? extends Annotation> annotationType, final String attributeName) {
+  public static Object getDefaultValue(
+      final Class<? extends Annotation> annotationType, final String attributeName) {
     try {
       final Method method = annotationType.getDeclaredMethod(attributeName, new Class[0]);
       return method.getDefaultValue();
@@ -403,5 +410,4 @@ public abstract class AnnotationUtils {
       return null;
     }
   }
-
 }

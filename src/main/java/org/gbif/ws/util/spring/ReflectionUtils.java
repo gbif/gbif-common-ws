@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gbif.ws.util.spring;
 
 import java.lang.reflect.Constructor;
@@ -89,8 +88,8 @@ public abstract class ReflectionUtils {
       field.set(target, value);
     } catch (IllegalAccessException ex) {
       handleReflectionException(ex);
-      throw new IllegalStateException("Unexpected reflection exception - " + ex.getClass().getName() + ": " +
-                                      ex.getMessage());
+      throw new IllegalStateException(
+          "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
     }
   }
 
@@ -124,10 +123,12 @@ public abstract class ReflectionUtils {
     Assert.notNull(name, "Method name must not be null");
     Class searchType = clazz;
     while (!Object.class.equals(searchType) && searchType != null) {
-      Method[] methods = (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());
+      Method[] methods =
+          (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());
       for (int i = 0; i < methods.length; i++) {
         Method method = methods[i];
-        if (name.equals(method.getName()) && Arrays.equals(paramTypes, method.getParameterTypes())) {
+        if (name.equals(method.getName())
+            && Arrays.equals(paramTypes, method.getParameterTypes())) {
           return method;
         }
       }
@@ -173,11 +174,11 @@ public abstract class ReflectionUtils {
     } catch (IllegalAccessException ex) {
       handleReflectionException(ex);
       throw new IllegalStateException(
-        "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
+          "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
     } catch (InvocationTargetException ex) {
       handleReflectionException(ex);
       throw new IllegalStateException(
-        "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
+          "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
     }
   }
 
@@ -201,7 +202,7 @@ public abstract class ReflectionUtils {
       handleInvocationTargetException((InvocationTargetException) ex);
     }
     throw new IllegalStateException(
-      "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
+        "Unexpected reflection exception - " + ex.getClass().getName() + ": " + ex.getMessage());
   }
 
   /**
@@ -220,8 +221,10 @@ public abstract class ReflectionUtils {
       throw (Error) ex.getTargetException();
     }
     throw new IllegalStateException(
-      "Unexpected exception thrown by method - " + ex.getTargetException().getClass().getName() +
-      ": " + ex.getTargetException().getMessage());
+        "Unexpected exception thrown by method - "
+            + ex.getTargetException().getClass().getName()
+            + ": "
+            + ex.getTargetException().getMessage());
   }
 
   /**
@@ -245,7 +248,10 @@ public abstract class ReflectionUtils {
       throw (Error) ex;
     }
     throw new IllegalStateException(
-      "Unexpected exception thrown by method - " + ex.getClass().getName() + ": " + ex.getMessage());
+        "Unexpected exception thrown by method - "
+            + ex.getClass().getName()
+            + ": "
+            + ex.getMessage());
   }
 
   /**
@@ -271,7 +277,6 @@ public abstract class ReflectionUtils {
     return false;
   }
 
-
   /**
    * Determine whether the given field is a "public static final" constant.
    *
@@ -279,7 +284,9 @@ public abstract class ReflectionUtils {
    */
   public static boolean isPublicStaticFinal(Field field) {
     int modifiers = field.getModifiers();
-    return (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers));
+    return (Modifier.isPublic(modifiers)
+        && Modifier.isStatic(modifiers)
+        && Modifier.isFinal(modifiers));
   }
 
   /**
@@ -292,7 +299,8 @@ public abstract class ReflectionUtils {
    * @see java.lang.reflect.Field#setAccessible
    */
   public static void makeAccessible(Field field) {
-    if (!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
+    if (!Modifier.isPublic(field.getModifiers())
+        || !Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
       field.setAccessible(true);
     }
   }
@@ -307,7 +315,8 @@ public abstract class ReflectionUtils {
    * @see java.lang.reflect.Method#setAccessible
    */
   public static void makeAccessible(Method method) {
-    if (!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+    if (!Modifier.isPublic(method.getModifiers())
+        || !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
       method.setAccessible(true);
     }
   }
@@ -322,11 +331,11 @@ public abstract class ReflectionUtils {
    * @see java.lang.reflect.Constructor#setAccessible
    */
   public static void makeAccessible(Constructor ctor) {
-    if (!Modifier.isPublic(ctor.getModifiers()) || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
+    if (!Modifier.isPublic(ctor.getModifiers())
+        || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
       ctor.setAccessible(true);
     }
   }
-
 
   /**
    * Perform the given callback operation on all matching methods of the
@@ -339,7 +348,8 @@ public abstract class ReflectionUtils {
    *
    * @see #doWithMethods(Class, MethodCallback, MethodFilter)
    */
-  public static void doWithMethods(Class targetClass, MethodCallback mc) throws IllegalArgumentException {
+  public static void doWithMethods(Class targetClass, MethodCallback mc)
+      throws IllegalArgumentException {
     doWithMethods(targetClass, mc, null);
   }
 
@@ -354,7 +364,7 @@ public abstract class ReflectionUtils {
    * @param mf          the filter that determines the methods to apply the callback to
    */
   public static void doWithMethods(Class targetClass, MethodCallback mc, MethodFilter mf)
-    throws IllegalArgumentException {
+      throws IllegalArgumentException {
 
     // Keep backing up the inheritance hierarchy.
     do {
@@ -367,7 +377,7 @@ public abstract class ReflectionUtils {
           mc.doWith(methods[i]);
         } catch (IllegalAccessException ex) {
           throw new IllegalStateException(
-            "Shouldn't be illegal to access method '" + methods[i].getName() + "': " + ex);
+              "Shouldn't be illegal to access method '" + methods[i].getName() + "': " + ex);
         }
       }
       targetClass = targetClass.getSuperclass();
@@ -380,15 +390,16 @@ public abstract class ReflectionUtils {
    */
   public static Method[] getAllDeclaredMethods(Class leafClass) throws IllegalArgumentException {
     final List list = new LinkedList();
-    doWithMethods(leafClass, new MethodCallback() {
-      @Override
-      public void doWith(Method m) {
-        list.add(m);
-      }
-    });
+    doWithMethods(
+        leafClass,
+        new MethodCallback() {
+          @Override
+          public void doWith(Method m) {
+            list.add(m);
+          }
+        });
     return (Method[]) list.toArray(new Method[list.size()]);
   }
-
 
   /**
    * Invoke the given callback on all fields in the target class,
@@ -397,7 +408,8 @@ public abstract class ReflectionUtils {
    * @param targetClass the target class to analyze
    * @param fc          the callback to invoke for each field
    */
-  public static void doWithFields(Class targetClass, FieldCallback fc) throws IllegalArgumentException {
+  public static void doWithFields(Class targetClass, FieldCallback fc)
+      throws IllegalArgumentException {
     doWithFields(targetClass, fc, null);
   }
 
@@ -409,7 +421,8 @@ public abstract class ReflectionUtils {
    * @param fc          the callback to invoke for each field
    * @param ff          the filter that determines the fields to apply the callback to
    */
-  public static void doWithFields(Class targetClass, FieldCallback fc, FieldFilter ff) throws IllegalArgumentException {
+  public static void doWithFields(Class targetClass, FieldCallback fc, FieldFilter ff)
+      throws IllegalArgumentException {
 
     // Keep backing up the inheritance hierarchy.
     do {
@@ -423,7 +436,8 @@ public abstract class ReflectionUtils {
         try {
           fc.doWith(fields[i]);
         } catch (IllegalAccessException ex) {
-          throw new IllegalStateException("Shouldn't be illegal to access field '" + fields[i].getName() + "': " + ex);
+          throw new IllegalStateException(
+              "Shouldn't be illegal to access field '" + fields[i].getName() + "': " + ex);
         }
       }
       targetClass = targetClass.getSuperclass();
@@ -437,7 +451,8 @@ public abstract class ReflectionUtils {
    *
    * @throws IllegalArgumentException if the arguments are incompatible
    */
-  public static void shallowCopyFieldState(final Object src, final Object dest) throws IllegalArgumentException {
+  public static void shallowCopyFieldState(final Object src, final Object dest)
+      throws IllegalArgumentException {
     if (src == null) {
       throw new IllegalArgumentException("Source for field copy cannot be null");
     }
@@ -445,20 +460,25 @@ public abstract class ReflectionUtils {
       throw new IllegalArgumentException("Destination for field copy cannot be null");
     }
     if (!src.getClass().isAssignableFrom(dest.getClass())) {
-      throw new IllegalArgumentException("Destination class [" + dest.getClass().getName() +
-                                         "] must be same or subclass as source class [" + src.getClass().getName()
-                                         + "]");
+      throw new IllegalArgumentException(
+          "Destination class ["
+              + dest.getClass().getName()
+              + "] must be same or subclass as source class ["
+              + src.getClass().getName()
+              + "]");
     }
-    doWithFields(src.getClass(), new ReflectionUtils.FieldCallback() {
-      @Override
-      public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-        makeAccessible(field);
-        Object srcValue = field.get(src);
-        field.set(dest, srcValue);
-      }
-    }, ReflectionUtils.COPYABLE_FIELDS);
+    doWithFields(
+        src.getClass(),
+        new ReflectionUtils.FieldCallback() {
+          @Override
+          public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+            makeAccessible(field);
+            Object srcValue = field.get(src);
+            field.set(dest, srcValue);
+          }
+        },
+        ReflectionUtils.COPYABLE_FIELDS);
   }
-
 
   /**
    * Action to take on each method.
@@ -473,7 +493,6 @@ public abstract class ReflectionUtils {
     void doWith(Method method) throws IllegalArgumentException, IllegalAccessException;
   }
 
-
   /**
    * Callback optionally used to method fields to be operated on by a method callback.
    */
@@ -486,7 +505,6 @@ public abstract class ReflectionUtils {
      */
     boolean matches(Method method);
   }
-
 
   /**
    * Callback interface invoked on each field in the hierarchy.
@@ -501,7 +519,6 @@ public abstract class ReflectionUtils {
     void doWith(Field field) throws IllegalArgumentException, IllegalAccessException;
   }
 
-
   /**
    * Callback optionally used to filter fields to be operated on by a field callback.
    */
@@ -515,15 +532,15 @@ public abstract class ReflectionUtils {
     boolean matches(Field field);
   }
 
-
   /**
    * Pre-built FieldFilter that matches all non-static, non-final fields.
    */
-  public static FieldFilter COPYABLE_FIELDS = new FieldFilter() {
-    @Override
-    public boolean matches(Field field) {
-      return !(Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()));
-    }
-  };
-
+  public static FieldFilter COPYABLE_FIELDS =
+      new FieldFilter() {
+        @Override
+        public boolean matches(Field field) {
+          return !(Modifier.isStatic(field.getModifiers())
+              || Modifier.isFinal(field.getModifiers()));
+        }
+      };
 }

@@ -1,21 +1,25 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.security;
 
-import com.google.common.base.Strings;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Base64;
@@ -24,6 +28,20 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
+
+import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.SecurityConstants.BASIC_AUTH;
 import static org.gbif.ws.util.SecurityConstants.BASIC_SCHEME_PREFIX;
@@ -45,7 +63,8 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    * In case {@link GbifAuthService} is not provided, this class will reject all authentications
    * on the GBIF scheme prefix.
    */
-  public GbifAuthenticationManagerImpl(@NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {
+  public GbifAuthenticationManagerImpl(
+      @NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {
     Objects.requireNonNull(identityAccessService, "identityAccessService shall be provided");
     this.identityAccessService = identityAccessService;
     this.authService = authService;
@@ -81,21 +100,25 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
   private GbifAuthentication basicAuthentication(final String authentication) {
     // As specified in RFC 7617, the auth header (if not ASCII) is in UTF-8.
     byte[] decodedAuthentication = Base64.getDecoder().decode(authentication);
-    String[] values = COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
+    String[] values =
+        COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
     if (values.length < 2) {
       LOG.warn("Invalid syntax for username and password: {}", authentication);
-      throw new WebApplicationException("Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
+      throw new WebApplicationException(
+          "Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
     }
 
     String username = values[0];
     String password = values[1];
     if (username == null || password == null) {
       LOG.warn("Missing basic authentication username or password: {}", authentication);
-      throw new WebApplicationException("Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
+      throw new WebApplicationException(
+          "Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
     }
 
     // it's not a good approach to check UUID
-    // ignore usernames which are UUIDs - these are registry legacy IPT calls and handled by a special security filter
+    // ignore usernames which are UUIDs - these are registry legacy IPT calls and handled by a
+    // special security filter
     try {
       UUID.fromString(username);
       return getAnonymous();
@@ -105,7 +128,8 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
 
     GbifUser user = identityAccessService.authenticate(username, password);
     if (user == null) {
-      throw new WebApplicationException("Failed to authenticate user " + username, HttpStatus.UNAUTHORIZED);
+      throw new WebApplicationException(
+          "Failed to authenticate user " + username, HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, BASIC_AUTH);
@@ -123,21 +147,25 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     }
     if (authService == null) {
       LOG.warn("Missing GBIF Authentication Service");
-      throw new WebApplicationException("Missing GBIF Authentication Service", HttpStatus.UNAUTHORIZED);
+      throw new WebApplicationException(
+          "Missing GBIF Authentication Service", HttpStatus.UNAUTHORIZED);
     }
     GbifHttpServletRequestWrapper requestObject =
-        request instanceof GbifHttpServletRequestWrapper ? ((GbifHttpServletRequestWrapper) request) : new GbifHttpServletRequestWrapper(request);
+        request instanceof GbifHttpServletRequestWrapper
+            ? ((GbifHttpServletRequestWrapper) request)
+            : new GbifHttpServletRequestWrapper(request);
     if (!authService.isValidRequest(requestObject)) {
       LOG.warn("Invalid GBIF authenticated request");
-      throw new WebApplicationException("Invalid GBIF authenticated request", HttpStatus.UNAUTHORIZED);
+      throw new WebApplicationException(
+          "Invalid GBIF authenticated request", HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, GBIF_SCHEME);
 
-    //check if we have a request that impersonates a user
+    // check if we have a request that impersonates a user
     GbifUser user = identityAccessService.get(username);
-    //Note: using an Anonymous Authorizer is probably not the best thing to do here
-    //we should consider simply return null to let another filter handle it
+    // Note: using an Anonymous Authorizer is probably not the best thing to do here
+    // we should consider simply return null to let another filter handle it
     return user == null ? getAnonymous() : getAuthenticated(user, GBIF_SCHEME);
   }
 
@@ -158,12 +186,15 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    * @param authenticationScheme authentication scheme (BASIC, GBIF etc.)
    * @return authentication object for this user
    */
-  private GbifAuthentication getAuthenticated(final GbifUser user, final String authenticationScheme) {
-    final List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
-        .map(Enum::name)
-        .map(SimpleGrantedAuthority::new)
-        .collect(Collectors.toList());
+  private GbifAuthentication getAuthenticated(
+      final GbifUser user, final String authenticationScheme) {
+    final List<SimpleGrantedAuthority> authorities =
+        user.getRoles().stream()
+            .map(Enum::name)
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toList());
 
-    return new GbifAuthenticationToken(new GbifUserPrincipal(user), authenticationScheme, authorities);
+    return new GbifAuthenticationToken(
+        new GbifUserPrincipal(user), authenticationScheme, authorities);
   }
 }

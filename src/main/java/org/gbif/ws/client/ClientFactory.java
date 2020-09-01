@@ -1,6 +1,37 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.client;
 
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+import org.gbif.ws.security.Md5EncodeService;
+import org.gbif.ws.security.Md5EncodeServiceImpl;
+import org.gbif.ws.security.SecretKeySigningService;
+import org.gbif.ws.security.SigningService;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClients;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
@@ -11,20 +42,6 @@ import feign.codec.ErrorDecoder;
 import feign.httpclient.ApacheHttpClient;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.client.HttpClients;
-
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-import org.gbif.ws.security.Md5EncodeService;
-import org.gbif.ws.security.Md5EncodeServiceImpl;
-import org.gbif.ws.security.SecretKeySigningService;
-import org.gbif.ws.security.SigningService;
-
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings("unused")
 /**
@@ -80,7 +97,11 @@ public class ClientFactory {
     this.url = url;
     ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapper();
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
+        new GbifAuthRequestInterceptor(
+            username,
+            appKey,
+            secretKey,
+            new SecretKeySigningService(),
             new Md5EncodeServiceImpl(objectMapper));
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
@@ -92,12 +113,18 @@ public class ClientFactory {
   /**
    * Read-write client factory using GBIF authentication by application key. Uses custom services.
    */
-  public ClientFactory(String username, String url, String appKey, String secretKey,
+  public ClientFactory(
+      String username,
+      String url,
+      String appKey,
+      String secretKey,
       SigningService signingService,
-      Md5EncodeService md5EncodeService, ObjectMapper objectMapper) {
+      Md5EncodeService md5EncodeService,
+      ObjectMapper objectMapper) {
     this.url = url;
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
+        new GbifAuthRequestInterceptor(
+            username, appKey, secretKey, signingService, md5EncodeService);
     this.encoder = new ClientEncoder(objectMapper);
     this.decoder = new ClientDecoder(objectMapper);
     this.errorDecoder = new ClientErrorDecoder();
@@ -108,13 +135,20 @@ public class ClientFactory {
   private static HttpClient newMultithreadedClient(ConnectionPoolConfig connectionPoolConfig) {
 
     return HttpClients.custom()
-            .setMaxConnTotal(connectionPoolConfig.getMaxConnections())
-            .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())
-            .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())
-            .setDefaultConnectionConfig(ConnectionConfig.custom().setCharset(Charset.forName(StandardCharsets.UTF_8.name())).build())
-            .setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectionPoolConfig.getTimeout())
-                                       .setConnectionRequestTimeout(connectionPoolConfig.getTimeout()).build())
-            .build();
+        .setMaxConnTotal(connectionPoolConfig.getMaxConnections())
+        .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())
+        .setDefaultSocketConfig(
+            SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())
+        .setDefaultConnectionConfig(
+            ConnectionConfig.custom()
+                .setCharset(Charset.forName(StandardCharsets.UTF_8.name()))
+                .build())
+        .setDefaultRequestConfig(
+            RequestConfig.custom()
+                .setConnectTimeout(connectionPoolConfig.getTimeout())
+                .setConnectionRequestTimeout(connectionPoolConfig.getTimeout())
+                .build())
+        .build();
   }
 
   public <T> T newInstance(Class<T> clazz) {
@@ -122,13 +156,14 @@ public class ClientFactory {
   }
 
   public <T> T newInstance(Class<T> clazz, ConnectionPoolConfig connectionPoolConfig) {
-    Feign.Builder builder = Feign.builder()
-      .encoder(encoder)
-      .decoder(decoder)
-      .errorDecoder(errorDecoder)
-      .contract(contract)
-      .decode404()
-      .invocationHandlerFactory(invocationHandlerFactory);
+    Feign.Builder builder =
+        Feign.builder()
+            .encoder(encoder)
+            .decoder(decoder)
+            .errorDecoder(errorDecoder)
+            .contract(contract)
+            .decode404()
+            .invocationHandlerFactory(invocationHandlerFactory);
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
@@ -146,5 +181,4 @@ public class ClientFactory {
     private final Integer maxConnections;
     private final Integer maxPerRoute;
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Global Biodiversity Information Facility (GBIF)
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package org.gbif.ws.server.provider;
 
-import com.google.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.context.request.WebRequest;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.context.request.WebRequest;
+
+import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 
@@ -67,13 +68,16 @@ public class LocaleProvider implements ContextProvider<Locale> {
     // try headers next
     String[] acceptLanguageHeaderValues = webRequest.getHeaderValues(HttpHeaders.ACCEPT_LANGUAGE);
 
-    List<String> languages = acceptLanguageHeaderValues != null
-        ? Arrays.asList(acceptLanguageHeaderValues)
-        : Collections.emptyList();
+    List<String> languages =
+        acceptLanguageHeaderValues != null
+            ? Arrays.asList(acceptLanguageHeaderValues)
+            : Collections.emptyList();
 
     for (String lang : languages) {
       // ignore accept any language value: * and non iso 2 letter codes
-      if (StringUtils.isNotEmpty(lang) && !ANY_LANGUAGE.equalsIgnoreCase(lang) && lang.length() == 2) {
+      if (StringUtils.isNotEmpty(lang)
+          && !ANY_LANGUAGE.equalsIgnoreCase(lang)
+          && lang.length() == 2) {
         return Locale.forLanguageTag(lang);
       }
     }

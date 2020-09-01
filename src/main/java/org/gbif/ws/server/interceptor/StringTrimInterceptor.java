@@ -1,13 +1,29 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.server.interceptor;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
-import com.google.common.base.Strings;
+import org.gbif.api.annotation.Trim;
+import org.gbif.api.model.registry.Dataset;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+
 import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.beanutils.WrapDynaBean;
-import org.gbif.api.model.registry.Dataset;
-import org.gbif.api.annotation.Trim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -16,8 +32,9 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 
 /**
  * An interceptor that will trim all possible strings of a bean.
@@ -30,27 +47,44 @@ import java.lang.reflect.Type;
 public class StringTrimInterceptor implements RequestBodyAdvice {
 
   private static final Logger LOG = LoggerFactory.getLogger(StringTrimInterceptor.class);
-  private static final int MAX_RECURSION = 5; // only goes 5 levels deep to stop potential circular loops
+  private static final int MAX_RECURSION =
+      5; // only goes 5 levels deep to stop potential circular loops
 
   @Override
-  public boolean supports(MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) {
+  public boolean supports(
+      MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) {
     return methodParameter.getMethodAnnotation(Trim.class) != null
         || methodParameter.getParameterAnnotation(Trim.class) != null;
   }
 
   @Override
-  public HttpInputMessage beforeBodyRead(HttpInputMessage httpInputMessage, MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) throws IOException {
+  public HttpInputMessage beforeBodyRead(
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class<? extends HttpMessageConverter<?>> aClass)
+      throws IOException {
     return httpInputMessage;
   }
 
   @Override
-  public Object afterBodyRead(Object o, HttpInputMessage httpInputMessage, MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) {
+  public Object afterBodyRead(
+      Object o,
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class<? extends HttpMessageConverter<?>> aClass) {
     trimStringsOf(o);
     return o;
   }
 
   @Override
-  public Object handleEmptyBody(Object o, HttpInputMessage httpInputMessage, MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) {
+  public Object handleEmptyBody(
+      Object o,
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class<? extends HttpMessageConverter<?>> aClass) {
     return o;
   }
 
@@ -78,9 +112,11 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           }
         } else {
           try {
-            // trim everything in the registry model package (assume that Dataset resides in the correct package here)
+            // trim everything in the registry model package (assume that Dataset resides in the
+            // correct package here)
             Object property = wrapped.get(dynaProp.getName());
-            if (property != null && Dataset.class.getPackage() == property.getClass().getPackage()) {
+            if (property != null
+                && Dataset.class.getPackage() == property.getClass().getPackage()) {
               trimStringsOf(property, level + 1);
             }
 

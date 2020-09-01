@@ -1,14 +1,31 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.server.provider;
 
-import com.google.common.base.Strings;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.web.context.request.WebRequest;
+
+import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
@@ -22,7 +39,8 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_OFFSET;
  * This assumes the existence of the following parameters in the HTTP request:
  * 'page_size', 'offset', 'facet', 'q' and any of the search parameter enum member names case insensitively.
  */
-public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P extends Enum<?> & SearchParameter>
+public class FacetedSearchRequestProvider<
+        RT extends FacetedSearchRequest<P>, P extends Enum<?> & SearchParameter>
     extends SearchRequestProvider<RT, P> {
 
   private static final int DEFAULT_FACET_LIMIT = 10;
@@ -31,7 +49,8 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
     super(requestType, searchParameterClass);
   }
 
-  public FacetedSearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
+  public FacetedSearchRequestProvider(
+      Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
     super(requestType, searchParameterClass, maxPageSize);
   }
 
@@ -61,7 +80,10 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
       searchRequest.setFacetOffset(Integer.parseInt(facetOffset));
     }
 
-    final List<String> facets = params.get(PARAM_FACET) != null ? Arrays.asList(params.get(PARAM_FACET)) : Collections.emptyList();
+    final List<String> facets =
+        params.get(PARAM_FACET) != null
+            ? Arrays.asList(params.get(PARAM_FACET))
+            : Collections.emptyList();
     if (!facets.isEmpty()) {
       for (String f : facets) {
         P p = findSearchParam(f);
@@ -71,7 +93,8 @@ public class FacetedSearchRequestProvider<RT extends FacetedSearchRequest<P>, P 
           String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);
           if (pFacetLimit != null) {
             if (pFacetOffset != null) {
-              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
+              searchRequest.addFacetPage(
+                  p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
             } else {
               searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));
             }

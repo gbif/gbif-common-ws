@@ -1,19 +1,36 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.server.provider;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.springframework.web.context.request.WebRequest;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
@@ -26,7 +43,8 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
  * This assumes the existence of the following parameters in the HTTP request:
  * 'page_size', 'offset', 'q' and any of the search parameter enum member names case insensitively.
  */
-public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter> implements ContextProvider<RT> {
+public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter>
+    implements ContextProvider<RT> {
 
   private static final int MAX_PAGE_SIZE = 1000;
   private static final int NON_SPELL_CHECK_COUNT = -1;
@@ -41,7 +59,8 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     this.maxPageSize = MAX_PAGE_SIZE;
   }
 
-  public SearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
+  public SearchRequestProvider(
+      Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
     this.requestType = requestType;
     this.searchParameterClass = searchParameterClass;
     this.maxPageSize = maxPageSize;
@@ -80,7 +99,8 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   /**
    * Override this method for populating specific search/suggest requests
    */
-  protected void getSearchRequestFromQueryParams(RT searchRequest, final Map<String, String[]> params) {
+  protected void getSearchRequestFromQueryParams(
+      RT searchRequest, final Map<String, String[]> params) {
     final String q = getFirst(params, PARAM_QUERY_STRING);
     final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);
     final String spellCheck = getFirst(params, PARAM_SPELLCHECK);
@@ -132,7 +152,8 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     for (Entry<String, String[]> entry : params.entrySet()) {
       P p = findSearchParam(entry.getKey());
       if (p != null) {
-        final List<String> list = entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
+        final List<String> list =
+            entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
         for (String val : removeEmptyParameters(list)) {
           // validate value for certain types
           SearchTypeValidator.validate(p, val);

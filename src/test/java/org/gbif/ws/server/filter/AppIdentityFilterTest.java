@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.server.filter;
 
 import org.gbif.ws.security.AppkeysConfigurationProperties;
@@ -5,6 +20,15 @@ import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.server.DelegatingServletInputStream;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.gbif.ws.util.SecurityConstants;
+
+import java.io.ByteArrayInputStream;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.FilterChain;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,13 +39,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
-
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -38,11 +55,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class AppIdentityFilterTest {
 
-  //initialize in setUp()
+  // initialize in setUp()
   private AppIdentityFilter appIdentityFilter;
 
-  @Mock
-  private GbifAuthService authServiceMock;
+  @Mock private GbifAuthService authServiceMock;
 
   private SecurityContext context;
 
@@ -70,8 +86,10 @@ public class AppIdentityFilterTest {
     FilterChain chain = mock(FilterChain.class);
 
     when(mockRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("GBIF appkey:blabla");
-    when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER)).thenReturn("myuser"); // user does not match appkey
-    when(mockRequest.getInputStream()).thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
+    when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER))
+        .thenReturn("myuser"); // user does not match appkey
+    when(mockRequest.getInputStream())
+        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
@@ -97,8 +115,10 @@ public class AppIdentityFilterTest {
     FilterChain chain = mock(FilterChain.class);
 
     when(mockRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("GBIF myuser:blabla");
-    when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER)).thenReturn("myuser"); // user does not match appkey
-    when(mockRequest.getInputStream()).thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
+    when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER))
+        .thenReturn("myuser"); // user does not match appkey
+    when(mockRequest.getInputStream())
+        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
@@ -125,7 +145,8 @@ public class AppIdentityFilterTest {
 
     when(mockRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("GBIF appkey:blabla");
     when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER)).thenReturn("appkey");
-    when(mockRequest.getInputStream()).thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
+    when(mockRequest.getInputStream())
+        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes())));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
@@ -135,7 +156,11 @@ public class AppIdentityFilterTest {
     assertNotNull(context.getAuthentication());
     assertEquals("appkey", context.getAuthentication().getName());
     assertNotNull(context.getAuthentication().getAuthorities());
-    assertEquals("APP", ((List<SimpleGrantedAuthority>) context.getAuthentication().getAuthorities()).get(0).getAuthority());
+    assertEquals(
+        "APP",
+        ((List<SimpleGrantedAuthority>) context.getAuthentication().getAuthorities())
+            .get(0)
+            .getAuthority());
     verify(mockRequest).getHeader(HttpHeaders.AUTHORIZATION);
     verify(mockRequest).getHeader(SecurityConstants.HEADER_GBIF_USER);
     verify(mockRequest, atLeastOnce()).getInputStream();
