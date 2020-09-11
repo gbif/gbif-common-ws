@@ -26,6 +26,8 @@ public final class OccurrencePaths {
 
   public static final String RECORDED_BY_PATH = "recordedBy";
 
+  public static final String IDENTIFIED_BY_PATH = "identifiedBy";
+
   public static final String RECORD_NUMBER_PATH = "recordNumber";
 
   public static final String CATALOG_NUMBER_PATH = "catalogNumber";
