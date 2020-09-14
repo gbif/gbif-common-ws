@@ -46,6 +46,12 @@ public final class OccurrencePaths {
 
   public static final String STATE_PROVINCE_PATH = "stateProvince";
 
+  public static final String SAMPLING_PROTOCOL_PATH = "samplingProtocol";
+
+  public static final String EVENT_ID_PATH = "eventId";
+
+  public static final String PARENT_EVENT_ID_PATH = "parentEventId";
+
   public static final String VERBATIM_PATH = "verbatim";
 
   public static final String FRAGMENT_PATH = "fragment";
