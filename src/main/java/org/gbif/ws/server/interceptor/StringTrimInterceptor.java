@@ -15,7 +15,6 @@
  */
 package org.gbif.ws.server.interceptor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.annotation.Trim;
 import org.gbif.api.model.registry.Dataset;
 
@@ -25,6 +24,7 @@ import java.lang.reflect.Type;
 import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.beanutils.WrapDynaBean;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -108,9 +108,11 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           String orig = (String) wrapped.get(prop);
           if (orig != null) {
             String trimmed = Strings.emptyToNull(orig.trim());
-            String withoutControlChars = StringUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
+            String withoutControlChars =
+                StringUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
             if (!Objects.equal(orig, withoutControlChars)) {
-              LOG.debug("Overriding value of [{}] from [{}] to [{}]", prop, orig, withoutControlChars);
+              LOG.debug(
+                  "Overriding value of [{}] from [{}] to [{}]", prop, orig, withoutControlChars);
               wrapped.set(prop, withoutControlChars);
             }
           }
