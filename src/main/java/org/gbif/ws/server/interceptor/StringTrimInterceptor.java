@@ -15,6 +15,7 @@
  */
 package org.gbif.ws.server.interceptor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.annotation.Trim;
 import org.gbif.api.model.registry.Dataset;
 
@@ -47,8 +48,10 @@ import com.google.common.base.Strings;
 public class StringTrimInterceptor implements RequestBodyAdvice {
 
   private static final Logger LOG = LoggerFactory.getLogger(StringTrimInterceptor.class);
-  private static final int MAX_RECURSION =
-      5; // only goes 5 levels deep to stop potential circular loops
+
+  // only goes 5 levels deep to stop potential circular loops
+  private static final int MAX_RECURSION = 5;
+  private static final String REGEX_INVISIBLE_CONTROL_CHARS = "\\p{C}";
 
   @Override
   public boolean supports(
@@ -105,9 +108,10 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           String orig = (String) wrapped.get(prop);
           if (orig != null) {
             String trimmed = Strings.emptyToNull(orig.trim());
-            if (!Objects.equal(orig, trimmed)) {
-              LOG.debug("Overriding value of [{}] from [{}] to [{}]", prop, orig, trimmed);
-              wrapped.set(prop, trimmed);
+            String withoutControlChars = StringUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
+            if (!Objects.equal(orig, withoutControlChars)) {
+              LOG.debug("Overriding value of [{}] from [{}] to [{}]", prop, orig, withoutControlChars);
+              wrapped.set(prop, withoutControlChars);
             }
           }
         } else {
