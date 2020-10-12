@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Assert.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util.spring</a> &gt; <span class="el_source">Assert.java</span></div><h1>Assert.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
  *
- * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.gbif.ws.util.spring;
 
 import com.google.common.base.Strings;
@@ -44,7 +43,7 @@ import com.google.common.base.Strings;
  * @author Rob Harrop
  * @since 1.1.2
  */
-<span class="nc" id="L47">public abstract class Assert {</span>
+<span class="nc" id="L46">public abstract class Assert {</span>
 
   /**
    * Assert a boolean expression, throwing &lt;code&gt;IllegalArgumentException&lt;/code&gt;
@@ -57,10 +56,10 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if expression is &lt;code&gt;false&lt;/code&gt;
    */
   public static void isTrue(boolean expression, String message) {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">    if (!expression) {</span>
-<span class="nc" id="L61">      throw new IllegalArgumentException(message);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (!expression) {</span>
+<span class="nc" id="L60">      throw new IllegalArgumentException(message);</span>
     }
-<span class="nc" id="L63">  }</span>
+<span class="nc" id="L62">  }</span>
 
   /**
    * Assert a boolean expression, throwing &lt;code&gt;IllegalArgumentException&lt;/code&gt;
@@ -72,8 +71,8 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if expression is &lt;code&gt;false&lt;/code&gt;
    */
   public static void isTrue(boolean expression) {
-<span class="nc" id="L75">    isTrue(expression, &quot;[Assertion failed] - this expression must be true&quot;);</span>
-<span class="nc" id="L76">  }</span>
+<span class="nc" id="L74">    isTrue(expression, &quot;[Assertion failed] - this expression must be true&quot;);</span>
+<span class="nc" id="L75">  }</span>
 
   /**
    * Assert that an object is &lt;code&gt;null&lt;/code&gt; .
@@ -85,10 +84,10 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if the object is not &lt;code&gt;null&lt;/code&gt;
    */
   public static void isNull(Object object, String message) {
-<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (object != null) {</span>
-<span class="nc" id="L89">      throw new IllegalArgumentException(message);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    if (object != null) {</span>
+<span class="nc" id="L88">      throw new IllegalArgumentException(message);</span>
     }
-<span class="nc" id="L91">  }</span>
+<span class="nc" id="L90">  }</span>
 
   /**
    * Assert that an object is &lt;code&gt;null&lt;/code&gt; .
@@ -99,8 +98,8 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if the object is not &lt;code&gt;null&lt;/code&gt;
    */
   public static void isNull(Object object) {
-<span class="nc" id="L102">    isNull(object, &quot;[Assertion failed] - the object argument must be null&quot;);</span>
-<span class="nc" id="L103">  }</span>
+<span class="nc" id="L101">    isNull(object, &quot;[Assertion failed] - the object argument must be null&quot;);</span>
+<span class="nc" id="L102">  }</span>
 
   /**
    * Assert that an object is not &lt;code&gt;null&lt;/code&gt; .
@@ -112,10 +111,10 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if the object is &lt;code&gt;null&lt;/code&gt;
    */
   public static void notNull(Object object, String message) {
-<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (object == null) {</span>
-<span class="nc" id="L116">      throw new IllegalArgumentException(message);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (object == null) {</span>
+<span class="nc" id="L115">      throw new IllegalArgumentException(message);</span>
     }
-<span class="nc" id="L118">  }</span>
+<span class="nc" id="L117">  }</span>
 
   /**
    * Assert that an object is not &lt;code&gt;null&lt;/code&gt; .
@@ -126,9 +125,8 @@ import com.google.common.base.Strings;
    * @throws IllegalArgumentException if the object is &lt;code&gt;null&lt;/code&gt;
    */
   public static void notNull(Object object) {
-<span class="nc" id="L129">    notNull(object, &quot;[Assertion failed] - this argument is required; it must not be null&quot;);</span>
-<span class="nc" id="L130">  }</span>
-
+<span class="nc" id="L128">    notNull(object, &quot;[Assertion failed] - this argument is required; it must not be null&quot;);</span>
+<span class="nc" id="L129">  }</span>
 
   /**
    * Assert that the given String has valid text content; that is, it must not
@@ -139,10 +137,10 @@ import com.google.common.base.Strings;
    * @param message the exception message to use if the assertion fails
    */
   public static void hasText(String text, String message) {
-<span class="nc bnc" id="L142" title="All 2 branches missed.">    if (Strings.isNullOrEmpty(text)) {</span>
-<span class="nc" id="L143">      throw new IllegalArgumentException(message);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">    if (Strings.isNullOrEmpty(text)) {</span>
+<span class="nc" id="L141">      throw new IllegalArgumentException(message);</span>
     }
-<span class="nc" id="L145">  }</span>
+<span class="nc" id="L143">  }</span>
 
   /**
    * Assert that the given String has valid text content; that is, it must not
@@ -152,10 +150,9 @@ import com.google.common.base.Strings;
    * @param text the String to check
    */
   public static void hasText(String text) {
-<span class="nc" id="L155">    hasText(text,</span>
-      &quot;[Assertion failed] - this String argument must have text; it must not be &lt;code&gt;null&lt;/code&gt;, empty, or blank&quot;);
-<span class="nc" id="L157">  }</span>
-
-
+<span class="nc" id="L153">    hasText(</span>
+        text,
+        &quot;[Assertion failed] - this String argument must have text; it must not be &lt;code&gt;null&lt;/code&gt;, empty, or blank&quot;);
+<span class="nc" id="L156">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

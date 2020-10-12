@@ -1,4 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">ClientBuilder.java</span></div><h1>ClientBuilder.java</h1><pre class="source lang-java linenums">package org.gbif.ws.client;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">ClientBuilder.java</span></div><h1>ClientBuilder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.client;
 
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.Md5EncodeService;
@@ -11,7 +26,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
@@ -28,13 +52,6 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.client.HttpClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ClientBuilder used to create Feign Clients.
@@ -45,8 +62,8 @@ public class ClientBuilder {
   private static final String HTTP_PROTOCOL = &quot;http&quot;;
   private static final String HTTPS_PROTOCOL = &quot;https&quot;;
 
-<span class="nc" id="L48">  private static final RetryRegistry RETRY_REGISTRY = RetryRegistry.ofDefaults();</span>
-<span class="nc" id="L49">  private static final Logger LOG = LoggerFactory.getLogger(ClientBuilder.class);</span>
+<span class="nc" id="L65">  private static final RetryRegistry RETRY_REGISTRY = RetryRegistry.ofDefaults();</span>
+<span class="nc" id="L66">  private static final Logger LOG = LoggerFactory.getLogger(ClientBuilder.class);</span>
 
   private String url;
   private RequestInterceptor requestInterceptor;
@@ -56,83 +73,92 @@ public class ClientBuilder {
   private RetryConfig retryConfig;
   private ObjectMapper objectMapper;
 
-<span class="nc" id="L59">  private final ErrorDecoder errorDecoder = new ClientErrorDecoder();</span>
-<span class="nc" id="L60">  private final Contract contract = new ClientContract();</span>
-<span class="nc" id="L61">  private final InvocationHandlerFactory invocationHandlerFactory = new ClientInvocationHandlerFactory();</span>
+<span class="nc" id="L76">  private final ErrorDecoder errorDecoder = new ClientErrorDecoder();</span>
+<span class="nc" id="L77">  private final Contract contract = new ClientContract();</span>
+<span class="nc" id="L78">  private final InvocationHandlerFactory invocationHandlerFactory =</span>
+      new ClientInvocationHandlerFactory();
 
   /**
    * Creates a builder instance, by default uses the GBIF Jackson ObjectMapper.
    */
-<span class="nc" id="L66">  public ClientBuilder() {</span>
-<span class="nc" id="L67">    withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapper());</span>
-<span class="nc" id="L68">  }</span>
+<span class="nc" id="L84">  public ClientBuilder() {</span>
+<span class="nc" id="L85">    withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapper());</span>
+<span class="nc" id="L86">  }</span>
 
   /**
    * Exponential backoff retry configuration.
    */
-  public ClientBuilder withExponentialBackoffRetry(Duration initialInterval, double multiplier, int maxAttempts) {
-<span class="nc" id="L74">    retryConfig = RetryConfig.custom()</span>
-<span class="nc" id="L75">                              .maxAttempts(maxAttempts)</span>
-<span class="nc" id="L76">                              .intervalFunction(IntervalFunction.ofExponentialBackoff(initialInterval, multiplier))</span>
-<span class="nc" id="L77">                              .build();</span>
-<span class="nc" id="L78">    return this;</span>
+  public ClientBuilder withExponentialBackoffRetry(
+      Duration initialInterval, double multiplier, int maxAttempts) {
+<span class="nc" id="L93">    retryConfig =</span>
+<span class="nc" id="L94">        RetryConfig.custom()</span>
+<span class="nc" id="L95">            .maxAttempts(maxAttempts)</span>
+<span class="nc" id="L96">            .intervalFunction(IntervalFunction.ofExponentialBackoff(initialInterval, multiplier))</span>
+<span class="nc" id="L97">            .build();</span>
+<span class="nc" id="L98">    return this;</span>
   }
 
   /**
    * Target base url.
    */
   public ClientBuilder withUrl(String url) {
-<span class="nc" id="L85">    this.url = url;</span>
-<span class="nc" id="L86">    return this;</span>
+<span class="nc" id="L105">    this.url = url;</span>
+<span class="nc" id="L106">    return this;</span>
   }
 
   /**
    * Simple base credentials.
    */
   public ClientBuilder withCredentials(String username, String password) {
-<span class="nc" id="L93">    this.requestInterceptor = new SimpleUserAuthRequestInterceptor(username, password);</span>
-<span class="nc" id="L94">    return this;</span>
+<span class="nc" id="L113">    this.requestInterceptor = new SimpleUserAuthRequestInterceptor(username, password);</span>
+<span class="nc" id="L114">    return this;</span>
   }
 
   /**
    * Custom AppKey credentials.
    */
   public ClientBuilder withAppKeyCredentials(String username, String appKey, String secretKey) {
-<span class="nc" id="L101">    this.requestInterceptor =</span>
-      new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService(),
-                                     new Md5EncodeServiceImpl(objectMapper));
-<span class="nc" id="L104">    return this;</span>
+<span class="nc" id="L121">    this.requestInterceptor =</span>
+        new GbifAuthRequestInterceptor(
+            username,
+            appKey,
+            secretKey,
+            new SecretKeySigningService(),
+            new Md5EncodeServiceImpl(objectMapper));
+<span class="nc" id="L128">    return this;</span>
   }
 
   /**
    * Connection pool configuration to create a multithreaded client.
    */
   public ClientBuilder withConnectionPoolConfig(ConnectionPoolConfig connectionPoolConfig) {
-<span class="nc" id="L111">    this.connectionPoolConfig = connectionPoolConfig;</span>
-<span class="nc" id="L112">    return this;</span>
+<span class="nc" id="L135">    this.connectionPoolConfig = connectionPoolConfig;</span>
+<span class="nc" id="L136">    return this;</span>
   }
 
   /**
    * Jakcson ObjectMapper used to serialize JSON data.
    */
   public ClientBuilder withObjectMapper(ObjectMapper objectMapper) {
-<span class="nc" id="L119">    this.objectMapper = objectMapper;</span>
-<span class="nc" id="L120">    this.encoder = new ClientEncoder(objectMapper);</span>
-<span class="nc" id="L121">    this.decoder = new ClientDecoder(objectMapper);</span>
-<span class="nc" id="L122">    return this;</span>
+<span class="nc" id="L143">    this.objectMapper = objectMapper;</span>
+<span class="nc" id="L144">    this.encoder = new ClientEncoder(objectMapper);</span>
+<span class="nc" id="L145">    this.decoder = new ClientDecoder(objectMapper);</span>
+<span class="nc" id="L146">    return this;</span>
   }
 
   /**
    * Custom GBIF authentication.
    */
-  public ClientBuilder withCustomGbifAuth(String username,
-                                          String appKey,
-                                          String secretKey,
-                                          SigningService signingService,
-                                          Md5EncodeService md5EncodeService) {
-<span class="nc" id="L133">    this.requestInterceptor =</span>
-      new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService, md5EncodeService);
-<span class="nc" id="L135">    return this;</span>
+  public ClientBuilder withCustomGbifAuth(
+      String username,
+      String appKey,
+      String secretKey,
+      SigningService signingService,
+      Md5EncodeService md5EncodeService) {
+<span class="nc" id="L158">    this.requestInterceptor =</span>
+        new GbifAuthRequestInterceptor(
+            username, appKey, secretKey, signingService, md5EncodeService);
+<span class="nc" id="L161">    return this;</span>
   }
 
   /**
@@ -140,39 +166,36 @@ public class ClientBuilder {
    */
   public &lt;T&gt; T build(Class&lt;T&gt; clazz) {
 
-<span class="nc" id="L143">    Feign.Builder builder = Feign.builder();</span>
+<span class="nc" id="L169">    Feign.Builder builder = Feign.builder();</span>
 
-<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (Objects.nonNull(retryConfig)) {</span>
-<span class="nc" id="L146">      Retry retry = RETRY_REGISTRY.retry(clazz.getName(), retryConfig);</span>
-      //logging
-<span class="nc" id="L148">      retry.getEventPublisher().onError(event -&gt; LOG.error(event.toString()));</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (Objects.nonNull(retryConfig)) {</span>
+<span class="nc" id="L172">      Retry retry = RETRY_REGISTRY.retry(clazz.getName(), retryConfig);</span>
+      // logging
+<span class="nc" id="L174">      retry.getEventPublisher().onError(event -&gt; LOG.error(event.toString()));</span>
 
-      FeignDecorators decorators = FeignDecorators
-<span class="nc" id="L151">                                    .builder()</span>
-<span class="nc" id="L152">                                    .withRetry(retry)</span>
-<span class="nc" id="L153">                                    .build();</span>
+<span class="nc" id="L176">      FeignDecorators decorators = FeignDecorators.builder().withRetry(retry).build();</span>
 
-<span class="nc" id="L155">      builder = Resilience4jFeign.builder(decorators);</span>
+<span class="nc" id="L178">      builder = Resilience4jFeign.builder(decorators);</span>
 
-<span class="nc" id="L157">    } else {</span>
-      //Feign builder do not support invocation handler
-<span class="nc" id="L159">      builder.invocationHandlerFactory(invocationHandlerFactory);</span>
+<span class="nc" id="L180">    } else {</span>
+      // Feign builder do not support invocation handler
+<span class="nc" id="L182">      builder.invocationHandlerFactory(invocationHandlerFactory);</span>
     }
 
-<span class="nc" id="L162">    builder</span>
-<span class="nc" id="L163">      .encoder(encoder)</span>
-<span class="nc" id="L164">      .decoder(decoder)</span>
-<span class="nc" id="L165">      .errorDecoder(errorDecoder)</span>
-<span class="nc" id="L166">      .contract(contract)</span>
-<span class="nc" id="L167">      .decode404();</span>
+<span class="nc" id="L185">    builder</span>
+<span class="nc" id="L186">        .encoder(encoder)</span>
+<span class="nc" id="L187">        .decoder(decoder)</span>
+<span class="nc" id="L188">        .errorDecoder(errorDecoder)</span>
+<span class="nc" id="L189">        .contract(contract)</span>
+<span class="nc" id="L190">        .decode404();</span>
 
-<span class="nc bnc" id="L169" title="All 2 branches missed.">    if (requestInterceptor != null) {</span>
-<span class="nc" id="L170">      builder.requestInterceptor(requestInterceptor);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">    if (requestInterceptor != null) {</span>
+<span class="nc" id="L193">      builder.requestInterceptor(requestInterceptor);</span>
     }
-<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (connectionPoolConfig != null) {</span>
-<span class="nc" id="L173">      builder.client(new ApacheHttpClient(newMultithreadedClient(connectionPoolConfig)));</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">    if (connectionPoolConfig != null) {</span>
+<span class="nc" id="L196">      builder.client(new ApacheHttpClient(newMultithreadedClient(connectionPoolConfig)));</span>
     }
-<span class="nc" id="L175">    return builder.target(clazz, url);</span>
+<span class="nc" id="L198">    return builder.target(clazz, url);</span>
   }
 
   /**
@@ -180,24 +203,29 @@ public class ClientBuilder {
    */
   private static HttpClient newMultithreadedClient(ConnectionPoolConfig connectionPoolConfig) {
 
-<span class="nc" id="L183">    return HttpClients.custom()</span>
-<span class="nc" id="L184">            .setMaxConnTotal(connectionPoolConfig.getMaxConnections())</span>
-<span class="nc" id="L185">            .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())</span>
-<span class="nc" id="L186">            .setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())</span>
-<span class="nc" id="L187">            .setDefaultConnectionConfig(ConnectionConfig.custom().setCharset(Charset.forName(StandardCharsets.UTF_8.name())).build())</span>
-<span class="nc" id="L188">            .setDefaultRequestConfig(RequestConfig.custom().setConnectTimeout(connectionPoolConfig.getTimeout())</span>
-<span class="nc" id="L189">                                       .setConnectionRequestTimeout(connectionPoolConfig.getTimeout()).build())</span>
-<span class="nc" id="L190">            .build();</span>
+<span class="nc" id="L206">    return HttpClients.custom()</span>
+<span class="nc" id="L207">        .setMaxConnTotal(connectionPoolConfig.getMaxConnections())</span>
+<span class="nc" id="L208">        .setMaxConnPerRoute(connectionPoolConfig.getMaxPerRoute())</span>
+<span class="nc" id="L209">        .setDefaultSocketConfig(</span>
+<span class="nc" id="L210">            SocketConfig.custom().setSoTimeout(connectionPoolConfig.getTimeout()).build())</span>
+<span class="nc" id="L211">        .setDefaultConnectionConfig(</span>
+<span class="nc" id="L212">            ConnectionConfig.custom()</span>
+<span class="nc" id="L213">                .setCharset(Charset.forName(StandardCharsets.UTF_8.name()))</span>
+<span class="nc" id="L214">                .build())</span>
+<span class="nc" id="L215">        .setDefaultRequestConfig(</span>
+<span class="nc" id="L216">            RequestConfig.custom()</span>
+<span class="nc" id="L217">                .setConnectTimeout(connectionPoolConfig.getTimeout())</span>
+<span class="nc" id="L218">                .setConnectionRequestTimeout(connectionPoolConfig.getTimeout())</span>
+<span class="nc" id="L219">                .build())</span>
+<span class="nc" id="L220">        .build();</span>
   }
 
-
-<span class="nc bnc" id="L194" title="All 30 branches missed.">  @Data</span>
-<span class="nc" id="L195">  @Builder</span>
+<span class="nc bnc" id="L223" title="All 30 branches missed.">  @Data</span>
+<span class="nc" id="L224">  @Builder</span>
   public static class ConnectionPoolConfig {
-<span class="nc" id="L197">    private final Integer timeout;</span>
-<span class="nc" id="L198">    private final Integer maxConnections;</span>
-<span class="nc" id="L199">    private final Integer maxPerRoute;</span>
+<span class="nc" id="L226">    private final Integer timeout;</span>
+<span class="nc" id="L227">    private final Integer maxConnections;</span>
+<span class="nc" id="L228">    private final Integer maxPerRoute;</span>
   }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

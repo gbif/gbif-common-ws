@@ -1,42 +1,59 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PartialDateExpander.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">PartialDateExpander.java</span></div><h1>PartialDateExpander.java</h1><pre class="source lang-java linenums">package org.gbif.ws.client;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PartialDateExpander.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">PartialDateExpander.java</span></div><h1>PartialDateExpander.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.client;
 
-import feign.Param;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import feign.Param;
 
 /**
  * Convert date string from the default {@link Date} format to custom 'yyyy-MM'.
  */
-<span class="nc" id="L13">public class PartialDateExpander implements Param.Expander {</span>
+<span class="nc" id="L30">public class PartialDateExpander implements Param.Expander {</span>
 
-<span class="nc" id="L15">  private static final Logger LOG = LoggerFactory.getLogger(PartialDateExpander.class);</span>
+<span class="nc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(PartialDateExpander.class);</span>
 
   private static final String UTIL_DATE_FORMAT_PATTERN = &quot;EEE MMM dd HH:mm:ss zzz yyyy&quot;;
-<span class="nc" id="L18">  private static final SimpleDateFormat UTIL_DATE_FORMAT =</span>
+<span class="nc" id="L35">  private static final SimpleDateFormat UTIL_DATE_FORMAT =</span>
       new SimpleDateFormat(UTIL_DATE_FORMAT_PATTERN);
   private static final String CUSTOM_DATE_FORMAT_PATTERN = &quot;yyyy-MM&quot;;
-<span class="nc" id="L21">  private static final SimpleDateFormat CUSTOM_DATE_FORMAT =</span>
+<span class="nc" id="L38">  private static final SimpleDateFormat CUSTOM_DATE_FORMAT =</span>
       new SimpleDateFormat(CUSTOM_DATE_FORMAT_PATTERN);
 
   @Override
   public String expand(Object value) {
-<span class="nc" id="L26">    return convertDate(value);</span>
+<span class="nc" id="L43">    return convertDate(value);</span>
   }
 
   private String convertDate(Object rawDate) {
     Date utilDate;
 
     try {
-<span class="nc" id="L33">      utilDate = UTIL_DATE_FORMAT.parse(rawDate.toString());</span>
-<span class="nc" id="L34">    } catch (ParseException e) {</span>
-<span class="nc" id="L35">      LOG.error(&quot;Wrong date format {}. Expected format: {}&quot;, rawDate, UTIL_DATE_FORMAT_PATTERN);</span>
-<span class="nc" id="L36">      return null;</span>
-<span class="nc" id="L37">    }</span>
+<span class="nc" id="L50">      utilDate = UTIL_DATE_FORMAT.parse(rawDate.toString());</span>
+<span class="nc" id="L51">    } catch (ParseException e) {</span>
+<span class="nc" id="L52">      LOG.error(&quot;Wrong date format {}. Expected format: {}&quot;, rawDate, UTIL_DATE_FORMAT_PATTERN);</span>
+<span class="nc" id="L53">      return null;</span>
+<span class="nc" id="L54">    }</span>
 
-<span class="nc" id="L39">    return CUSTOM_DATE_FORMAT.format(utilDate);</span>
+<span class="nc" id="L56">    return CUSTOM_DATE_FORMAT.format(utilDate);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

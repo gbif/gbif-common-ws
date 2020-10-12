@@ -1,19 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchRequestProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.provider</a> &gt; <span class="el_source">SearchRequestProvider.java</span></div><h1>SearchRequestProvider.java</h1><pre class="source lang-java linenums">package org.gbif.ws.server.provider;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchRequestProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.provider</a> &gt; <span class="el_source">SearchRequestProvider.java</span></div><h1>SearchRequestProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.server.provider;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.springframework.web.context.request.WebRequest;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
@@ -26,7 +43,8 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
  * This assumes the existence of the following parameters in the HTTP request:
  * 'page_size', 'offset', 'q' and any of the search parameter enum member names case insensitively.
  */
-public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P extends Enum&lt;?&gt; &amp; SearchParameter&gt; implements ContextProvider&lt;RT&gt; {
+public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P extends Enum&lt;?&gt; &amp; SearchParameter&gt;
+    implements ContextProvider&lt;RT&gt; {
 
   private static final int MAX_PAGE_SIZE = 1000;
   private static final int NON_SPELL_CHECK_COUNT = -1;
@@ -35,92 +53,94 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
   private final Class&lt;RT&gt; requestType;
   private final Integer maxPageSize;
 
-<span class="nc" id="L38">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {</span>
-<span class="nc" id="L39">    this.requestType = requestType;</span>
-<span class="nc" id="L40">    this.searchParameterClass = searchParameterClass;</span>
-<span class="nc" id="L41">    this.maxPageSize = MAX_PAGE_SIZE;</span>
-<span class="nc" id="L42">  }</span>
+<span class="nc" id="L56">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {</span>
+<span class="nc" id="L57">    this.requestType = requestType;</span>
+<span class="nc" id="L58">    this.searchParameterClass = searchParameterClass;</span>
+<span class="nc" id="L59">    this.maxPageSize = MAX_PAGE_SIZE;</span>
+<span class="nc" id="L60">  }</span>
 
-<span class="nc" id="L44">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {</span>
-<span class="nc" id="L45">    this.requestType = requestType;</span>
-<span class="nc" id="L46">    this.searchParameterClass = searchParameterClass;</span>
-<span class="nc" id="L47">    this.maxPageSize = maxPageSize;</span>
-<span class="nc" id="L48">  }</span>
+  public SearchRequestProvider(
+<span class="nc" id="L63">      Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {</span>
+<span class="nc" id="L64">    this.requestType = requestType;</span>
+<span class="nc" id="L65">    this.searchParameterClass = searchParameterClass;</span>
+<span class="nc" id="L66">    this.maxPageSize = maxPageSize;</span>
+<span class="nc" id="L67">  }</span>
 
   @Override
   public RT getValue(WebRequest webRequest) {
     try {
-<span class="nc" id="L53">      RT req = requestType.newInstance();</span>
-<span class="nc" id="L54">      return getSearchRequest(webRequest, req);</span>
-<span class="nc" id="L55">    } catch (InstantiationException | IllegalAccessException e) {</span>
+<span class="nc" id="L72">      RT req = requestType.newInstance();</span>
+<span class="nc" id="L73">      return getSearchRequest(webRequest, req);</span>
+<span class="nc" id="L74">    } catch (InstantiationException | IllegalAccessException e) {</span>
       // should never happen
-<span class="nc" id="L57">      throw new CommonRuntimeException(e);</span>
+<span class="nc" id="L76">      throw new CommonRuntimeException(e);</span>
     }
   }
 
   protected P findSearchParam(String name) {
     try {
-<span class="nc" id="L63">      return VocabularyUtils.lookupEnum(name, searchParameterClass);</span>
-<span class="nc" id="L64">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L82">      return VocabularyUtils.lookupEnum(name, searchParameterClass);</span>
+<span class="nc" id="L83">    } catch (IllegalArgumentException e) {</span>
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }
-<span class="nc" id="L67">    return null;</span>
+<span class="nc" id="L86">    return null;</span>
   }
 
   protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {
-<span class="nc" id="L71">    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));</span>
+<span class="nc" id="L90">    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));</span>
 
-<span class="nc" id="L73">    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
+<span class="nc" id="L92">    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
 
-<span class="nc" id="L75">    getSearchRequestFromQueryParams(searchRequest, params);</span>
+<span class="nc" id="L94">    getSearchRequestFromQueryParams(searchRequest, params);</span>
 
-<span class="nc" id="L77">    return searchRequest;</span>
+<span class="nc" id="L96">    return searchRequest;</span>
   }
 
   /**
    * Override this method for populating specific search/suggest requests
    */
-  protected void getSearchRequestFromQueryParams(RT searchRequest, final Map&lt;String, String[]&gt; params) {
-<span class="nc" id="L84">    final String q = getFirst(params, PARAM_QUERY_STRING);</span>
-<span class="nc" id="L85">    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);</span>
-<span class="nc" id="L86">    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);</span>
-<span class="nc" id="L87">    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);</span>
+  protected void getSearchRequestFromQueryParams(
+      RT searchRequest, final Map&lt;String, String[]&gt; params) {
+<span class="nc" id="L104">    final String q = getFirst(params, PARAM_QUERY_STRING);</span>
+<span class="nc" id="L105">    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);</span>
+<span class="nc" id="L106">    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);</span>
+<span class="nc" id="L107">    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);</span>
 
-<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(q)) {</span>
-<span class="nc" id="L90">      searchRequest.setQ(q);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(q)) {</span>
+<span class="nc" id="L110">      searchRequest.setQ(q);</span>
     }
 
-<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(highlightValue)) {</span>
-<span class="nc" id="L94">      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(highlightValue)) {</span>
+<span class="nc" id="L114">      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));</span>
     }
 
-<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheck)) {</span>
-<span class="nc" id="L98">      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheck)) {</span>
+<span class="nc" id="L118">      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));</span>
     }
 
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheckCount)) {</span>
-<span class="nc" id="L102">      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">    if (!Strings.isNullOrEmpty(spellCheckCount)) {</span>
+<span class="nc" id="L122">      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));</span>
     } else {
-<span class="nc" id="L104">      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);</span>
+<span class="nc" id="L124">      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);</span>
     }
 
     // find search parameter enum based filters
-<span class="nc" id="L108">    setSearchParams(searchRequest, params);</span>
-<span class="nc" id="L109">  }</span>
+<span class="nc" id="L128">    setSearchParams(searchRequest, params);</span>
+<span class="nc" id="L129">  }</span>
 
   /**
    * Removes all empty and null parameters from the list.
    * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
    */
   private static List&lt;String&gt; removeEmptyParameters(List&lt;String&gt; parameters) {
-<span class="nc" id="L116">    List&lt;String&gt; cleanParameters = Lists.newArrayListWithCapacity(parameters.size());</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">    for (String param : parameters) {</span>
-<span class="nc" id="L118">      String cleanParam = Strings.nullToEmpty(param).trim();</span>
-<span class="nc bnc" id="L119" title="All 2 branches missed.">      if (!cleanParam.isEmpty()) {</span>
-<span class="nc" id="L120">        cleanParameters.add(cleanParam);</span>
+<span class="nc" id="L136">    List&lt;String&gt; cleanParameters = Lists.newArrayListWithCapacity(parameters.size());</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    for (String param : parameters) {</span>
+<span class="nc" id="L138">      String cleanParam = Strings.nullToEmpty(param).trim();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">      if (!cleanParam.isEmpty()) {</span>
+<span class="nc" id="L140">        cleanParameters.add(cleanParam);</span>
       }
-<span class="nc" id="L122">    }</span>
-<span class="nc" id="L123">    return cleanParameters;</span>
+<span class="nc" id="L142">    }</span>
+<span class="nc" id="L143">    return cleanParameters;</span>
   }
 
   /**
@@ -129,17 +149,18 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
    * Empty (of all size) and null parameters are discarded.
    */
   private void setSearchParams(RT searchRequest, Map&lt;String, String[]&gt; params) {
-<span class="nc bnc" id="L132" title="All 2 branches missed.">    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {</span>
-<span class="nc" id="L133">      P p = findSearchParam(entry.getKey());</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">      if (p != null) {</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        final List&lt;String&gt; list = entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (String val : removeEmptyParameters(list)) {</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {</span>
+<span class="nc" id="L153">      P p = findSearchParam(entry.getKey());</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">      if (p != null) {</span>
+        final List&lt;String&gt; list =
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        for (String val : removeEmptyParameters(list)) {</span>
           // validate value for certain types
-<span class="nc" id="L138">          SearchTypeValidator.validate(p, val);</span>
-<span class="nc" id="L139">          searchRequest.addParameter(p, val);</span>
-<span class="nc" id="L140">        }</span>
+<span class="nc" id="L159">          SearchTypeValidator.validate(p, val);</span>
+<span class="nc" id="L160">          searchRequest.addParameter(p, val);</span>
+<span class="nc" id="L161">        }</span>
       }
-<span class="nc" id="L142">    }</span>
-<span class="nc" id="L143">  }</span>
+<span class="nc" id="L163">    }</span>
+<span class="nc" id="L164">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

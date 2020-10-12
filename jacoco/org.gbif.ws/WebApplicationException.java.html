@@ -1,4 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebApplicationException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws</a> &gt; <span class="el_source">WebApplicationException.java</span></div><h1>WebApplicationException.java</h1><pre class="source lang-java linenums">package org.gbif.ws;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebApplicationException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws</a> &gt; <span class="el_source">WebApplicationException.java</span></div><h1>WebApplicationException.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020 Global Biodiversity Information Facility (GBIF)
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,35 +39,35 @@ public class WebApplicationException extends RuntimeException {
    * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, Integer status) {
-<span class="nc" id="L27">    super(message);</span>
-<span class="nc" id="L28">    this.status = status;</span>
-<span class="nc" id="L29">    this.contentType = MediaType.TEXT_PLAIN;</span>
-<span class="nc" id="L30">  }</span>
+<span class="nc" id="L42">    super(message);</span>
+<span class="nc" id="L43">    this.status = status;</span>
+<span class="nc" id="L44">    this.contentType = MediaType.TEXT_PLAIN;</span>
+<span class="nc" id="L45">  }</span>
 
   /**
    * Construct a new instance with a message, and an HTTP status code.
    */
   public WebApplicationException(String message, HttpStatus status) {
-<span class="fc" id="L36">    super(message);</span>
-<span class="fc" id="L37">    this.status = status.value();</span>
-<span class="fc" id="L38">    this.contentType = MediaType.TEXT_PLAIN;</span>
-<span class="fc" id="L39">  }</span>
+<span class="fc" id="L51">    super(message);</span>
+<span class="fc" id="L52">    this.status = status.value();</span>
+<span class="fc" id="L53">    this.contentType = MediaType.TEXT_PLAIN;</span>
+<span class="fc" id="L54">  }</span>
 
   /**
    * Construct a new instance with a message, an HTTP status code, and content media type.
    */
   public WebApplicationException(String message, HttpStatus status, MediaType contentType) {
-<span class="nc" id="L45">    super(message);</span>
-<span class="nc" id="L46">    this.status = status.value();</span>
-<span class="nc" id="L47">    this.contentType = contentType;</span>
-<span class="nc" id="L48">  }</span>
+<span class="nc" id="L60">    super(message);</span>
+<span class="nc" id="L61">    this.status = status.value();</span>
+<span class="nc" id="L62">    this.contentType = contentType;</span>
+<span class="nc" id="L63">  }</span>
 
   public Integer getStatus() {
-<span class="fc" id="L51">    return status;</span>
+<span class="fc" id="L66">    return status;</span>
   }
 
   public MediaType getContentType() {
-<span class="nc" id="L55">    return contentType;</span>
+<span class="nc" id="L70">    return contentType;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
