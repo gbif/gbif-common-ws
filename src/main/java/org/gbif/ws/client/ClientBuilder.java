@@ -24,32 +24,25 @@ import org.gbif.ws.security.SigningService;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Objects;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.HttpClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
+import feign.Request;
+import feign.Retryer;
 import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
 import feign.httpclient.ApacheHttpClient;
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.feign.FeignDecorators;
-import io.github.resilience4j.feign.Resilience4jFeign;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
 import lombok.Builder;
 import lombok.Data;
 
@@ -57,21 +50,21 @@ import lombok.Data;
  * ClientBuilder used to create Feign Clients.
  * This builders support retry using exponential backoff and multithreaded http client.
  */
+@SuppressWarnings("unused")
 public class ClientBuilder {
 
   private static final String HTTP_PROTOCOL = "http";
   private static final String HTTPS_PROTOCOL = "https";
 
-  private static final RetryRegistry RETRY_REGISTRY = RetryRegistry.ofDefaults();
-  private static final Logger LOG = LoggerFactory.getLogger(ClientBuilder.class);
-
   private String url;
+  private int connectTimeoutMillis = 10_000;
+  private int readTimeoutMillis = 60_000;
   private RequestInterceptor requestInterceptor;
   private Decoder decoder;
   private Encoder encoder;
   private ConnectionPoolConfig connectionPoolConfig;
-  private RetryConfig retryConfig;
   private ObjectMapper objectMapper;
+  private Retryer retryer;
 
   private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
   private final Contract contract = new ClientContract();
@@ -86,15 +79,11 @@ public class ClientBuilder {
   }
 
   /**
-   * Exponential backoff retry configuration.
+   * Exponential backoff retryer.
    */
   public ClientBuilder withExponentialBackoffRetry(
       Duration initialInterval, double multiplier, int maxAttempts) {
-    retryConfig =
-        RetryConfig.custom()
-            .maxAttempts(maxAttempts)
-            .intervalFunction(IntervalFunction.ofExponentialBackoff(initialInterval, multiplier))
-            .build();
+    retryer = new ClientRetryer(initialInterval.toMillis(), maxAttempts, multiplier);
     return this;
   }
 
@@ -137,6 +126,22 @@ public class ClientBuilder {
   }
 
   /**
+   * Client connection timeout in milliseconds.
+   */
+  public ClientBuilder withConnectTimeout(int connectTimeoutMillis) {
+    this.connectTimeoutMillis = connectTimeoutMillis;
+    return this;
+  }
+
+  /**
+   * Client read timeout in milliseconds.
+   */
+  public ClientBuilder withReadTimeout(int readTimeoutMillis) {
+    this.readTimeoutMillis = readTimeoutMillis;
+    return this;
+  }
+
+  /**
    * Jakcson ObjectMapper used to serialize JSON data.
    */
   public ClientBuilder withObjectMapper(ObjectMapper objectMapper) {
@@ -166,35 +171,27 @@ public class ClientBuilder {
    */
   public <T> T build(Class<T> clazz) {
 
-    Feign.Builder builder = Feign.builder();
-
-    if (Objects.nonNull(retryConfig)) {
-      Retry retry = RETRY_REGISTRY.retry(clazz.getName(), retryConfig);
-      // logging
-      retry.getEventPublisher().onError(event -> LOG.error(event.toString()));
-
-      FeignDecorators decorators = FeignDecorators.builder().withRetry(retry).build();
-
-      builder = Resilience4jFeign.builder(decorators);
-
-    } else {
-      // Feign builder do not support invocation handler
-      builder.invocationHandlerFactory(invocationHandlerFactory);
-    }
-
-    builder
+    Feign.Builder builder = Feign.builder()
         .encoder(encoder)
         .decoder(decoder)
         .errorDecoder(errorDecoder)
         .contract(contract)
-        .decode404();
+        .options(new Request.Options(connectTimeoutMillis, readTimeoutMillis))
+        .decode404()
+        .invocationHandlerFactory(invocationHandlerFactory);
+
+    if (retryer != null) {
+      builder.retryer(retryer);
+    }
 
     if (requestInterceptor != null) {
       builder.requestInterceptor(requestInterceptor);
     }
+
     if (connectionPoolConfig != null) {
       builder.client(new ApacheHttpClient(newMultithreadedClient(connectionPoolConfig)));
     }
+
     return builder.target(clazz, url);
   }
 
