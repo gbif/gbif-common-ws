@@ -50,8 +50,11 @@ public class ClientRetryer implements Retryer {
   @Override
   public void continueOrPropagate(RetryableException e) {
     if (attempt++ >= maxAttempts) {
-      LOG.error("All {} retry attempts failed. Giving up. Last execution was: '{}: {}'",
-          maxAttempts, e.getClass().getSimpleName(), e.getMessage());
+      LOG.error(
+          "All {} retry attempts failed. Giving up. Last execution was: '{}: {}'",
+          maxAttempts,
+          e.getClass().getSimpleName(),
+          e.getMessage());
       throw e;
     }
 
