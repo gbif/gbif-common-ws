@@ -37,8 +37,8 @@ import feign.Contract;
 import feign.Feign;
 import feign.InvocationHandlerFactory;
 import feign.Request;
-import feign.Retryer;
 import feign.RequestInterceptor;
+import feign.Retryer;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
@@ -171,14 +171,15 @@ public class ClientBuilder {
    */
   public <T> T build(Class<T> clazz) {
 
-    Feign.Builder builder = Feign.builder()
-        .encoder(encoder)
-        .decoder(decoder)
-        .errorDecoder(errorDecoder)
-        .contract(contract)
-        .options(new Request.Options(connectTimeoutMillis, readTimeoutMillis))
-        .decode404()
-        .invocationHandlerFactory(invocationHandlerFactory);
+    Feign.Builder builder =
+        Feign.builder()
+            .encoder(encoder)
+            .decoder(decoder)
+            .errorDecoder(errorDecoder)
+            .contract(contract)
+            .options(new Request.Options(connectTimeoutMillis, readTimeoutMillis))
+            .decode404()
+            .invocationHandlerFactory(invocationHandlerFactory);
 
     if (retryer != null) {
       builder.retryer(retryer);
