@@ -15,11 +15,12 @@
  */
 package org.gbif.ws.server.interceptor;
 
-import org.gbif.api.annotation.Trim;
-import org.gbif.api.model.registry.Dataset;
-
 import java.io.IOException;
 import java.lang.reflect.Type;
+
+import org.gbif.api.annotation.Trim;
+import org.gbif.api.model.collections.Address;
+import org.gbif.api.model.registry.Dataset;
 
 import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
@@ -122,7 +123,8 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
             // correct package here)
             Object property = wrapped.get(dynaProp.getName());
             if (property != null
-                && Dataset.class.getPackage() == property.getClass().getPackage()) {
+                && (Dataset.class.getPackage() == property.getClass().getPackage()
+                || Address.class.getPackage() == property.getClass().getPackage())) {
               trimStringsOf(property, level + 1);
             }
 
