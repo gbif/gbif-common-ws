@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 import org.gbif.api.annotation.Trim;
-import org.gbif.api.model.collections.Address;
 import org.gbif.api.model.collections.Collection;
 import org.gbif.api.model.registry.Dataset;
 
