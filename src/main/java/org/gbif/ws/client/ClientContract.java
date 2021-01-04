@@ -51,7 +51,7 @@ public class ClientContract extends SpringMvcContract {
   }
 
   @Override
-  public List<MethodMetadata> parseAndValidatateMetadata(final Class<?> targetType) {
+  public List<MethodMetadata> parseAndValidateMetadata(final Class<?> targetType) {
     checkState(
         targetType.getTypeParameters().length == 0,
         "Parameterized types unsupported: %s",

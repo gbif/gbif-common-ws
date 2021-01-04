@@ -32,8 +32,8 @@
 
   <properties>
     <jdkLevel>1.8</jdkLevel>
-    <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
-    <spring-cloud-openfeign.version>2.2.1.RELEASE</spring-cloud-openfeign.version>
+    <spring-boot.version>2.3.7.RELEASE</spring-boot.version>
+    <spring-cloud-openfeign.version>2.2.6.RELEASE</spring-cloud-openfeign.version>
     <main.basedir>${project.basedir}</main.basedir>
     <!-- Tools-->
     <lombok.version>1.18.10</lombok.version>
@@ -42,8 +42,7 @@
     <gbif-api.version>0.119</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <guava.version>18.0</guava.version>
-    <jackson.version>2.9.9</jackson.version>
-    <jackson-databind.version>2.9.9.3</jackson-databind.version>
+    <jackson.version>2.11.3</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
     <junit.version>4.12</junit.version>
@@ -51,8 +50,8 @@
     <mockito.version>2.8.9</mockito.version>
     <servlet-api.version>3.0.1</servlet-api.version>
     <slf4j.version>1.7.22</slf4j.version>
-    <validation-api.version>1.1.0.Final</validation-api.version>
-    <feign.version>10.4.0</feign.version>
+    <validation-api.version>2.0.1.Final</validation-api.version>
+    <feign.version>10.11</feign.version>
     <commons-codec.version>1.13</commons-codec.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
 
@@ -126,7 +125,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
+      <version>${jackson.version}</version>
     </dependency>
 
     <!-- Feign -->
