@@ -22,23 +22,20 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Paths;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@RunWith(MockitoJUnitRunner.class)
 public class GbifAuthServiceTest {
 
   public static final String APPKEY = "appKey";
@@ -46,7 +43,7 @@ public class GbifAuthServiceTest {
   private URI testUri;
   private GbifAuthService service;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     testUri = new URI("http://api.gbif.org/v1/dataset");
     service = prepareGbifAuthService();

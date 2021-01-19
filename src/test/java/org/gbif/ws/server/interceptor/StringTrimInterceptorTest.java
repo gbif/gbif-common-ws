@@ -19,10 +19,10 @@ import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Organization;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class StringTrimInterceptorTest {
 
@@ -34,18 +34,18 @@ public class StringTrimInterceptorTest {
     Dataset dataset = new Dataset();
     dataset.setTitle("   ");
     TRIMMER.trimStringsOf(dataset);
-    assertNull("Dataset title shall be null", dataset.getTitle());
+    assertNull(dataset.getTitle(), "Dataset title shall be null");
 
     Citation citation = new Citation();
     citation.setText("");
     dataset.setCitation(citation);
     TRIMMER.trimStringsOf(dataset);
-    assertNull("Citation text shall be null", dataset.getCitation().getText());
+    assertNull(dataset.getCitation().getText(), "Citation text shall be null");
 
     System.out.println("a\u0001b");
     Organization organization = new Organization();
     organization.setTitle(" hello \u0001world \u001a");
     TRIMMER.trimStringsOf(organization);
-    assertEquals("Titles shall match", "hello world", organization.getTitle());
+    assertEquals("hello world", organization.getTitle(), "Titles shall match");
   }
 }

@@ -35,19 +35,20 @@ import javax.annotation.Nullable;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -57,7 +58,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 /**
  * Unit tests related to {@link IdentityFilter}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IdentityFilterTest {
 
   @Mock private HttpServletResponse mockResponse;
@@ -102,9 +103,8 @@ public class IdentityFilterTest {
     legacyBasic = "Basic " + toAuthorizationString(UUID.randomUUID().toString(), ":password");
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    doThrow(WebApplicationException.class).when(mockResponse).setStatus(anyInt());
     authService = GbifAuthServiceTest.prepareGbifAuthService();
     identityFilter =
         new IdentityFilter(
@@ -160,12 +160,14 @@ public class IdentityFilterTest {
     assertPrincipalName("søren", getMockRequestAuthorization(sørenAuthBasic));
   }
 
-  @Test(expected = WebApplicationException.class)
-  public void testFilterWithBasicAuthWrongPassword() throws Exception {
-    assertPrincipalName(
-        null,
-        getMockRequestAuthorization(
-            "Basic " + toAuthorizationString(heinz.getUserName(), "wrong")));
+  @Test
+  public void testFilterWithBasicAuthWrongPassword() {
+    doThrow(WebApplicationException.class).when(mockResponse).setStatus(anyInt());
+    assertThrows(WebApplicationException.class,
+        () -> assertPrincipalName(
+            null,
+            getMockRequestAuthorization(
+                "Basic " + toAuthorizationString(heinz.getUserName(), "wrong"))));
   }
 
   private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request)

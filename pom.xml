@@ -39,23 +39,22 @@
     <lombok.version>1.18.10</lombok.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.119</gbif-api.version>
+    <gbif-api.version>0.136</gbif-api.version>
     <gbif-common.version>0.47</gbif-common.version>
     <guava.version>18.0</guava.version>
     <jackson.version>2.11.3</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
-    <junit.version>4.12</junit.version>
-    <logback.version>1.1.9</logback.version>
-    <mockito.version>2.8.9</mockito.version>
-    <servlet-api.version>3.0.1</servlet-api.version>
-    <slf4j.version>1.7.22</slf4j.version>
+    <junit.version>5.6.3</junit.version>
+    <logback.version>1.2.3</logback.version>
+    <mockito.version>3.3.3</mockito.version>
+    <slf4j.version>1.7.30</slf4j.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <feign.version>10.11</feign.version>
     <commons-codec.version>1.13</commons-codec.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
 
-    <maven-surefire-plugin.version>2.18.1</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
 
     <!-- Sonar -->
@@ -221,15 +220,26 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- dependency:analyze reports a false positive because we also get junit as a transitive dependency -->
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
