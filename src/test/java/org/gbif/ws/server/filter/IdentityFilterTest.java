@@ -163,11 +163,13 @@ public class IdentityFilterTest {
   @Test
   public void testFilterWithBasicAuthWrongPassword() {
     doThrow(WebApplicationException.class).when(mockResponse).setStatus(anyInt());
-    assertThrows(WebApplicationException.class,
-        () -> assertPrincipalName(
-            null,
-            getMockRequestAuthorization(
-                "Basic " + toAuthorizationString(heinz.getUserName(), "wrong"))));
+    assertThrows(
+        WebApplicationException.class,
+        () ->
+            assertPrincipalName(
+                null,
+                getMockRequestAuthorization(
+                    "Basic " + toAuthorizationString(heinz.getUserName(), "wrong"))));
   }
 
   private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request)
