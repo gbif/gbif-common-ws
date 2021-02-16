@@ -25,12 +25,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpHeaders;
+
+import com.google.common.base.Strings;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-
-import org.apache.commons.io.IOUtils;
-import org.springframework.http.HttpHeaders;
 
 public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
@@ -39,10 +40,16 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   private HttpHeaders httpHeaders;
 
   public GbifHttpServletRequestWrapper(HttpServletRequest request) {
+    this(request, null);
+  }
+
+  public GbifHttpServletRequestWrapper(HttpServletRequest request, String contentAsString) {
     super(request);
 
     try {
-      if (request.getInputStream() != null) {
+      if (!Strings.isNullOrEmpty(contentAsString)) {
+        content = contentAsString;
+      } else if (request.getInputStream() != null) {
         content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
       } else {
         content = null;
