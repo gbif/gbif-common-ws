@@ -49,7 +49,7 @@ public class NoContentResponseFilter implements ResponseBodyAdvice<Object> {
     final int intStatus = ((ServletServerHttpResponse) response).getServletResponse().getStatus();
     final HttpStatus httpStatus = HttpStatus.resolve(intStatus);
 
-    if (body == null && httpStatus == HttpStatus.OK) {
+    if (body == null && httpStatus != null && httpStatus.is2xxSuccessful()) {
       response.setStatusCode(HttpStatus.NO_CONTENT);
     }
 
