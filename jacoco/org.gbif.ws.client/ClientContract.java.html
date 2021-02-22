@@ -51,7 +51,7 @@ public class ClientContract extends SpringMvcContract {
 <span class="nc" id="L51">  }</span>
 
   @Override
-  public List&lt;MethodMetadata&gt; parseAndValidatateMetadata(final Class&lt;?&gt; targetType) {
+  public List&lt;MethodMetadata&gt; parseAndValidateMetadata(final Class&lt;?&gt; targetType) {
 <span class="nc" id="L55">    checkState(</span>
 <span class="nc bnc" id="L56" title="All 2 branches missed.">        targetType.getTypeParameters().length == 0,</span>
         &quot;Parameterized types unsupported: %s&quot;,
