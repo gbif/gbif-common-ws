@@ -40,17 +40,29 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
   private HttpHeaders httpHeaders;
 
+  private HttpServletRequest wrappedRequest;
+
   public GbifHttpServletRequestWrapper(HttpServletRequest request) {
-    this(request, null);
+    this(request, false);
   }
 
-  public GbifHttpServletRequestWrapper(HttpServletRequest request, String contentAsString) {
+  /**
+   *
+   */
+  public GbifHttpServletRequestWrapper(HttpServletRequest request, boolean wrapContent) {
+    this(request, null, wrapContent);
+    if (!wrapContent) {
+      this.wrappedRequest = request;
+    }
+  }
+
+  public GbifHttpServletRequestWrapper(HttpServletRequest request, String contentAsString, boolean wrapContent) {
     super(request);
 
     try {
       if (!Strings.isNullOrEmpty(contentAsString)) {
         content = contentAsString;
-      } else if (request.getInputStream() != null) {
+      } else if (request.getInputStream() != null && wrapContent) {
         content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
       } else {
         content = null;
@@ -63,13 +75,17 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   }
 
   @Override
-  public ServletInputStream getInputStream() {
-    final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content.getBytes());
-    return new DelegatingServletInputStream(byteArrayInputStream);
+  public ServletInputStream getInputStream() throws IOException {
+    if (wrappedRequest != null) {
+      return wrappedRequest.getInputStream();
+    } else {
+      final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content.getBytes());
+      return new DelegatingServletInputStream(byteArrayInputStream);
+    }
   }
 
   @Override
-  public BufferedReader getReader() {
+  public BufferedReader getReader() throws IOException {
     return new BufferedReader(new InputStreamReader(this.getInputStream()));
   }
 

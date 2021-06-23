@@ -73,9 +73,9 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
         .disable()
         .addFilterAfter(context.getBean(HttpServletRequestWrapperFilter.class), CsrfFilter.class)
         .addFilterAfter(
-            context.getBean(RequestHeaderParamUpdateFilter.class),
-            HttpServletRequestWrapperFilter.class)
-        .addFilterAfter(context.getBean(IdentityFilter.class), RequestHeaderParamUpdateFilter.class)
+          context.getBean(RequestHeaderParamUpdateFilter.class),
+        HttpServletRequestWrapperFilter.class)
+        .addFilterAfter(context.getBean(IdentityFilter.class), CsrfFilter.class)
         .addFilterAfter(context.getBean(AppIdentityFilter.class), IdentityFilter.class)
         .csrf()
         .disable()

@@ -24,11 +24,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
+
+  private boolean wrapContent;
+
+  public HttpServletRequestWrapperFilter(@Value("${gbif.ws.security.wrapContent:false}") boolean wrapContent) {
+    this.wrapContent = wrapContent;
+  }
 
   @Override
   protected void doFilterInternal(
@@ -37,7 +44,7 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
     final GbifHttpServletRequestWrapper requestWrapper =
         request instanceof GbifHttpServletRequestWrapper
             ? (GbifHttpServletRequestWrapper) request
-            : new GbifHttpServletRequestWrapper(request);
+            : new GbifHttpServletRequestWrapper(request, wrapContent);
 
     filterChain.doFilter(requestWrapper, response);
   }

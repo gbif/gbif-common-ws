@@ -153,7 +153,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     GbifHttpServletRequestWrapper requestObject =
         request instanceof GbifHttpServletRequestWrapper
             ? ((GbifHttpServletRequestWrapper) request)
-            : new GbifHttpServletRequestWrapper(request);
+            : new GbifHttpServletRequestWrapper(request, false);
     if (!authService.isValidRequest(requestObject)) {
       LOG.warn("Invalid GBIF authenticated request");
       throw new WebApplicationException(

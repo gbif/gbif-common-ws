@@ -54,7 +54,7 @@ public class RequestHeaderParamUpdateFilter extends OncePerRequestFilter {
     GbifHttpServletRequestWrapper httpRequestWrapper =
         request instanceof GbifHttpServletRequestWrapper
             ? (GbifHttpServletRequestWrapper) request
-            : new GbifHttpServletRequestWrapper((request));
+            : new GbifHttpServletRequestWrapper(request);
 
     // update language headers
     processLanguage(httpRequestWrapper);
