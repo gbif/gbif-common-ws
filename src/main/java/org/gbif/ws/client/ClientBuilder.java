@@ -25,6 +25,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
+import feign.form.FormEncoder;
+import feign.form.spring.SpringFormEncoder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
@@ -65,6 +67,7 @@ public class ClientBuilder {
   private ConnectionPoolConfig connectionPoolConfig;
   private ObjectMapper objectMapper;
   private Retryer retryer;
+  private boolean formEncoder;
 
   private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
   private final Contract contract = new ClientContract();
@@ -166,6 +169,11 @@ public class ClientBuilder {
     return this;
   }
 
+  public ClientBuilder withFormEncoder() {
+    this.formEncoder = true;
+    return this;
+  }
+
   /**
    * Creates a new client instance.
    */
@@ -173,7 +181,7 @@ public class ClientBuilder {
 
     Feign.Builder builder =
         Feign.builder()
-            .encoder(encoder)
+            .encoder(formEncoder? new SpringFormEncoder(encoder) : encoder)
             .decoder(decoder)
             .errorDecoder(errorDecoder)
             .contract(contract)

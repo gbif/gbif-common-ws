@@ -51,6 +51,7 @@
     <slf4j.version>1.7.30</slf4j.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <feign.version>10.11</feign.version>
+    <feign-form.version>3.8.0</feign-form.version>
     <commons-codec.version>1.13</commons-codec.version>
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
 
@@ -152,6 +153,16 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-httpclient</artifactId>
       <version>${feign.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign.form</groupId>
+      <artifactId>feign-form</artifactId>
+      <version>${feign-form.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.openfeign.form</groupId>
+      <artifactId>feign-form-spring</artifactId>
+      <version>${feign-form.version}</version>
     </dependency>
     <dependency>
       <groupId>aopalliance</groupId>
