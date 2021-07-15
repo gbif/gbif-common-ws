@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 public final class JacksonJsonObjectMapperProvider {
 
@@ -45,5 +48,22 @@ public final class JacksonJsonObjectMapperProvider {
     Mixins.getPredefinedMixins().forEach(objectMapper::addMixIn);
 
     return objectMapper;
+  }
+
+  /**
+   * Creates an ObjectMapper that supports builders having a build method called "build" and without prefixes on methods.
+   */
+  public static ObjectMapper getObjectMapperWithBuilderSupport() {
+    ObjectMapper mapper = getObjectMapper();
+    mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+      @Override
+      public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
+        if (ac.hasAnnotation(JsonPOJOBuilder.class)) {//If no annotation present use default as empty prefix
+          return super.findPOJOBuilderConfig(ac);
+        }
+        return new JsonPOJOBuilder.Value("build", "");
+      }
+    });
+    return mapper;
   }
 }
