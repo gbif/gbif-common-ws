@@ -41,8 +41,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
-  private final ApplicationContext context;
-
   private final UserDetailsService userDetailsService;
 
   private final PasswordEncoder passwordEncoder;
@@ -51,9 +49,10 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                                      ApplicationContext context,
                                      PasswordEncoder passwordEncoder) {
     this.userDetailsService = userDetailsService;
-    this.context = context;
+    setApplicationContext(context);
     this.passwordEncoder = passwordEncoder;
   }
+
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) {
@@ -71,12 +70,12 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.httpBasic()
         .disable()
-        .addFilterAfter(context.getBean(HttpServletRequestWrapperFilter.class), CsrfFilter.class)
+        .addFilterAfter(getApplicationContext().getBean(HttpServletRequestWrapperFilter.class), CsrfFilter.class)
         .addFilterAfter(
-          context.getBean(RequestHeaderParamUpdateFilter.class),
+          getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
         HttpServletRequestWrapperFilter.class)
-        .addFilterAfter(context.getBean(IdentityFilter.class), RequestHeaderParamUpdateFilter.class)
-        .addFilterAfter(context.getBean(AppIdentityFilter.class), IdentityFilter.class)
+        .addFilterAfter(getApplicationContext().getBean(IdentityFilter.class), RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(getApplicationContext().getBean(AppIdentityFilter.class), IdentityFilter.class)
         .csrf()
         .disable()
         .cors()
@@ -94,6 +93,7 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
     configuration.setAllowedOrigins(Collections.singletonList("*"));
+    configuration.setAllowCredentials(true);
     configuration.setAllowedMethods(
         Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
     configuration.setExposedHeaders(
