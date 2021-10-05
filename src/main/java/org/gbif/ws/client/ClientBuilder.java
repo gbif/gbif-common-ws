@@ -69,17 +69,9 @@ public class ClientBuilder {
   private Retryer retryer;
   private boolean formEncoder;
 
-  private final ErrorDecoder errorDecoder = new ClientErrorDecoder();
-  private final Contract contract = new ClientContract();
-  private final InvocationHandlerFactory invocationHandlerFactory =
-      new ClientInvocationHandlerFactory();
-
-  /**
-   * Creates a builder instance, by default uses the GBIF Jackson ObjectMapper.
-   */
-  public ClientBuilder() {
-    withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapper());
-  }
+  private Contract contract;
+  private ErrorDecoder errorDecoder;
+  private InvocationHandlerFactory invocationHandlerFactory;
 
   /**
    * Exponential backoff retryer.
@@ -174,6 +166,11 @@ public class ClientBuilder {
     return this;
   }
 
+  public ClientBuilder withClientContract(ClientContract clientContract) {
+    this.contract = clientContract;
+    return this;
+  }
+
   /**
    * Creates a new client instance.
    */
@@ -183,11 +180,11 @@ public class ClientBuilder {
         Feign.builder()
             .encoder(formEncoder? new SpringFormEncoder(encoder) : encoder)
             .decoder(decoder)
-            .errorDecoder(errorDecoder)
-            .contract(contract)
+            .errorDecoder(errorDecoder != null? errorDecoder : new ClientErrorDecoder())
+            .contract(contract != null? contract : ClientContract.withDefaultProcessors())
             .options(new Request.Options(connectTimeoutMillis, readTimeoutMillis))
             .decode404()
-            .invocationHandlerFactory(invocationHandlerFactory);
+            .invocationHandlerFactory(invocationHandlerFactory != null? invocationHandlerFactory : new ClientInvocationHandlerFactory());
 
     if (retryer != null) {
       builder.retryer(retryer);

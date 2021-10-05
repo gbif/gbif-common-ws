@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.openfeign.AnnotatedParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.PathVariableParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.QueryMapParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.RequestHeaderParameterProcessor;
@@ -40,14 +41,20 @@ import static org.springframework.core.annotation.AnnotatedElementUtils.findMerg
 
 public class ClientContract extends SpringMvcContract {
 
-  public ClientContract() {
-    super(
-        Arrays.asList(
-            new PartialDateParameterProcessor(),
-            new PathVariableParameterProcessor(),
-            new RequestParamParameterProcessor(),
-            new RequestHeaderParameterProcessor(),
-            new QueryMapParameterProcessor()));
+  private ClientContract(List<AnnotatedParameterProcessor> annotatedParameterProcessors) {
+    super(annotatedParameterProcessors);
+  }
+
+  public static ClientContract withDefaultProcessors() {
+    return new ClientContract(Arrays.asList(new PartialDateParameterProcessor(),
+                                            new PathVariableParameterProcessor(),
+                                            new RequestParamParameterProcessor(),
+                                            new RequestHeaderParameterProcessor(),
+                                            new QueryMapParameterProcessor()));
+  }
+
+  public static ClientContract withProcessors(AnnotatedParameterProcessor...annotatedParameterProcessors) {
+    return new ClientContract(Arrays.asList(annotatedParameterProcessors));
   }
 
   @Override

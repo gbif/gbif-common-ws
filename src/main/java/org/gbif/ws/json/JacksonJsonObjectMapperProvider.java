@@ -29,7 +29,8 @@ public final class JacksonJsonObjectMapperProvider {
 
   private JacksonJsonObjectMapperProvider() {}
 
-  public static ObjectMapper getObjectMapper() {
+  /** Creates an ObjectMapper with the default configuration.*/
+  public static ObjectMapper getDefaultObjectMapper() {
     final ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     // determines whether encountering of unknown properties (ones that do not map to a property,
@@ -45,17 +46,28 @@ public final class JacksonJsonObjectMapperProvider {
     // Enforce use of ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
     objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
+    return objectMapper;
+  }
+
+  /** Creates an ObjectMapper with the default GBIF Mixins. */
+  public static ObjectMapper getObjectMapper() {
+    ObjectMapper objectMapper = getDefaultObjectMapper();
+
     Mixins.getPredefinedMixins().forEach(objectMapper::addMixIn);
 
     return objectMapper;
   }
 
+
   /**
    * Creates an ObjectMapper that supports builders having a build method called "build" and without prefixes on methods.
    */
   public static ObjectMapper getObjectMapperWithBuilderSupport() {
-    ObjectMapper mapper = getObjectMapper();
-    mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+    return addBuilderSupport(getObjectMapper());
+  }
+
+  public static ObjectMapper addBuilderSupport(ObjectMapper objectMapper) {
+    objectMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
       @Override
       public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
         if (ac.hasAnnotation(JsonPOJOBuilder.class)) {//If no annotation present use default as empty prefix
@@ -64,6 +76,6 @@ public final class JacksonJsonObjectMapperProvider {
         return new JsonPOJOBuilder.Value("build", "");
       }
     });
-    return mapper;
+    return objectMapper;
   }
 }
