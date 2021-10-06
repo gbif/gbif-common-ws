@@ -175,7 +175,7 @@ public class ClientBuilder {
    * Creates a new client instance.
    */
   public <T> T build(Class<T> clazz) {
-    if (objectMapper != null) {
+    if (objectMapper == null) {
       withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport());
     }
 
