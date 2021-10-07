@@ -43,6 +43,7 @@ public class ValidationExceptionMapper {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Object> toResponse(MethodArgumentNotValidException exception) {
+    LOG.error("Validation error: {}", exception.getMessage());
     List<String> errors = new ArrayList<>();
 
     exception.getBindingResult().getAllErrors().stream()
@@ -65,6 +66,7 @@ public class ValidationExceptionMapper {
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<Object> toResponse(ConstraintViolationException exception) {
+    LOG.error("Validation error: {}", exception.getMessage());
     List<String> errors = new ArrayList<>();
 
     exception.getConstraintViolations().stream()
