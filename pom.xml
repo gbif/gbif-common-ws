@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>49</version>
+    <version>55</version>
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
@@ -14,7 +14,7 @@
 
   <name>GBIF Common Web service</name>
   <description>Utilities for Web service projects</description>
-  <url>http://github.org/gbif/gbif-common-ws</url>
+  <url>https://github.org/gbif/gbif-common-ws</url>
 
   <scm>
     <connection>scm:git:git@github.com:gbif/gbif-common-ws.git</connection>
@@ -26,34 +26,31 @@
   <distributionManagement>
     <site>
       <id>gh-pages</id>
-      <url>http://gbif.github.io/gbif-common-ws/</url>
+      <url>https://gbif.github.io/gbif-common-ws/</url>
     </site>
   </distributionManagement>
 
   <properties>
-    <jdkLevel>1.8</jdkLevel>
     <spring-boot.version>2.3.7.RELEASE</spring-boot.version>
     <spring-cloud-openfeign.version>2.2.6.RELEASE</spring-cloud-openfeign.version>
-    <main.basedir>${project.basedir}</main.basedir>
-    <!-- Tools-->
-    <lombok.version>1.18.10</lombok.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <gbif-api.version>0.154</gbif-api.version>
-    <gbif-common.version>0.47</gbif-common.version>
+    <gbif-api.version>0.156-SNAPSHOT</gbif-api.version>
+    <gbif-common.version>0.52</gbif-common.version>
     <guava.version>18.0</guava.version>
     <jackson.version>2.11.3</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
-    <junit.version>5.6.3</junit.version>
+    <junit.version>5.8.1</junit.version>
     <logback.version>1.2.3</logback.version>
-    <mockito.version>3.3.3</mockito.version>
+    <mockito.version>3.12.4</mockito.version>
     <slf4j.version>1.7.30</slf4j.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <feign.version>10.11</feign.version>
     <feign-form.version>3.8.0</feign-form.version>
     <commons-codec.version>1.13</commons-codec.version>
-    <commons-beanutils.version>1.9.3</commons-beanutils.version>
+    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <lombok.version>1.18.10</lombok.version>
 
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
@@ -72,16 +69,21 @@
   <repositories>
     <repository>
       <id>gbif-all</id>
-      <url>http://repository.gbif.org/content/groups/gbif</url>
+      <url>https://repository.gbif.org/content/groups/gbif/</url>
     </repository>
   </repositories>
 
   <dependencies>
+    <!-- GBIF dependencies -->
     <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
-      <scope>provided</scope>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-api</artifactId>
+      <version>${gbif-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common</artifactId>
+      <version>${gbif-common.version}</version>
     </dependency>
 
     <!-- Spring dependencies -->
@@ -197,16 +199,6 @@
       <version>${validation-api.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-api</artifactId>
-      <version>${gbif-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common</artifactId>
-      <version>${gbif-common.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
@@ -216,8 +208,14 @@
       <artifactId>commons-codec</artifactId>
       <version>${commons-codec.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
-    <!-- Test scope -->
+    <!-- Test dependencies -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
@@ -261,6 +259,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless-maven-plugin.version}</version>
       </plugin>
 
       <plugin>
@@ -305,17 +304,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>local-sonar</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <sonar.host.url>http://localhost:9000</sonar.host.url>
-      </properties>
-    </profile>
-  </profiles>
 
 </project>
