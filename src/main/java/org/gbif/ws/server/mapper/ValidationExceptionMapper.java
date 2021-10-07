@@ -30,7 +30,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -61,7 +60,7 @@ public class ValidationExceptionMapper {
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
-        .body("<ul><li>" + Joiner.on("</li><li>").join(builder.build()) + "</li></ul>");
+        .body("<ul><li>" + String.join("</li><li>", builder.build()) + "</li></ul>");
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
@@ -83,7 +82,7 @@ public class ValidationExceptionMapper {
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
-        .body("<ul><li>" + Joiner.on("</li><li>").join(builder.build()) + "</li></ul>");
+        .body("<ul><li>" + String.join("</li><li>", builder.build()) + "</li></ul>");
   }
 
   private String getPropertyFromPropertyPath(Path propertyPath) {

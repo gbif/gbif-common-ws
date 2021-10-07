@@ -24,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.WebRequest;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import static org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_LIMIT;
 import static org.gbif.api.model.common.paging.PagingConstants.DEFAULT_PARAM_OFFSET;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
@@ -52,7 +50,7 @@ public class PageableProvider implements ContextProvider<Pageable> {
 
   private final Integer maxPageSize;
 
-  @VisibleForTesting static final int LIMIT_CAP = 1000;
+  private static final int LIMIT_CAP = 1000;
 
   public PageableProvider() {
     this.maxPageSize = LIMIT_CAP;

@@ -26,6 +26,8 @@ import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.beanutils.WrapDynaBean;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -33,9 +35,6 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 
 /**
  * An interceptor that will trim all possible strings of a bean.
@@ -91,7 +90,6 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
     return o;
   }
 
-  @VisibleForTesting
   void trimStringsOf(Object target) {
     trimStringsOf(target, 0);
   }
@@ -109,8 +107,8 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           if (orig != null) {
             String trimmed = StringUtils.trimToNull(orig);
             String withoutControlChars =
-                StringUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
-            if (!Objects.equal(orig, withoutControlChars)) {
+                RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
+            if (ObjectUtils.notEqual(orig, withoutControlChars)) {
               LOG.debug(
                   "Overriding value of [{}] from [{}] to [{}]", prop, orig, withoutControlChars);
               wrapped.set(prop, withoutControlChars);

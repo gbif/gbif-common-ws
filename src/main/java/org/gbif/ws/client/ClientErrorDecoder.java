@@ -22,19 +22,18 @@ import org.gbif.ws.NotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import javax.validation.ValidationException;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 
-import com.google.common.io.CharStreams;
-
 import feign.Response;
 import feign.codec.ErrorDecoder;
 
-@SuppressWarnings("UnstableApiUsage")
 public class ClientErrorDecoder implements ErrorDecoder {
 
   private static final Logger LOG = LoggerFactory.getLogger(ClientErrorDecoder.class);
@@ -44,9 +43,9 @@ public class ClientErrorDecoder implements ErrorDecoder {
     String message = null;
 
     if (response.body() != null) {
-      try (Reader reader = response.body().asReader()) {
+      try (Reader reader = response.body().asReader(StandardCharsets.UTF_8)) {
         // Easy way to read the stream and get a String object
-        message = CharStreams.toString(reader);
+        message = IOUtils.toString(reader);
         LOG.error("Client exception: {}", message);
       } catch (IOException e) {
         LOG.error("Exception during reading client error response", e);
