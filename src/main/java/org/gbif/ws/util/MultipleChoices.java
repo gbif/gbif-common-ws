@@ -15,11 +15,10 @@
  */
 package org.gbif.ws.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * A simple bean for a http 300 MultipleChoices response listing the available options.
@@ -29,7 +28,7 @@ import static com.google.common.collect.Lists.newArrayList;
  */
 public class MultipleChoices {
 
-  private final List<Choice> choices = newArrayList();
+  private final List<Choice> choices = new ArrayList<>();
 
   public List<Choice> getChoices() {
     return choices;

@@ -37,7 +37,6 @@
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.156-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.52</gbif-common.version>
-    <guava.version>18.0</guava.version>
     <jackson.version>2.11.3</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
@@ -182,11 +181,6 @@
       <artifactId>jsr250-api</artifactId>
       <version>${jsr250.version}</version>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>

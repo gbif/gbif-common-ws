@@ -15,7 +15,6 @@
  */
 package org.gbif.ws.client;
 
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.Md5EncodeService;
 import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
@@ -25,7 +24,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import feign.form.FormEncoder;
 import feign.form.spring.SpringFormEncoder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;

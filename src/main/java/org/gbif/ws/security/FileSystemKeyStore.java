@@ -18,26 +18,28 @@ package org.gbif.ws.security;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
 @Component
 public class FileSystemKeyStore implements KeyStore {
 
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemKeyStore.class);
 
-  private final ImmutableMap<String, String> store;
+  private final Map<String, String> store;
 
   public FileSystemKeyStore(AppkeysConfigurationProperties appkeysConfiguration) {
     try {
       Properties props = PropertiesUtil.loadProperties(appkeysConfiguration.getFile());
-      store = Maps.fromProperties(props);
+      Map<String, String> map = new HashMap<>();
+      props.forEach((key, value) -> map.put(String.valueOf(key), String.valueOf(value)));
+      store = Collections.unmodifiableMap(map);
     } catch (IOException e) {
       throw new IllegalArgumentException(
           "Property file path to application keys does not exist: "

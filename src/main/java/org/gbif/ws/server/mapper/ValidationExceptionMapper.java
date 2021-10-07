@@ -15,7 +15,9 @@
  */
 package org.gbif.ws.server.mapper;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
@@ -30,8 +32,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Converts validation exceptions into a http 422 bad request and gives a meaningful messages on the
  * issues.
@@ -43,7 +43,7 @@ public class ValidationExceptionMapper {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Object> toResponse(MethodArgumentNotValidException exception) {
-    ImmutableList.Builder<String> builder = ImmutableList.builder();
+    List<String> errors = new ArrayList<>();
 
     exception.getBindingResult().getAllErrors().stream()
         .map(error -> ((FieldError) error))
@@ -52,7 +52,7 @@ public class ValidationExceptionMapper {
             error -> {
               LOG.debug(
                   "Validation of [{}] failed: {}", error.getField(), error.getDefaultMessage());
-              builder.add(
+              errors.add(
                   String.format(
                       "Validation of [%s] failed: %s",
                       error.getField(), error.getDefaultMessage()));
@@ -60,12 +60,12 @@ public class ValidationExceptionMapper {
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
-        .body("<ul><li>" + String.join("</li><li>", builder.build()) + "</li></ul>");
+        .body("<ul><li>" + String.join("</li><li>", errors) + "</li></ul>");
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<Object> toResponse(ConstraintViolationException exception) {
-    ImmutableList.Builder<String> builder = ImmutableList.builder();
+    List<String> errors = new ArrayList<>();
 
     exception.getConstraintViolations().stream()
         .sorted(
@@ -74,7 +74,7 @@ public class ValidationExceptionMapper {
         .forEach(
             cv -> {
               LOG.debug("Validation of [{}] failed: {}", cv.getPropertyPath(), cv.getMessage());
-              builder.add(
+              errors.add(
                   String.format(
                       "Validation of [%s] failed: %s",
                       getPropertyFromPropertyPath(cv.getPropertyPath()), cv.getMessage()));
@@ -82,7 +82,7 @@ public class ValidationExceptionMapper {
 
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
         .contentType(MediaType.TEXT_PLAIN)
-        .body("<ul><li>" + String.join("</li><li>", builder.build()) + "</li></ul>");
+        .body("<ul><li>" + String.join("</li><li>", errors) + "</li></ul>");
   }
 
   private String getPropertyFromPropertyPath(Path propertyPath) {

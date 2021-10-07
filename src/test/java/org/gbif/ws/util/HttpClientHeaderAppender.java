@@ -15,11 +15,10 @@
  */
 package org.gbif.ws.util;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.Maps;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
@@ -40,7 +39,7 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
  */
 public class HttpClientHeaderAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
 
-  private static Map<String, String> headers = Maps.newHashMap();
+  private static Map<String, String> headers = new HashMap<>();
   private static Pattern splitHeader = Pattern.compile(" (.+):(.+)");
 
   public static String getFirst(String key) {

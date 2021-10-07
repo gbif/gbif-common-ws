@@ -21,6 +21,7 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +30,6 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.WebRequest;
-
-import com.google.common.collect.Lists;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
@@ -133,7 +132,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
    * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
    */
   private static List<String> removeEmptyParameters(List<String> parameters) {
-    List<String> cleanParameters = Lists.newArrayListWithCapacity(parameters.size());
+    List<String> cleanParameters = new ArrayList<>(parameters.size());
     for (String param : parameters) {
       String cleanParam = StringUtils.trimToEmpty(param);
       if (!cleanParam.isEmpty()) {
