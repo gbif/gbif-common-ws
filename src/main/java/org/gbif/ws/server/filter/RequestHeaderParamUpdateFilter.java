@@ -24,10 +24,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.google.common.base.Strings;
 
 /**
  * A request filter that overwrites a few common http headers if their query parameter counterparts
@@ -63,7 +62,7 @@ public class RequestHeaderParamUpdateFilter extends OncePerRequestFilter {
   }
 
   private static void processLanguage(GbifHttpServletRequestWrapper request) {
-    String language = Strings.nullToEmpty(request.getParameter("language")).trim();
+    String language = StringUtils.trimToEmpty(request.getParameter("language"));
     if (!language.isEmpty()) {
       // overwrite http language
       request.overwriteLanguageHeader(language.toLowerCase());

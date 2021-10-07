@@ -36,7 +36,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
 
 /**
  * An interceptor that will trim all possible strings of a bean.
@@ -108,7 +107,7 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           String prop = dynaProp.getName();
           String orig = (String) wrapped.get(prop);
           if (orig != null) {
-            String trimmed = Strings.emptyToNull(orig.trim());
+            String trimmed = StringUtils.trimToNull(orig);
             String withoutControlChars =
                 StringUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
             if (!Objects.equal(orig, withoutControlChars)) {

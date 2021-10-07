@@ -15,7 +15,7 @@
  */
 package org.gbif.ws.util.spring;
 
-import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Assertion utility class that assists in validating arguments.
@@ -137,7 +137,7 @@ public abstract class Assert {
    * @param message the exception message to use if the assertion fails
    */
   public static void hasText(String text, String message) {
-    if (Strings.isNullOrEmpty(text)) {
+    if (StringUtils.isEmpty(text)) {
       throw new IllegalArgumentException(message);
     }
   }

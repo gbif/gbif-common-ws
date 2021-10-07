@@ -30,9 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
-
-import com.google.common.base.Strings;
 
 public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
@@ -60,7 +59,7 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     super(request);
 
     try {
-      if (!Strings.isNullOrEmpty(contentAsString)) {
+      if (StringUtils.isNotEmpty(contentAsString)) {
         content = contentAsString;
       } else if (request.getInputStream() != null && wrapContent) {
         content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());

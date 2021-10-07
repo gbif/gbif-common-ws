@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.WebRequest;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
@@ -106,19 +106,19 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     final String spellCheck = getFirst(params, PARAM_SPELLCHECK);
     final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);
 
-    if (!Strings.isNullOrEmpty(q)) {
+    if (StringUtils.isNotEmpty(q)) {
       searchRequest.setQ(q);
     }
 
-    if (!Strings.isNullOrEmpty(highlightValue)) {
+    if (StringUtils.isNotEmpty(highlightValue)) {
       searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));
     }
 
-    if (!Strings.isNullOrEmpty(spellCheck)) {
+    if (StringUtils.isNotEmpty(spellCheck)) {
       searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));
     }
 
-    if (!Strings.isNullOrEmpty(spellCheckCount)) {
+    if (StringUtils.isNotEmpty(spellCheckCount)) {
       searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));
     } else {
       searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);
@@ -135,7 +135,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   private static List<String> removeEmptyParameters(List<String> parameters) {
     List<String> cleanParameters = Lists.newArrayListWithCapacity(parameters.size());
     for (String param : parameters) {
-      String cleanParam = Strings.nullToEmpty(param).trim();
+      String cleanParam = StringUtils.trimToEmpty(param);
       if (!cleanParam.isEmpty()) {
         cleanParameters.add(cleanParam);
       }

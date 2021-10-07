@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -40,8 +41,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.SecurityConstants.BASIC_AUTH;
 import static org.gbif.ws.util.SecurityConstants.BASIC_SCHEME_PREFIX;
@@ -141,7 +140,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    */
   private GbifAuthentication gbifAuthentication(final HttpServletRequest request) {
     String username = request.getHeader(HEADER_GBIF_USER);
-    if (Strings.isNullOrEmpty(username)) {
+    if (StringUtils.isEmpty(username)) {
       LOG.warn("Missing gbif username header {}", HEADER_GBIF_USER);
       throw new WebApplicationException("Missing gbif username header", HttpStatus.BAD_REQUEST);
     }

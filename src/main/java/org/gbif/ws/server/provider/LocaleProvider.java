@@ -25,8 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.WebRequest;
 
-import com.google.common.base.Strings;
-
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 
 /**
@@ -60,7 +58,7 @@ public class LocaleProvider implements ContextProvider<Locale> {
     if (languageParam != null) {
       String lang = languageParam.trim().toLowerCase();
       // iso language has to be 2 lower case letters!
-      if (!Strings.isNullOrEmpty(lang) && lang.length() == 2) {
+      if (StringUtils.isNotEmpty(lang) && lang.length() == 2) {
         return new Locale(lang);
       }
     }
@@ -74,7 +72,7 @@ public class LocaleProvider implements ContextProvider<Locale> {
             : Collections.emptyList();
 
     for (String lang : languages) {
-      // ignore accept any language value: * and non iso 2 letter codes
+      // ignore accept any language value: * and non iso 2-letter codes
       if (StringUtils.isNotEmpty(lang)
           && !ANY_LANGUAGE.equalsIgnoreCase(lang)
           && lang.length() == 2) {

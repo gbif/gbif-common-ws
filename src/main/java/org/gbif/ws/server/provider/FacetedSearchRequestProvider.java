@@ -23,9 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.WebRequest;
-
-import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET;
@@ -114,15 +113,15 @@ public class FacetedSearchRequestProvider<
    */
   private static String getFirstIgnoringCase(String parameter, Map<String, String[]> params) {
     String value = getFirst(params, parameter);
-    if (!Strings.isNullOrEmpty(value)) {
+    if (StringUtils.isNotEmpty(value)) {
       return value;
     }
     value = getFirst(params, parameter.toLowerCase());
-    if (!Strings.isNullOrEmpty(value)) {
+    if (StringUtils.isNotEmpty(value)) {
       return value;
     }
     value = getFirst(params, parameter.toUpperCase());
-    if (!Strings.isNullOrEmpty(value)) {
+    if (StringUtils.isNotEmpty(value)) {
       return value;
     }
     return null;

@@ -20,9 +20,8 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
-
-import com.google.common.base.Strings;
 
 /**
  * Class with util methods for WS.
@@ -52,7 +51,7 @@ public final class CommonWsUtils {
   @Nullable
   public static String getResponseTypeByExtension(
       @Nullable String extension, @NotNull String defaultMediaType) {
-    if (Strings.isNullOrEmpty(extension)) {
+    if (StringUtils.isEmpty(extension)) {
       return defaultMediaType;
     } else if (".xml".equals(extension)) {
       return MediaType.APPLICATION_XML_VALUE;

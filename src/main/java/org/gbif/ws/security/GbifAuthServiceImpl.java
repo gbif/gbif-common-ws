@@ -18,16 +18,15 @@ package org.gbif.ws.security;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
@@ -85,7 +84,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   public boolean isValidRequest(final GbifHttpServletRequestWrapper request) {
     // parse auth header
     final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (Strings.isNullOrEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME_PREFIX)) {
+    if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME_PREFIX)) {
       LOG.info("{} header is no GBIF scheme", HttpHeaders.AUTHORIZATION);
       return false;
     }
@@ -160,7 +159,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   public GbifHttpServletRequestWrapper signRequest(
       final String username, final GbifHttpServletRequestWrapper request) {
     String appKey = appKeyProvider.get();
-    Preconditions.checkNotNull(appKey, "To sign the request a single application key is required");
+    Objects.requireNonNull(appKey, "To sign the request a single application key is required");
     // first add custom GBIF headers so we can use them to build the string to sign
     // the proxied username
     request.getHttpHeaders().add(HEADER_GBIF_USER, username);
@@ -176,7 +175,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     }
 
     // adds content md5
-    if (!Strings.isNullOrEmpty(content)) {
+    if (StringUtils.isNotEmpty(content)) {
       request.getHttpHeaders().add(HEADER_CONTENT_MD5, md5EncodeService.encode(content));
     }
 
