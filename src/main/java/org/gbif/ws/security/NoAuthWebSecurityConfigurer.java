@@ -106,7 +106,6 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
     configuration.setAllowedOrigins(Collections.singletonList("*"));
-    configuration.setAllowCredentials(true);
     configuration.setAllowedMethods(
         Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
     configuration.setExposedHeaders(
