@@ -15,6 +15,7 @@ package org.gbif.ws.client;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class ClientDecoder implements Decoder {
     if (MediaType.APPLICATION_JSON.equalsTypeAndSubtype(contentType)) {
       return jacksonDecoder.decode(response, type);
     } else if (MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType)) {
-      return Util.toString(response.body().asReader());
+      return Util.toString(response.body().asReader(StandardCharsets.UTF_8));
     } else if (MediaType.APPLICATION_OCTET_STREAM.equalsTypeAndSubtype(contentType)) {
       return Util.toByteArray(response.body().asInputStream());
     } else if (byte[].class.equals(type)) {

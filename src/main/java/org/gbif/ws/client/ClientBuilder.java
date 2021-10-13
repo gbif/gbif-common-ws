@@ -21,6 +21,7 @@ import org.gbif.ws.security.SigningService;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -55,8 +56,8 @@ public class ClientBuilder {
   private static final String HTTPS_PROTOCOL = "https";
 
   private String url;
-  private int connectTimeoutMillis = 10_000;
-  private int readTimeoutMillis = 60_000;
+  private long connectTimeoutMillis = 10_000;
+  private long readTimeoutMillis = 60_000;
   private RequestInterceptor requestInterceptor;
   private Decoder decoder;
   private Encoder encoder;
@@ -177,7 +178,7 @@ public class ClientBuilder {
             .decoder(decoder)
             .errorDecoder(errorDecoder != null? errorDecoder : new ClientErrorDecoder())
             .contract(contract != null? contract : ClientContract.withDefaultProcessors())
-            .options(new Request.Options(connectTimeoutMillis, readTimeoutMillis))
+            .options(new Request.Options(connectTimeoutMillis, TimeUnit.MILLISECONDS, readTimeoutMillis, TimeUnit.MILLISECONDS, true))
             .decode404()
             .invocationHandlerFactory(invocationHandlerFactory != null? invocationHandlerFactory : new ClientInvocationHandlerFactory());
 
