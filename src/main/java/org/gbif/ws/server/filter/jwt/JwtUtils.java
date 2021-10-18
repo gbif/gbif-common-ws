@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class JwtUtils {
 
-  // Patterns that catches case insensitive versions of word 'bearer'
+  // Patterns that catches case-insensitive versions of word 'bearer'
   private static final Pattern BEARER_PATTERN = Pattern.compile("(?i)bearer");
 
   /** Tries to find the token in the {@link HttpHeaders#AUTHORIZATION} header. */
@@ -50,4 +50,5 @@ class JwtUtils {
   private static boolean containsBearer(String header) {
     return BEARER_PATTERN.matcher(header).find();
   }
+
 }
