@@ -15,9 +15,10 @@ package org.gbif.ws.security;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.security.authentication.AuthenticationManager;
-
-public interface GbifAuthenticationManager extends AuthenticationManager {
+/**
+ * Performs an authentication from an HTTP request.
+ */
+public interface GbifAuthenticationManager {
 
   GbifAuthentication authenticate(HttpServletRequest request);
 }

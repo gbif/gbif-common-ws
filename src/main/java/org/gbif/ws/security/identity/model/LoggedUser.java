@@ -13,10 +13,15 @@
  */
 package org.gbif.ws.security.identity.model;
 
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.vocabulary.UserRole;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -31,6 +36,7 @@ import lombok.Data;
 @JsonDeserialize(builder = LoggedUser.LoggedUserBuilder.class)
 public class LoggedUser {
 
+  private Integer key;
   private String userName;
   private String firstName;
   private String lastName;
@@ -40,5 +46,18 @@ public class LoggedUser {
   @Builder.Default private Map<String, String> settings = new HashMap<>();
 
   @Builder.Default private Set<String> roles = new HashSet<>();
+
+  public GbifUser toGbifUser() {
+    GbifUser gbifUser = new GbifUser();
+    gbifUser.setUserName(userName);
+    gbifUser.setFirstName(firstName);
+    gbifUser.setLastName(lastName);
+    gbifUser.setEmail(email);
+    gbifUser.setSettings(settings);
+    gbifUser.setKey(key);
+    Optional.ofNullable(roles).map(r -> roles.stream().map(UserRole::valueOf).collect(Collectors.toSet()))
+      .ifPresent(gbifUser::setRoles);
+    return gbifUser;
+  }
 
 }

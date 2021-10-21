@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -65,11 +64,6 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     Objects.requireNonNull(identityAccessService, "identityAccessService shall be provided");
     this.identityAccessService = identityAccessService;
     this.authService = authService;
-  }
-
-  @Override
-  public Authentication authenticate(final Authentication authentication) {
-    throw new UnsupportedOperationException("Use another authenticate method");
   }
 
   /**
@@ -167,8 +161,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
   }
 
   /**
-   * Get an anonymous.
-   * Anonymous users do not have {@link Principal}.
+   * Get an anonymous user, it does not have {@link Principal}.
    *
    * @return authentication object for the anonymous user
    */
