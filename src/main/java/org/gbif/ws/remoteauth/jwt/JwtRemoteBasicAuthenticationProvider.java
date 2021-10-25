@@ -14,13 +14,13 @@
 package org.gbif.ws.remoteauth.jwt;
 
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.security.GbifUserPrincipal;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,8 +32,8 @@ public class JwtRemoteBasicAuthenticationProvider extends AbstractRemoteAuthenti
 
   private static final String AUTH_PATH = "/user/auth/jwt";
 
-  public JwtRemoteBasicAuthenticationProvider(RestTemplate restTemplate) {
-    super(restTemplate, JwtAuthentication.class, AUTH_PATH);
+  public JwtRemoteBasicAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
+    super(JwtAuthentication.class, AUTH_PATH, remoteAuthClient);
   }
 
   @Override

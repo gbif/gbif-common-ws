@@ -32,7 +32,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -44,20 +43,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
-  private final RestTemplate restTemplate;
+  private final RemoteAuthClient remoteAuthClient;
 
   public RemoteAuthWebSecurityConfigurer(ApplicationContext context,
-      RestTemplate restTemplate) {
+      RemoteAuthClient remoteAuthClient) {
 
     setApplicationContext(context);
-    this.restTemplate = restTemplate;
+    this.remoteAuthClient = remoteAuthClient;
   }
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) {
-    auth.authenticationProvider(new BasicRemoteAuthenticationProvider(restTemplate));
-    auth.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(restTemplate));
-    auth.authenticationProvider(new GbifAppRemoteAuthenticationProvider(restTemplate));
+    auth.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
+    auth.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
+    auth.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
   }
 
 

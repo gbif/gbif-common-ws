@@ -14,6 +14,7 @@
 package org.gbif.ws.remoteauth.basic;
 
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.security.GbifUserPrincipal;
 
@@ -21,7 +22,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,8 +34,8 @@ public class BasicRemoteAuthenticationProvider extends
 
   private static final String AUTH_PATH = "/user/auth/basic";
 
-  public BasicRemoteAuthenticationProvider(RestTemplate restTemplate) {
-    super(restTemplate, UsernamePasswordAuthenticationToken.class, AUTH_PATH);
+  public BasicRemoteAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
+    super(UsernamePasswordAuthenticationToken.class, AUTH_PATH, remoteAuthClient);
   }
 
   @Override

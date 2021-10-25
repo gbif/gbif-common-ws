@@ -18,6 +18,7 @@ import java.util.Collection;
 
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.AppPrincipal;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.util.SecurityConstants;
@@ -26,7 +27,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,8 +41,8 @@ public class GbifAppRemoteAuthenticationProvider extends
 
   private static final String AUTH_PATH = "/user/auth/app";
 
-  public GbifAppRemoteAuthenticationProvider(RestTemplate restTemplate) {
-    super(restTemplate, GbifAppAuthentication.class, AUTH_PATH);
+  public GbifAppRemoteAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
+    super(GbifAppAuthentication.class, AUTH_PATH, remoteAuthClient);
   }
 
   @Override

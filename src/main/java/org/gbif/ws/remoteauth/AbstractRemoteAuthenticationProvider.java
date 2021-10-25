@@ -22,19 +22,14 @@ import java.util.stream.Collectors;
 import org.gbif.api.vocabulary.UserRole;
 import org.gbif.ws.security.identity.model.LoggedUser;
 
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,17 +50,17 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   protected static final ObjectReader OBJECT_READER =
       new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).reader();
 
-  private final RestTemplate restTemplate;
+  private final RemoteAuthClient remoteAuthClient;
 
   private final Class<T> authClass;
 
   private final String authWsPath;
 
-  public AbstractRemoteAuthenticationProvider(RestTemplate restTemplate,
-      Class<T> authClass, String authWsPath) {
-    this.restTemplate = restTemplate;
+  public AbstractRemoteAuthenticationProvider(
+      Class<T> authClass, String authWsPath, RemoteAuthClient remoteAuthClient) {
     this.authClass = authClass;
     this.authWsPath = authWsPath;
+    this.remoteAuthClient = remoteAuthClient;
   }
 
   @Override
@@ -82,22 +77,7 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   @Retryable(value = RuntimeException.class,
       maxAttempts = 5, backoff = @Backoff(delay = 300))
   protected ResponseEntity<String> tryLogin(T authentication) {
-    // create headers
-    HttpHeaders headers = createHttpHeaders(authentication);
-
-
-
-    try {
-      return
-          restTemplate.postForEntity(
-              authWsPath,
-              new HttpEntity<>(headers),
-              String.class);
-    } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {
-      throw new BadCredentialsException("Wrong credentials for user: " + authentication.getName());
-    } catch (Exception e) {
-      throw new RestClientException("Could not authenticate user: " + authentication.getName(), e);
-    }
+    return remoteAuthClient.remoteAuth(authWsPath, createHttpHeaders(authentication));
   }
 
   public abstract HttpHeaders createHttpHeaders(Authentication authentication);
