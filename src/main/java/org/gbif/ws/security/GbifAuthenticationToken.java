@@ -42,6 +42,11 @@ public class GbifAuthenticationToken implements GbifAuthentication {
    */
   private final String authenticationScheme;
 
+  /**
+   * JWT token in case it's used.
+   */
+  private String jwtToken;
+
   public GbifAuthenticationToken(UserDetails principal) {
     this.principal = principal;
     this.authenticationScheme = "";
@@ -72,6 +77,15 @@ public class GbifAuthenticationToken implements GbifAuthentication {
     this.authenticationScheme = authenticationScheme;
     this.authorities = authorities;
     setAuthenticated(true);
+  }
+
+  public GbifAuthenticationToken(
+      UserDetails principal, Collection<? extends GrantedAuthority> authorities, String jwtToken) {
+    this.principal = principal;
+    this.authenticationScheme = "";
+    this.authorities = authorities;
+    setAuthenticated(true);
+    this.jwtToken = jwtToken;
   }
 
   public static GbifAuthentication anonymous() {
@@ -118,5 +132,9 @@ public class GbifAuthenticationToken implements GbifAuthentication {
   @Override
   public String getName() {
     return principal.getUsername();
+  }
+
+  public String getJwtToken() {
+    return jwtToken;
   }
 }

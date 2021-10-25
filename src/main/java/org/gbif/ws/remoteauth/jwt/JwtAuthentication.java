@@ -11,13 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.ws.server.filter.jwt;
+package org.gbif.ws.remoteauth.jwt;
 
-import java.util.Collection;
 import java.util.Objects;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * JWT {@link org.springframework.security.core.Authentication} that contains a jwt token and
@@ -32,14 +30,6 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
     super(null);
     this.token = token;
     super.setAuthenticated(false);
-  }
-
-  public JwtAuthentication(
-      String username, String token, Collection<? extends GrantedAuthority> authorities) {
-    super(authorities);
-    super.setAuthenticated(true);
-    this.username = username;
-    this.token = token;
   }
 
   @Override
@@ -58,9 +48,15 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
     JwtAuthentication that = (JwtAuthentication) o;
     return Objects.equals(username, that.username) && Objects.equals(token, that.token);
   }

@@ -11,15 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.ws.security.remote;
+package org.gbif.ws.remoteauth;
+
+import java.nio.charset.StandardCharsets;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.identity.model.LoggedUser;
-
-import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,8 +42,8 @@ public interface IdentityServiceClient extends IdentityAccessService {
   }
 
   @GetMapping(
-    value = "{userName}",
-    produces = MediaType.APPLICATION_JSON_VALUE)
+      value = "{userName}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   LoggedUser getUserData(@PathVariable("userName") String userName);
 
@@ -53,26 +53,20 @@ public interface IdentityServiceClient extends IdentityAccessService {
   }
 
   @PostMapping(
-    value = "login",
-    produces = MediaType.APPLICATION_JSON_VALUE)
+      value = "login",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   LoggedUser login(@RequestHeader(HttpHeaders.AUTHORIZATION) String credentials);
-
-  @PostMapping(
-    value = "login/jwt",
-    produces = MediaType.APPLICATION_JSON_VALUE)
-  @ResponseBody
-  LoggedUser loginJwt(@RequestHeader(HttpHeaders.AUTHORIZATION) String credentials);
 
   /**
    * Creates an instance suitable to be used by a registered application.
    */
   static IdentityServiceClient getInstance(String apiUrl, String userName, String appKey, String secretKey) {
     return new ClientBuilder()
-            .withUrl(apiUrl)
-            .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-            .withAppKeyCredentials(userName, appKey, secretKey)
-            .build(IdentityServiceClient.class);
+        .withUrl(apiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withAppKeyCredentials(userName, appKey, secretKey)
+        .build(IdentityServiceClient.class);
   }
 
   /**
@@ -80,9 +74,9 @@ public interface IdentityServiceClient extends IdentityAccessService {
    */
   static IdentityServiceClient getInstance(String apiUrl, String userName, String password) {
     return new ClientBuilder()
-      .withUrl(apiUrl)
-      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-      .withCredentials(userName, password)
-      .build(IdentityServiceClient.class);
+        .withUrl(apiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withCredentials(userName, password)
+        .build(IdentityServiceClient.class);
   }
 }

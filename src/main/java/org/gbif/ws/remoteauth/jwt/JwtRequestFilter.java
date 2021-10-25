@@ -11,19 +11,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.ws.server.filter.jwt;
+package org.gbif.ws.remoteauth.jwt;
 
 import java.io.IOException;
+
+import org.gbif.ws.security.GbifAuthenticationToken;
+import org.gbif.ws.util.SecurityConstants;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Intercepts all requests to look for a JWT token. */
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -38,19 +42,26 @@ public class JwtRequestFilter extends OncePerRequestFilter {
    * Performs the authentication, only if JWT token is found.
    */
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
     JwtUtils.findTokenInRequest(request)
-      .ifPresent(
-        token -> {
-          try {
-            SecurityContextHolder.getContext()
-              .setAuthentication(
-                authenticationManager.authenticate(new JwtAuthentication(token)));
-          } catch (AuthenticationException exc) {
-            SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-          }
-        });
+        .ifPresent(
+            token -> {
+              try {
+                GbifAuthenticationToken authentication =
+                    (GbifAuthenticationToken) authenticationManager.authenticate(new JwtAuthentication(token));
+                SecurityContextHolder.getContext()
+                    .setAuthentication(authentication);
+
+                // set the new token in the response
+                response.setHeader(
+                    SecurityConstants.HEADER_TOKEN, authentication.getJwtToken());
+                response.addHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SecurityConstants.HEADER_TOKEN);
+              } catch (AuthenticationException exc) {
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+              }
+            });
     filterChain.doFilter(request, response);
   }
 

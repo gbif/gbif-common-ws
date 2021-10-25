@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.ws.server.filter.jwt;
+package org.gbif.ws.remoteauth.jwt;
 
 import java.util.Optional;
 import java.util.regex.Pattern;

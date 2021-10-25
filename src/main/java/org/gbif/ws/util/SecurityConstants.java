@@ -23,6 +23,7 @@ public final class SecurityConstants {
   public static final String BEARER_SCHEME_PREFIX = "Bearer ";
   public static final String BASIC_AUTH = "BASIC";
 
+  // used by JWT to return a new token in the response headers
   public static final String HEADER_TOKEN = "token";
   public static final String HEADER_GBIF_USER = "x-gbif-user";
   public static final String HEADER_CONTENT_MD5 = "Content-MD5";
