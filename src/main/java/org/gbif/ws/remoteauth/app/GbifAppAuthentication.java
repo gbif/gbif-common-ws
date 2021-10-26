@@ -13,9 +13,9 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import java.util.Objects;
-
 import org.gbif.ws.security.GbifAuthUtils;
+
+import java.util.Objects;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 

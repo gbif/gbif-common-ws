@@ -13,6 +13,9 @@
  */
 package org.gbif.ws.security.identity.model;
 
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.vocabulary.UserRole;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,12 +23,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gbif.api.model.common.GbifUser;
-import org.gbif.api.vocabulary.UserRole;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import lombok.Builder;
 import lombok.Data;
 

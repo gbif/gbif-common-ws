@@ -13,15 +13,15 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.AppPrincipal;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.util.SecurityConstants;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;

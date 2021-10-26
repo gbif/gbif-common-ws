@@ -13,9 +13,6 @@
  */
 package org.gbif.ws.remoteauth;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;
 import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
@@ -23,6 +20,9 @@ import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
 import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
