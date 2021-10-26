@@ -13,13 +13,13 @@
  */
 package org.gbif.ws.remoteauth;
 
-import java.nio.charset.StandardCharsets;
-
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.identity.model.LoggedUser;
+
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,25 +27,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Client to perform remote authentication using Basic and JWT Authentication.
  */
-@RequestMapping("user")
 public interface IdentityServiceClient extends IdentityAccessService {
 
-  @Override
-  default GbifUser get(String userName) {
-    return getUserData(userName).toGbifUser();
-  }
-
   @GetMapping(
-      value = "{userName}",
+      value = "admin/user/{userName}",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  LoggedUser getUserData(@PathVariable("userName") String userName);
+  @Override
+  GbifUser get(@PathVariable("userName") String userName);
 
   @Override
   default GbifUser authenticate(String userName, String password) {
@@ -53,7 +47,7 @@ public interface IdentityServiceClient extends IdentityAccessService {
   }
 
   @PostMapping(
-      value = "login",
+      value = "user/login",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   LoggedUser login(@RequestHeader(HttpHeaders.AUTHORIZATION) String credentials);
