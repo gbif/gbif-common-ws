@@ -13,13 +13,12 @@
  */
 package org.gbif.ws.remoteauth;
 
+import java.nio.charset.StandardCharsets;
+
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-import org.gbif.ws.security.identity.model.LoggedUser;
-
-import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -38,8 +37,12 @@ public interface IdentityServiceClient extends IdentityAccessService {
       value = "admin/user/{userName}",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
+  UserAdmin getUserAdmin(@PathVariable("userName") String userName);
+
   @Override
-  GbifUser get(@PathVariable("userName") String userName);
+  default GbifUser get(@PathVariable("userName") String userName) {
+    return getUserAdmin(userName).getUser();
+  }
 
   @Override
   default GbifUser authenticate(String userName, String password) {
