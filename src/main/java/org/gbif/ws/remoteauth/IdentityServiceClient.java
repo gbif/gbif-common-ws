@@ -37,12 +37,8 @@ public interface IdentityServiceClient extends IdentityAccessService {
       value = "admin/user/{userName}",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  UserAdmin getUserAdmin(@PathVariable("userName") String userName);
-
   @Override
-  default GbifUser get(@PathVariable("userName") String userName) {
-    return getUserAdmin(userName).getUser();
-  }
+  GbifUser get(@PathVariable("userName") String userName);
 
   @Override
   default GbifUser authenticate(String userName, String password) {
