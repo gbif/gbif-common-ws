@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientDecoder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">ClientDecoder.java</span></div><h1>ClientDecoder.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +15,7 @@ package org.gbif.ws.client;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,31 +35,31 @@ public class ClientDecoder implements Decoder {
 
   private final JacksonDecoder jacksonDecoder;
 
-<span class="nc" id="L39">  public ClientDecoder(ObjectMapper objectMapper) {</span>
-<span class="nc" id="L40">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
-<span class="nc" id="L41">  }</span>
+<span class="nc" id="L38">  public ClientDecoder(ObjectMapper objectMapper) {</span>
+<span class="nc" id="L39">    this.jacksonDecoder = new JacksonDecoder(objectMapper);</span>
+<span class="nc" id="L40">  }</span>
 
   @Override
   public Object decode(Response response, Type type) throws IOException, FeignException {
-<span class="nc" id="L45">    HttpStatus responseStatus = HttpStatus.resolve(response.status());</span>
+<span class="nc" id="L44">    HttpStatus responseStatus = HttpStatus.resolve(response.status());</span>
 
-<span class="nc bnc" id="L47" title="All 4 branches missed.">    if (responseStatus == HttpStatus.NOT_FOUND || responseStatus == HttpStatus.NO_CONTENT) {</span>
-<span class="nc" id="L48">      return null;</span>
-<span class="nc bnc" id="L49" title="All 4 branches missed.">    } else if (responseStatus != null &amp;&amp; responseStatus.isError()) {</span>
-<span class="nc" id="L50">      throw new DecodeException(response.status(), response.toString(), response.request());</span>
+<span class="nc bnc" id="L46" title="All 4 branches missed.">    if (responseStatus == HttpStatus.NOT_FOUND || responseStatus == HttpStatus.NO_CONTENT) {</span>
+<span class="nc" id="L47">      return null;</span>
+<span class="nc bnc" id="L48" title="All 4 branches missed.">    } else if (responseStatus != null &amp;&amp; responseStatus.isError()) {</span>
+<span class="nc" id="L49">      throw new DecodeException(response.status(), response.toString(), response.request());</span>
     }
 
-<span class="nc" id="L53">    MediaType contentType = getContentType(response);</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (MediaType.APPLICATION_JSON.equalsTypeAndSubtype(contentType)) {</span>
-<span class="nc" id="L55">      return jacksonDecoder.decode(response, type);</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    } else if (MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType)) {</span>
-<span class="nc" id="L57">      return Util.toString(response.body().asReader());</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">    } else if (MediaType.APPLICATION_OCTET_STREAM.equalsTypeAndSubtype(contentType)) {</span>
-<span class="nc" id="L59">      return Util.toByteArray(response.body().asInputStream());</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">    } else if (byte[].class.equals(type)) {</span>
-<span class="nc" id="L61">      return Util.toByteArray(response.body().asInputStream());</span>
+<span class="nc" id="L52">    MediaType contentType = getContentType(response);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    if (MediaType.APPLICATION_JSON.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L54">      return jacksonDecoder.decode(response, type);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    } else if (MediaType.TEXT_PLAIN.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L56">      return Util.toString(response.body().asReader(StandardCharsets.UTF_8));</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    } else if (MediaType.APPLICATION_OCTET_STREAM.equalsTypeAndSubtype(contentType)) {</span>
+<span class="nc" id="L58">      return Util.toByteArray(response.body().asInputStream());</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    } else if (byte[].class.equals(type)) {</span>
+<span class="nc" id="L60">      return Util.toByteArray(response.body().asInputStream());</span>
     } else {
-<span class="nc" id="L63">      throw new DecodeException(response.status(), &quot;Unsupported response type&quot;, response.request());</span>
+<span class="nc" id="L62">      throw new DecodeException(response.status(), &quot;Unsupported response type&quot;, response.request());</span>
     }
   }
 
@@ -68,11 +67,11 @@ public class ClientDecoder implements Decoder {
    * Gets the first MediaType listed in the Content-Type header.
    */
   private static MediaType getContentType(Response response) {
-<span class="nc" id="L71">    return response.headers().get(HttpHeaders.CONTENT_TYPE).stream()</span>
-<span class="nc" id="L72">        .findFirst()</span>
-<span class="nc" id="L73">        .filter(StringUtils::hasLength)</span>
-<span class="nc" id="L74">        .map(MediaType::parseMediaType)</span>
-<span class="nc" id="L75">        .orElse(null);</span>
+<span class="nc" id="L70">    return response.headers().get(HttpHeaders.CONTENT_TYPE).stream()</span>
+<span class="nc" id="L71">        .findFirst()</span>
+<span class="nc" id="L72">        .filter(StringUtils::hasLength)</span>
+<span class="nc" id="L73">        .map(MediaType::parseMediaType)</span>
+<span class="nc" id="L74">        .orElse(null);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

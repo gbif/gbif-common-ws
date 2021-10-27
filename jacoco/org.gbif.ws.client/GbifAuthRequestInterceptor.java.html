@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GbifAuthRequestInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">GbifAuthRequestInterceptor.java</span></div><h1>GbifAuthRequestInterceptor.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,7 +50,7 @@ import static org.gbif.ws.client.ClientUtils.isRequestBodyNotEmpty;
  */
 public class GbifAuthRequestInterceptor implements RequestInterceptor {
 
-<span class="nc" id="L55">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);</span>
+<span class="nc" id="L53">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);</span>
 
   private SigningService signingService;
   private Md5EncodeService md5EncodeService;
@@ -65,57 +63,57 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
       String appKey,
       String secretKey,
       SigningService signingService,
-<span class="nc" id="L68">      Md5EncodeService md5EncodeService) {</span>
-<span class="nc" id="L69">    this.signingService = signingService;</span>
-<span class="nc" id="L70">    this.md5EncodeService = md5EncodeService;</span>
-<span class="nc" id="L71">    this.username = username;</span>
-<span class="nc" id="L72">    this.appKey = appKey;</span>
-<span class="nc" id="L73">    this.secretKey = secretKey;</span>
-<span class="nc" id="L74">  }</span>
+<span class="nc" id="L66">      Md5EncodeService md5EncodeService) {</span>
+<span class="nc" id="L67">    this.signingService = signingService;</span>
+<span class="nc" id="L68">    this.md5EncodeService = md5EncodeService;</span>
+<span class="nc" id="L69">    this.username = username;</span>
+<span class="nc" id="L70">    this.appKey = appKey;</span>
+<span class="nc" id="L71">    this.secretKey = secretKey;</span>
+<span class="nc" id="L72">  }</span>
 
   @Override
   public void apply(RequestTemplate template) {
-<span class="nc" id="L78">    RequestDataToSign requestDataToSign = new RequestDataToSign();</span>
-<span class="nc" id="L79">    requestDataToSign.setMethod(template.method());</span>
-<span class="nc" id="L80">    requestDataToSign.setUrl(removeQueryParameters(template.url()));</span>
-<span class="nc" id="L81">    requestDataToSign.setUser(username);</span>
+<span class="nc" id="L76">    RequestDataToSign requestDataToSign = new RequestDataToSign();</span>
+<span class="nc" id="L77">    requestDataToSign.setMethod(template.method());</span>
+<span class="nc" id="L78">    requestDataToSign.setUrl(removeQueryParameters(template.url()));</span>
+<span class="nc" id="L79">    requestDataToSign.setUser(username);</span>
 
-<span class="nc bnc" id="L83" title="All 4 branches missed.">    if (isPostOrPutRequest(template) &amp;&amp; isRequestBodyNotEmpty(template)) {</span>
-<span class="nc" id="L84">      Map&lt;String, Collection&lt;String&gt;&gt; headers = template.headers();</span>
+<span class="nc bnc" id="L81" title="All 4 branches missed.">    if (isPostOrPutRequest(template) &amp;&amp; isRequestBodyNotEmpty(template)) {</span>
+<span class="nc" id="L82">      Map&lt;String, Collection&lt;String&gt;&gt; headers = template.headers();</span>
 
-<span class="nc" id="L86">      Collection&lt;String&gt; contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);</span>
+<span class="nc" id="L84">      Collection&lt;String&gt; contentTypeHeaders = headers.get(HttpHeaders.CONTENT_TYPE);</span>
 
       String contentType =
-<span class="nc bnc" id="L89" title="All 4 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
-<span class="nc" id="L90">              ? contentTypeHeaders.iterator().next()</span>
-<span class="nc" id="L91">              : &quot;application/json&quot;;</span>
-<span class="nc" id="L92">      requestDataToSign.setContentType(contentType);</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">          (contentTypeHeaders != null &amp;&amp; !contentTypeHeaders.isEmpty())</span>
+<span class="nc" id="L88">              ? contentTypeHeaders.iterator().next()</span>
+<span class="nc" id="L89">              : &quot;application/json&quot;;</span>
+<span class="nc" id="L90">      requestDataToSign.setContentType(contentType);</span>
 
-<span class="nc" id="L94">      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());</span>
-<span class="nc" id="L95">      requestDataToSign.setContentTypeMd5(contentMd5);</span>
+<span class="nc" id="L92">      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());</span>
+<span class="nc" id="L93">      requestDataToSign.setContentTypeMd5(contentMd5);</span>
 
-<span class="nc" id="L97">      template.header(&quot;Content-MD5&quot;, contentMd5);</span>
+<span class="nc" id="L95">      template.header(&quot;Content-MD5&quot;, contentMd5);</span>
     }
 
-<span class="nc" id="L100">    LOG.debug(&quot;Client data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
+<span class="nc" id="L98">    LOG.debug(&quot;Client data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
 
     try {
-<span class="nc" id="L103">      String signature = signingService.buildSignature(requestDataToSign, secretKey);</span>
+<span class="nc" id="L101">      String signature = signingService.buildSignature(requestDataToSign, secretKey);</span>
 
-<span class="nc" id="L105">      template.header(&quot;x-gbif-user&quot;, username);</span>
-<span class="nc" id="L106">      template.header(&quot;Authorization&quot;, &quot;GBIF &quot; + appKey + &quot;:&quot; + signature);</span>
-<span class="nc" id="L107">    } catch (PrivateKeyNotFoundException e) {</span>
-<span class="nc" id="L108">      LOG.debug(&quot;Private key was not found for the application {}&quot;, appKey);</span>
-<span class="nc" id="L109">      throw new WebApplicationException(</span>
+<span class="nc" id="L103">      template.header(&quot;x-gbif-user&quot;, username);</span>
+<span class="nc" id="L104">      template.header(&quot;Authorization&quot;, &quot;GBIF &quot; + appKey + &quot;:&quot; + signature);</span>
+<span class="nc" id="L105">    } catch (PrivateKeyNotFoundException e) {</span>
+<span class="nc" id="L106">      LOG.debug(&quot;Private key was not found for the application {}&quot;, appKey);</span>
+<span class="nc" id="L107">      throw new WebApplicationException(</span>
           &quot;Private key was not found for the application &quot; + appKey, HttpStatus.UNAUTHORIZED);
-<span class="nc" id="L111">    }</span>
-<span class="nc" id="L112">  }</span>
+<span class="nc" id="L109">    }</span>
+<span class="nc" id="L110">  }</span>
 
   /**
    * Remove query parameters from the URL.
    */
   private String removeQueryParameters(String url) {
-<span class="nc" id="L118">    return url.split(&quot;\\?&quot;)[0];</span>
+<span class="nc" id="L116">    return url.split(&quot;\\?&quot;)[0];</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

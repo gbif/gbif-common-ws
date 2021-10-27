@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JacksonJsonObjectMapperProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.json</a> &gt; <span class="el_source">JacksonJsonObjectMapperProvider.java</span></div><h1>JacksonJsonObjectMapperProvider.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,30 +19,63 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 public final class JacksonJsonObjectMapperProvider {
 
   private JacksonJsonObjectMapperProvider() {}
 
-  public static ObjectMapper getObjectMapper() {
-<span class="fc" id="L30">    final ObjectMapper objectMapper = new ObjectMapper();</span>
-<span class="fc" id="L31">    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);</span>
+  /** Creates an ObjectMapper with the default configuration.*/
+  public static ObjectMapper getDefaultObjectMapper() {
+<span class="fc" id="L32">    final ObjectMapper objectMapper = new ObjectMapper();</span>
+<span class="fc" id="L33">    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);</span>
     // determines whether encountering of unknown properties (ones that do not map to a property,
     // and there is no
     // &quot;any setter&quot; or handler that can handle it) should result in a failure (throwing a
     // JsonMappingException) or not.
-<span class="fc" id="L36">    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);</span>
+<span class="fc" id="L38">    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);</span>
 
-<span class="fc" id="L38">    objectMapper.disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);</span>
+<span class="fc" id="L40">    objectMapper.disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);</span>
 
-<span class="fc" id="L40">    objectMapper.disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES);</span>
+<span class="fc" id="L42">    objectMapper.disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES);</span>
 
     // Enforce use of ISO-8601 format dates (http://wiki.fasterxml.com/JacksonFAQDateHandling)
-<span class="fc" id="L43">    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);</span>
-
-<span class="fc" id="L45">    Mixins.getPredefinedMixins().forEach(objectMapper::addMixIn);</span>
+<span class="fc" id="L45">    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);</span>
 
 <span class="fc" id="L47">    return objectMapper;</span>
+  }
+
+  /** Creates an ObjectMapper with the default GBIF Mixins. */
+  public static ObjectMapper getObjectMapper() {
+<span class="fc" id="L52">    ObjectMapper objectMapper = getDefaultObjectMapper();</span>
+
+<span class="fc" id="L54">    Mixins.getPredefinedMixins().forEach(objectMapper::addMixIn);</span>
+
+<span class="fc" id="L56">    return objectMapper;</span>
+  }
+
+  /**
+   * Creates an ObjectMapper that supports builders having a build method called &quot;build&quot; and without prefixes on methods.
+   */
+  public static ObjectMapper getObjectMapperWithBuilderSupport() {
+<span class="nc" id="L63">    return addBuilderSupport(getObjectMapper());</span>
+  }
+
+  public static ObjectMapper addBuilderSupport(ObjectMapper objectMapper) {
+<span class="nc" id="L67">    objectMapper.setAnnotationIntrospector(</span>
+<span class="nc" id="L68">        new JacksonAnnotationIntrospector() {</span>
+          @Override
+          public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            if (ac.hasAnnotation(</span>
+                JsonPOJOBuilder.class)) { // If no annotation present use default as empty prefix
+<span class="nc" id="L73">              return super.findPOJOBuilderConfig(ac);</span>
+            }
+<span class="nc" id="L75">            return new JsonPOJOBuilder.Value(&quot;build&quot;, &quot;&quot;);</span>
+          }
+        });
+<span class="nc" id="L78">    return objectMapper;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

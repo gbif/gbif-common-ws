@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BasicUserPrincipal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">BasicUserPrincipal.java</span></div><h1>BasicUserPrincipal.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,44 +24,44 @@ public class BasicUserPrincipal implements UserDetails {
 
   private final String name;
 
-<span class="nc" id="L29">  public BasicUserPrincipal(String name) {</span>
-<span class="nc" id="L30">    Objects.requireNonNull(name);</span>
-<span class="nc" id="L31">    this.name = name;</span>
-<span class="nc" id="L32">  }</span>
+<span class="nc" id="L27">  public BasicUserPrincipal(String name) {</span>
+<span class="nc" id="L28">    Objects.requireNonNull(name);</span>
+<span class="nc" id="L29">    this.name = name;</span>
+<span class="nc" id="L30">  }</span>
 
   @Override
   public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
-<span class="nc" id="L36">    return Collections.emptyList();</span>
+<span class="nc" id="L34">    return Collections.emptyList();</span>
   }
 
   @Override
   public String getPassword() {
-<span class="nc" id="L41">    throw new UnsupportedOperationException(&quot;No password for BasicUserPrincipal&quot;);</span>
+<span class="nc" id="L39">    throw new UnsupportedOperationException(&quot;No password for BasicUserPrincipal&quot;);</span>
   }
 
   @Override
   public String getUsername() {
-<span class="nc" id="L46">    return name;</span>
+<span class="nc" id="L44">    return name;</span>
   }
 
   @Override
   public boolean isAccountNonExpired() {
-<span class="nc" id="L51">    return true;</span>
+<span class="nc" id="L49">    return true;</span>
   }
 
   @Override
   public boolean isAccountNonLocked() {
-<span class="nc" id="L56">    return true;</span>
+<span class="nc" id="L54">    return true;</span>
   }
 
   @Override
   public boolean isCredentialsNonExpired() {
-<span class="nc" id="L61">    return true;</span>
+<span class="nc" id="L59">    return true;</span>
   }
 
   @Override
   public boolean isEnabled() {
-<span class="nc" id="L66">    return true;</span>
+<span class="nc" id="L64">    return true;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

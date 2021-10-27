@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientContract.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">ClientContract.java</span></div><h1>ClientContract.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.openfeign.AnnotatedParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.PathVariableParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.QueryMapParameterProcessor;
 import org.springframework.cloud.openfeign.annotation.RequestHeaderParameterProcessor;
@@ -40,56 +39,65 @@ import static org.springframework.core.annotation.AnnotatedElementUtils.findMerg
 
 public class ClientContract extends SpringMvcContract {
 
-  public ClientContract() {
-<span class="nc" id="L44">    super(</span>
-<span class="nc" id="L45">        Arrays.asList(</span>
+  private ClientContract(List&lt;AnnotatedParameterProcessor&gt; annotatedParameterProcessors) {
+<span class="nc" id="L43">    super(annotatedParameterProcessors);</span>
+<span class="nc" id="L44">  }</span>
+
+  public static ClientContract withDefaultProcessors() {
+<span class="nc" id="L47">    return new ClientContract(</span>
+<span class="nc" id="L48">        Arrays.asList(</span>
             new PartialDateParameterProcessor(),
             new PathVariableParameterProcessor(),
             new RequestParamParameterProcessor(),
             new RequestHeaderParameterProcessor(),
             new QueryMapParameterProcessor()));
-<span class="nc" id="L51">  }</span>
+  }
+
+  public static ClientContract withProcessors(
+      AnnotatedParameterProcessor... annotatedParameterProcessors) {
+<span class="nc" id="L58">    return new ClientContract(Arrays.asList(annotatedParameterProcessors));</span>
+  }
 
   @Override
   public List&lt;MethodMetadata&gt; parseAndValidateMetadata(final Class&lt;?&gt; targetType) {
-<span class="nc" id="L55">    checkState(</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        targetType.getTypeParameters().length == 0,</span>
+<span class="nc" id="L63">    checkState(</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        targetType.getTypeParameters().length == 0,</span>
         &quot;Parameterized types unsupported: %s&quot;,
-<span class="nc" id="L58">        targetType.getSimpleName());</span>
-<span class="nc" id="L59">    final Map&lt;String, MethodMetadata&gt; result = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L66">        targetType.getSimpleName());</span>
+<span class="nc" id="L67">    final Map&lt;String, MethodMetadata&gt; result = new LinkedHashMap&lt;&gt;();</span>
 
-<span class="nc bnc" id="L61" title="All 2 branches missed.">    for (final Method method : targetType.getMethods()) {</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">      if (method.getDeclaringClass() == Object.class</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">          || (method.getModifiers() &amp; Modifier.STATIC) != 0</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">          || Util.isDefault(method)</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    for (final Method method : targetType.getMethods()) {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">      if (method.getDeclaringClass() == Object.class</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">          || (method.getModifiers() &amp; Modifier.STATIC) != 0</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">          || Util.isDefault(method)</span>
           // skip default methods which related to generic inheritance
           // also default methods are considered as &quot;unsupported operations&quot;
-<span class="nc bnc" id="L67" title="All 2 branches missed.">          || method.toString().startsWith(&quot;public default&quot;)</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">          || method.toString().startsWith(&quot;public default&quot;)</span>
           // skip not annotated methods (consider as &quot;not implemented&quot;)
-<span class="nc bnc" id="L69" title="All 2 branches missed.">          || method.getAnnotations().length == 0) {</span>
-<span class="nc" id="L70">        continue;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">          || method.getAnnotations().length == 0) {</span>
+<span class="nc" id="L78">        continue;</span>
       }
-<span class="nc" id="L72">      final MethodMetadata metadata = this.parseAndValidateMetadata(targetType, method);</span>
-<span class="nc" id="L73">      checkState(</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">          !result.containsKey(metadata.configKey()),</span>
+<span class="nc" id="L80">      final MethodMetadata metadata = this.parseAndValidateMetadata(targetType, method);</span>
+<span class="nc" id="L81">      checkState(</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">          !result.containsKey(metadata.configKey()),</span>
           &quot;Overrides unsupported: %s&quot;,
-<span class="nc" id="L76">          metadata.configKey());</span>
-<span class="nc" id="L77">      result.put(metadata.configKey(), metadata);</span>
+<span class="nc" id="L84">          metadata.configKey());</span>
+<span class="nc" id="L85">      result.put(metadata.configKey(), metadata);</span>
     }
 
-<span class="nc" id="L80">    return new ArrayList&lt;&gt;(result.values());</span>
+<span class="nc" id="L88">    return new ArrayList&lt;&gt;(result.values());</span>
   }
 
   @Override
   protected void processAnnotationOnClass(MethodMetadata data, Class&lt;?&gt; clz) {
-<span class="nc" id="L85">    RequestMapping classAnnotation = findMergedAnnotation(clz, RequestMapping.class);</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (classAnnotation != null) {</span>
+<span class="nc" id="L93">    RequestMapping classAnnotation = findMergedAnnotation(clz, RequestMapping.class);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (classAnnotation != null) {</span>
       // Prepend path from class annotation if specified
-<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (classAnnotation.value().length &gt; 0) {</span>
-<span class="nc" id="L89">        String pathValue = emptyToNull(classAnnotation.value()[0]);</span>
-<span class="nc" id="L90">        data.template().uri(StringUtils.prependIfMissing(pathValue, &quot;/&quot;));</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">      if (classAnnotation.value().length &gt; 0) {</span>
+<span class="nc" id="L97">        String pathValue = emptyToNull(classAnnotation.value()[0]);</span>
+<span class="nc" id="L98">        data.template().uri(StringUtils.prependIfMissing(pathValue, &quot;/&quot;));</span>
       }
     }
-<span class="nc" id="L93">  }</span>
+<span class="nc" id="L101">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

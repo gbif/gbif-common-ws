@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientRetryer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.client</a> &gt; <span class="el_source">ClientRetryer.java</span></div><h1>ClientRetryer.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +22,7 @@ import feign.Retryer;
 @SuppressWarnings(&quot;unused&quot;)
 public class ClientRetryer implements Retryer {
 
-<span class="nc" id="L27">  private static final Logger LOG = LoggerFactory.getLogger(ClientRetryer.class);</span>
+<span class="nc" id="L25">  private static final Logger LOG = LoggerFactory.getLogger(ClientRetryer.class);</span>
 
   private final int maxAttempts;
   private final long period;
@@ -33,48 +31,48 @@ public class ClientRetryer implements Retryer {
   long sleptForMillis;
 
   public ClientRetryer() {
-<span class="nc" id="L36">    this(1000, 3, 1.5);</span>
-<span class="nc" id="L37">  }</span>
+<span class="nc" id="L34">    this(1000, 3, 1.5);</span>
+<span class="nc" id="L35">  }</span>
 
-<span class="nc" id="L39">  public ClientRetryer(long period, int maxAttempts, double multiplier) {</span>
-<span class="nc" id="L40">    this.period = period;</span>
-<span class="nc" id="L41">    this.maxAttempts = maxAttempts;</span>
-<span class="nc" id="L42">    this.multiplier = multiplier;</span>
-<span class="nc" id="L43">    this.attempt = 1;</span>
-<span class="nc" id="L44">  }</span>
+<span class="nc" id="L37">  public ClientRetryer(long period, int maxAttempts, double multiplier) {</span>
+<span class="nc" id="L38">    this.period = period;</span>
+<span class="nc" id="L39">    this.maxAttempts = maxAttempts;</span>
+<span class="nc" id="L40">    this.multiplier = multiplier;</span>
+<span class="nc" id="L41">    this.attempt = 1;</span>
+<span class="nc" id="L42">  }</span>
 
   protected long currentTimeMillis() {
-<span class="nc" id="L47">    return System.currentTimeMillis();</span>
+<span class="nc" id="L45">    return System.currentTimeMillis();</span>
   }
 
   @Override
   public void continueOrPropagate(RetryableException e) {
-<span class="nc bnc" id="L52" title="All 2 branches missed.">    if (attempt++ &gt;= maxAttempts) {</span>
-<span class="nc" id="L53">      LOG.error(</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">    if (attempt++ &gt;= maxAttempts) {</span>
+<span class="nc" id="L51">      LOG.error(</span>
           &quot;All {} retry attempts failed. Giving up. Last execution was: '{}: {}'&quot;,
-<span class="nc" id="L55">          maxAttempts,</span>
-<span class="nc" id="L56">          e.getClass().getSimpleName(),</span>
-<span class="nc" id="L57">          e.getMessage());</span>
-<span class="nc" id="L58">      throw e;</span>
+<span class="nc" id="L53">          maxAttempts,</span>
+<span class="nc" id="L54">          e.getClass().getSimpleName(),</span>
+<span class="nc" id="L55">          e.getMessage());</span>
+<span class="nc" id="L56">      throw e;</span>
     }
 
     long interval;
-<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (e.retryAfter() != null) {</span>
-<span class="nc" id="L63">      interval = e.retryAfter().getTime() - currentTimeMillis();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (interval &lt; 0) {</span>
-<span class="nc" id="L65">        return;</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    if (e.retryAfter() != null) {</span>
+<span class="nc" id="L61">      interval = e.retryAfter().getTime() - currentTimeMillis();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">      if (interval &lt; 0) {</span>
+<span class="nc" id="L63">        return;</span>
       }
     } else {
-<span class="nc" id="L68">      interval = nextMaxInterval();</span>
+<span class="nc" id="L66">      interval = nextMaxInterval();</span>
     }
     try {
-<span class="nc" id="L71">      Thread.sleep(interval);</span>
-<span class="nc" id="L72">    } catch (InterruptedException ignored) {</span>
-<span class="nc" id="L73">      Thread.currentThread().interrupt();</span>
-<span class="nc" id="L74">      throw e;</span>
-<span class="nc" id="L75">    }</span>
-<span class="nc" id="L76">    sleptForMillis += interval;</span>
-<span class="nc" id="L77">  }</span>
+<span class="nc" id="L69">      Thread.sleep(interval);</span>
+<span class="nc" id="L70">    } catch (InterruptedException ignored) {</span>
+<span class="nc" id="L71">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L72">      throw e;</span>
+<span class="nc" id="L73">    }</span>
+<span class="nc" id="L74">    sleptForMillis += interval;</span>
+<span class="nc" id="L75">  }</span>
 
   /**
    * Calculates the time interval to a retry attempt. &lt;br&gt;
@@ -84,12 +82,12 @@ public class ClientRetryer implements Retryer {
    * @return time in nanoseconds from now until the next attempt.
    */
   long nextMaxInterval() {
-<span class="nc" id="L87">    return (long) (period * Math.pow(multiplier, attempt - 1));</span>
+<span class="nc" id="L85">    return (long) (period * Math.pow(multiplier, attempt - 1));</span>
   }
 
   @Override
   public Retryer clone() {
-<span class="nc" id="L92">    return new ClientRetryer(period, maxAttempts, multiplier);</span>
+<span class="nc" id="L90">    return new ClientRetryer(period, maxAttempts, multiplier);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthResponseFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.advice</a> &gt; <span class="el_source">AuthResponseFilter.java</span></div><h1>AuthResponseFilter.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,12 +29,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  */
 @SuppressWarnings(&quot;NullableProblems&quot;)
 @ControllerAdvice
-<span class="nc" id="L34">public class AuthResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
+<span class="nc" id="L32">public class AuthResponseFilter implements ResponseBodyAdvice&lt;Object&gt; {</span>
 
   @Override
   public boolean supports(
       MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
-<span class="nc" id="L39">    return true;</span>
+<span class="nc" id="L37">    return true;</span>
   }
 
   @Override
@@ -47,17 +45,17 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
       Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,
       ServerHttpRequest request,
       ServerHttpResponse response) {
-<span class="nc bnc" id="L50" title="All 2 branches missed.">    if (response instanceof ServletServerHttpResponse) {</span>
-<span class="nc" id="L51">      int responseStatusCode =</span>
-<span class="nc" id="L52">          ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">    if (response instanceof ServletServerHttpResponse) {</span>
+<span class="nc" id="L49">      int responseStatusCode =</span>
+<span class="nc" id="L50">          ((ServletServerHttpResponse) response).getServletResponse().getStatus();</span>
 
-<span class="nc bnc" id="L54" title="All 2 branches missed.">      if (responseStatusCode == HttpStatus.UNAUTHORIZED.value()) {</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">      if (responseStatusCode == HttpStatus.UNAUTHORIZED.value()) {</span>
         // TODO: 10/01/2020 realm GBIF only?
-<span class="nc" id="L56">        response.getHeaders().add(&quot;WWW-Authenticate&quot;, &quot;Basic realm=\&quot;GBIF\&quot;&quot;);</span>
+<span class="nc" id="L54">        response.getHeaders().add(&quot;WWW-Authenticate&quot;, &quot;Basic realm=\&quot;GBIF\&quot;&quot;);</span>
       }
     }
 
-<span class="nc" id="L60">    return body;</span>
+<span class="nc" id="L58">    return body;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

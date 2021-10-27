@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.remoteauth.jwt</a> &gt; <span class="el_source">JwtUtils.java</span></div><h1>JwtUtils.java</h1><pre class="source lang-java linenums">/*
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.remoteauth.jwt;
+
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.http.HttpHeaders;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class JwtUtils {
+
+  // Patterns that catches case-insensitive versions of word 'bearer'
+<span class="nc" id="L30">  private static final Pattern BEARER_PATTERN = Pattern.compile(&quot;(?i)bearer&quot;);</span>
+
+  /** Tries to find the token in the {@link HttpHeaders#AUTHORIZATION} header. */
+  static Optional&lt;String&gt; findTokenInRequest(HttpServletRequest request) {
+    // check header first
+<span class="nc" id="L35">    return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))</span>
+<span class="nc" id="L36">        .filter(JwtUtils::containsBearer)</span>
+<span class="nc" id="L37">        .map(JwtUtils::removeBearer);</span>
+  }
+
+  /**
+   * Removes 'bearer' token, leading an trailing whitespaces.
+   *
+   * @param token to be clean
+   * @return a token without whitespaces and the word 'bearer'
+   */
+  private static String removeBearer(String token) {
+<span class="nc" id="L47">    return BEARER_PATTERN.matcher(token).replaceAll(&quot;&quot;).trim();</span>
+  }
+
+  private static boolean containsBearer(String header) {
+<span class="nc" id="L51">    return BEARER_PATTERN.matcher(header).find();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

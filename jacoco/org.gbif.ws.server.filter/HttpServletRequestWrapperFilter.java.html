@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpServletRequestWrapperFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.filter</a> &gt; <span class="el_source">HttpServletRequestWrapperFilter.java</span></div><h1>HttpServletRequestWrapperFilter.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,22 +22,30 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-<span class="nc" id="L31">public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {</span>
+public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
+
+  private boolean wrapContent;
+
+  public HttpServletRequestWrapperFilter(
+<span class="nc" id="L35">      @Value(&quot;${gbif.ws.security.wrapContent:true}&quot;) boolean wrapContent) {</span>
+<span class="nc" id="L36">    this.wrapContent = wrapContent;</span>
+<span class="nc" id="L37">  }</span>
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     final GbifHttpServletRequestWrapper requestWrapper =
-<span class="nc bnc" id="L38" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
-<span class="nc" id="L39">            ? (GbifHttpServletRequestWrapper) request</span>
-<span class="nc" id="L40">            : new GbifHttpServletRequestWrapper(request);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
+<span class="nc" id="L45">            ? (GbifHttpServletRequestWrapper) request</span>
+<span class="nc" id="L46">            : new GbifHttpServletRequestWrapper(request, wrapContent);</span>
 
-<span class="nc" id="L42">    filterChain.doFilter(requestWrapper, response);</span>
-<span class="nc" id="L43">  }</span>
+<span class="nc" id="L48">    filterChain.doFilter(requestWrapper, response);</span>
+<span class="nc" id="L49">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

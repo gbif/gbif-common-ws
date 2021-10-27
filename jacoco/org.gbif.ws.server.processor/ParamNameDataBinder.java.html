@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ParamNameDataBinder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.processor</a> &gt; <span class="el_source">ParamNameDataBinder.java</span></div><h1>ParamNameDataBinder.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ExtendedServletRequ
 @SuppressWarnings(&quot;NullableProblems&quot;)
 public class ParamNameDataBinder extends ExtendedServletRequestDataBinder {
 
-<span class="nc" id="L34">  private static final Logger LOG = LoggerFactory.getLogger(ParamNameDataBinder.class);</span>
+<span class="nc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(ParamNameDataBinder.class);</span>
 
   private final Map&lt;String, String&gt; paramMappings;
   private final Map&lt;String, String&gt; methodMappings;
@@ -41,10 +39,10 @@ public class ParamNameDataBinder extends ExtendedServletRequestDataBinder {
       String objectName,
       Map&lt;String, String&gt; paramMappings,
       Map&lt;String, String&gt; methodMappings) {
-<span class="nc" id="L44">    super(target, objectName);</span>
-<span class="nc" id="L45">    this.paramMappings = paramMappings;</span>
-<span class="nc" id="L46">    this.methodMappings = methodMappings;</span>
-<span class="nc" id="L47">  }</span>
+<span class="nc" id="L42">    super(target, objectName);</span>
+<span class="nc" id="L43">    this.paramMappings = paramMappings;</span>
+<span class="nc" id="L44">    this.methodMappings = methodMappings;</span>
+<span class="nc" id="L45">  }</span>
 
   /**
    * Using a mapping which was created by {@link ParamNameProcessor} this method binds actual values
@@ -53,31 +51,31 @@ public class ParamNameDataBinder extends ExtendedServletRequestDataBinder {
   @Override
   protected void addBindValues(
       MutablePropertyValues mutablePropertyValues, ServletRequest request) {
-<span class="nc" id="L56">    super.addBindValues(mutablePropertyValues, request);</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : paramMappings.entrySet()) {</span>
-<span class="nc" id="L58">      String paramName = entry.getKey();</span>
-<span class="nc" id="L59">      String fieldName = entry.getValue();</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">      if (mutablePropertyValues.contains(paramName)) {</span>
-<span class="nc" id="L61">        mutablePropertyValues.add(</span>
-<span class="nc" id="L62">            fieldName, mutablePropertyValues.getPropertyValue(paramName).getValue());</span>
+<span class="nc" id="L54">    super.addBindValues(mutablePropertyValues, request);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : paramMappings.entrySet()) {</span>
+<span class="nc" id="L56">      String paramName = entry.getKey();</span>
+<span class="nc" id="L57">      String fieldName = entry.getValue();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">      if (mutablePropertyValues.contains(paramName)) {</span>
+<span class="nc" id="L59">        mutablePropertyValues.add(</span>
+<span class="nc" id="L60">            fieldName, mutablePropertyValues.getPropertyValue(paramName).getValue());</span>
       }
-<span class="nc" id="L64">    }</span>
+<span class="nc" id="L62">    }</span>
 
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : methodMappings.entrySet()) {</span>
-<span class="nc" id="L67">      String paramName = entry.getKey();</span>
-<span class="nc" id="L68">      String methodName = entry.getValue();</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">      if (mutablePropertyValues.contains(paramName)) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : methodMappings.entrySet()) {</span>
+<span class="nc" id="L65">      String paramName = entry.getKey();</span>
+<span class="nc" id="L66">      String methodName = entry.getValue();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">      if (mutablePropertyValues.contains(paramName)) {</span>
         try {
-<span class="nc" id="L71">          final Method declaredMethod =</span>
-<span class="nc" id="L72">              getTarget().getClass().getDeclaredMethod(methodName, String.class);</span>
-<span class="nc" id="L73">          declaredMethod.invoke(</span>
-<span class="nc" id="L74">              getTarget(), mutablePropertyValues.getPropertyValue(paramName).getValue());</span>
-<span class="nc" id="L75">          mutablePropertyValues.removePropertyValue(paramName);</span>
-<span class="nc" id="L76">        } catch (Exception e) {</span>
-<span class="nc" id="L77">          LOG.error(&quot;There was a problem to invoke a method {}&quot;, methodName);</span>
-<span class="nc" id="L78">        }</span>
+<span class="nc" id="L69">          final Method declaredMethod =</span>
+<span class="nc" id="L70">              getTarget().getClass().getDeclaredMethod(methodName, String.class);</span>
+<span class="nc" id="L71">          declaredMethod.invoke(</span>
+<span class="nc" id="L72">              getTarget(), mutablePropertyValues.getPropertyValue(paramName).getValue());</span>
+<span class="nc" id="L73">          mutablePropertyValues.removePropertyValue(paramName);</span>
+<span class="nc" id="L74">        } catch (Exception e) {</span>
+<span class="nc" id="L75">          LOG.error(&quot;There was a problem to invoke a method {}&quot;, methodName);</span>
+<span class="nc" id="L76">        }</span>
       }
-<span class="nc" id="L80">    }</span>
-<span class="nc" id="L81">  }</span>
+<span class="nc" id="L78">    }</span>
+<span class="nc" id="L79">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -5,10 +5,15 @@ org.gbif.api.model
 org.gbif.api.model.checklistbank
 org.gbif.api.model.checklistbank.search
 org.gbif.api.model.collections
+org.gbif.api.model.collections.duplicates
 org.gbif.api.model.collections.lookup
+org.gbif.api.model.collections.merge
 org.gbif.api.model.collections.request
+org.gbif.api.model.collections.search
+org.gbif.api.model.collections.suggestions
 org.gbif.api.model.collections.view
 org.gbif.api.model.common
+org.gbif.api.model.common.export
 org.gbif.api.model.common.messaging
 org.gbif.api.model.common.paging
 org.gbif.api.model.common.search
@@ -18,6 +23,7 @@ org.gbif.api.model.literature.search
 org.gbif.api.model.metrics
 org.gbif.api.model.metrics.cube
 org.gbif.api.model.occurrence
+org.gbif.api.model.occurrence.geo
 org.gbif.api.model.occurrence.predicate
 org.gbif.api.model.occurrence.search
 org.gbif.api.model.pipelines
@@ -42,6 +48,7 @@ org.gbif.api.util
 org.gbif.api.util.comparators
 org.gbif.api.util.formatter
 org.gbif.api.util.iterables
+org.gbif.api.util.validators.identifierschemes
 org.gbif.api.v2
 org.gbif.api.vocabulary
 org.gbif.api.vocabulary.collections
@@ -58,8 +65,13 @@ org.gbif.utils.rs
 org.gbif.utils.text
 org.gbif.ws
 org.gbif.ws.client
+org.gbif.ws.converter
 org.gbif.ws.json
 org.gbif.ws.paths
+org.gbif.ws.remoteauth
+org.gbif.ws.remoteauth.app
+org.gbif.ws.remoteauth.basic
+org.gbif.ws.remoteauth.jwt
 org.gbif.ws.security
 org.gbif.ws.server
 org.gbif.ws.server.advice

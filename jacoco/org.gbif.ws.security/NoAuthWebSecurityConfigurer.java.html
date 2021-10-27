@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NoAuthWebSecurityConfigurer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">NoAuthWebSecurityConfigurer.java</span></div><h1>NoAuthWebSecurityConfigurer.java</h1><pre class="source lang-java linenums">/*
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.security;
+
+import org.gbif.ws.server.filter.AppIdentityFilter;
+import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
+import org.gbif.ws.server.filter.IdentityFilter;
+import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+/**
+ * Security Adapter that disables the authentication redirect and use GBIF identity filters for secure endpoints.
+ * UserDetailsService and PasswordEncoder must be supplied by the SpringContext.
+ * This class is not annotated to avoid automatic instantiation. To use it create a subclass of it:
+ * &lt;pre&gt;
+ *   @Configuration
+ *   @EnableWebSecurity
+ *   public static class ValidatorWebSecurity extends NoAuthWebSecurityConfigurer {
+ *
+ *     public ValidatorWebSecurity(
+ *       UserDetailsService userDetailsService, ApplicationContext context, PasswordEncoder passwordEncoder
+ *     ) {
+ *       super(userDetailsService, context, passwordEncoder);
+ *     }
+ *  }
+ * &lt;pre/&gt;
+ */
+public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
+
+  private final UserDetailsService userDetailsService;
+
+  private final PasswordEncoder passwordEncoder;
+
+  public NoAuthWebSecurityConfigurer(
+      UserDetailsService userDetailsService,
+      ApplicationContext context,
+<span class="nc" id="L64">      PasswordEncoder passwordEncoder) {</span>
+<span class="nc" id="L65">    this.userDetailsService = userDetailsService;</span>
+<span class="nc" id="L66">    setApplicationContext(context);</span>
+<span class="nc" id="L67">    this.passwordEncoder = passwordEncoder;</span>
+<span class="nc" id="L68">  }</span>
+
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) {
+<span class="nc" id="L72">    auth.authenticationProvider(dbAuthenticationProvider());</span>
+<span class="nc" id="L73">  }</span>
+
+  private DaoAuthenticationProvider dbAuthenticationProvider() {
+<span class="nc" id="L76">    final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();</span>
+<span class="nc" id="L77">    authProvider.setUserDetailsService(userDetailsService);</span>
+<span class="nc" id="L78">    authProvider.setPasswordEncoder(passwordEncoder);</span>
+<span class="nc" id="L79">    return authProvider;</span>
+  }
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+<span class="nc" id="L84">    http.httpBasic()</span>
+<span class="nc" id="L85">        .disable()</span>
+<span class="nc" id="L86">        .addFilterAfter(</span>
+<span class="nc" id="L87">            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),</span>
+            CsrfFilter.class)
+<span class="nc" id="L89">        .addFilterAfter(</span>
+<span class="nc" id="L90">            getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),</span>
+            HttpServletRequestWrapperFilter.class)
+<span class="nc" id="L92">        .addFilterAfter(</span>
+<span class="nc" id="L93">            getApplicationContext().getBean(IdentityFilter.class),</span>
+            RequestHeaderParamUpdateFilter.class)
+<span class="nc" id="L95">        .addFilterAfter(</span>
+<span class="nc" id="L96">            getApplicationContext().getBean(AppIdentityFilter.class), IdentityFilter.class)</span>
+<span class="nc" id="L97">        .csrf()</span>
+<span class="nc" id="L98">        .disable()</span>
+<span class="nc" id="L99">        .cors()</span>
+<span class="nc" id="L100">        .and()</span>
+<span class="nc" id="L101">        .authorizeRequests()</span>
+<span class="nc" id="L102">        .anyRequest()</span>
+<span class="nc" id="L103">        .authenticated();</span>
+
+<span class="nc" id="L105">    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);</span>
+<span class="nc" id="L106">  }</span>
+
+  @Bean
+  CorsConfigurationSource corsConfigurationSource() {
+    // CorsFilter only applies this if the origin header is present in the request
+<span class="nc" id="L111">    CorsConfiguration configuration = new CorsConfiguration();</span>
+<span class="nc" id="L112">    configuration.setAllowedHeaders(Arrays.asList(&quot;authorization&quot;, &quot;content-type&quot;));</span>
+<span class="nc" id="L113">    configuration.setAllowedOrigins(Collections.singletonList(&quot;*&quot;));</span>
+<span class="nc" id="L114">    configuration.setAllowedMethods(</span>
+<span class="nc" id="L115">        Arrays.asList(&quot;HEAD&quot;, &quot;GET&quot;, &quot;POST&quot;, &quot;DELETE&quot;, &quot;PUT&quot;, &quot;OPTIONS&quot;));</span>
+<span class="nc" id="L116">    configuration.setExposedHeaders(</span>
+<span class="nc" id="L117">        Arrays.asList(</span>
+            &quot;Access-Control-Allow-Origin&quot;,
+            &quot;Access-Control-Allow-Methods&quot;,
+            &quot;Access-Control-Allow-Headers&quot;));
+<span class="nc" id="L121">    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();</span>
+<span class="nc" id="L122">    source.registerCorsConfiguration(&quot;/**&quot;, configuration);</span>
+<span class="nc" id="L123">    return source;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

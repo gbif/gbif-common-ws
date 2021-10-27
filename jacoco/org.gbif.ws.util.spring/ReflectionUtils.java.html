@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReflectionUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util.spring</a> &gt; <span class="el_source">ReflectionUtils.java</span></div><h1>ReflectionUtils.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,7 +34,7 @@ import java.util.List;
  * @author Sam Brannen
  * @since 1.2.2
  */
-<span class="nc" id="L39">public abstract class ReflectionUtils {</span>
+<span class="nc" id="L37">public abstract class ReflectionUtils {</span>
 
   /**
    * Attempt to find a {@link Field field} on the supplied {@link Class} with
@@ -53,21 +51,21 @@ import java.util.List;
    *                                  &lt;code&gt;null&lt;/code&gt; or if the field name is &lt;em&gt;empty&lt;/em&gt;
    */
   public static Field findField(final Class clazz, final String name, final Class type) {
-<span class="nc" id="L56">    Assert.notNull(clazz, &quot;The 'class to introspect' supplied to findField() can not be null.&quot;);</span>
-<span class="nc" id="L57">    Assert.hasText(name, &quot;The field name supplied to findField() can not be empty.&quot;);</span>
-<span class="nc" id="L58">    Assert.notNull(type, &quot;The field type supplied to findField() can not be null.&quot;);</span>
-<span class="nc" id="L59">    Class searchType = clazz;</span>
-<span class="nc bnc" id="L60" title="All 4 branches missed.">    while (!Object.class.equals(searchType) &amp;&amp; searchType != null) {</span>
-<span class="nc" id="L61">      final Field[] fields = searchType.getDeclaredFields();</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
-<span class="nc" id="L63">        Field field = fields[i];</span>
-<span class="nc bnc" id="L64" title="All 4 branches missed.">        if (name.equals(field.getName()) &amp;&amp; type.equals(field.getType())) {</span>
-<span class="nc" id="L65">          return field;</span>
+<span class="nc" id="L54">    Assert.notNull(clazz, &quot;The 'class to introspect' supplied to findField() can not be null.&quot;);</span>
+<span class="nc" id="L55">    Assert.hasText(name, &quot;The field name supplied to findField() can not be empty.&quot;);</span>
+<span class="nc" id="L56">    Assert.notNull(type, &quot;The field type supplied to findField() can not be null.&quot;);</span>
+<span class="nc" id="L57">    Class searchType = clazz;</span>
+<span class="nc bnc" id="L58" title="All 4 branches missed.">    while (!Object.class.equals(searchType) &amp;&amp; searchType != null) {</span>
+<span class="nc" id="L59">      final Field[] fields = searchType.getDeclaredFields();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
+<span class="nc" id="L61">        Field field = fields[i];</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">        if (name.equals(field.getName()) &amp;&amp; type.equals(field.getType())) {</span>
+<span class="nc" id="L63">          return field;</span>
         }
       }
-<span class="nc" id="L68">      searchType = searchType.getSuperclass();</span>
-<span class="nc" id="L69">    }</span>
-<span class="nc" id="L70">    return null;</span>
+<span class="nc" id="L66">      searchType = searchType.getSuperclass();</span>
+<span class="nc" id="L67">    }</span>
+<span class="nc" id="L68">    return null;</span>
   }
 
   /**
@@ -85,13 +83,13 @@ import java.util.List;
    */
   public static void setField(Field field, Object target, Object value) {
     try {
-<span class="nc" id="L88">      field.set(target, value);</span>
-<span class="nc" id="L89">    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L90">      handleReflectionException(ex);</span>
-<span class="nc" id="L91">      throw new IllegalStateException(</span>
-<span class="nc" id="L92">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
-<span class="nc" id="L93">    }</span>
-<span class="nc" id="L94">  }</span>
+<span class="nc" id="L86">      field.set(target, value);</span>
+<span class="nc" id="L87">    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L88">      handleReflectionException(ex);</span>
+<span class="nc" id="L89">      throw new IllegalStateException(</span>
+<span class="nc" id="L90">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
+<span class="nc" id="L91">    }</span>
+<span class="nc" id="L92">  }</span>
 
   /**
    * Attempt to find a {@link Method} on the supplied class with the supplied name
@@ -104,7 +102,7 @@ import java.util.List;
    * @return the Method object, or &lt;code&gt;null&lt;/code&gt; if none found
    */
   public static Method findMethod(Class clazz, String name) {
-<span class="nc" id="L107">    return findMethod(clazz, name, new Class[0]);</span>
+<span class="nc" id="L105">    return findMethod(clazz, name, new Class[0]);</span>
   }
 
   /**
@@ -119,22 +117,22 @@ import java.util.List;
    * @return the Method object, or &lt;code&gt;null&lt;/code&gt; if none found
    */
   public static Method findMethod(Class clazz, String name, Class[] paramTypes) {
-<span class="nc" id="L122">    Assert.notNull(clazz, &quot;Class must not be null&quot;);</span>
-<span class="nc" id="L123">    Assert.notNull(name, &quot;Method name must not be null&quot;);</span>
-<span class="nc" id="L124">    Class searchType = clazz;</span>
-<span class="nc bnc" id="L125" title="All 4 branches missed.">    while (!Object.class.equals(searchType) &amp;&amp; searchType != null) {</span>
+<span class="nc" id="L120">    Assert.notNull(clazz, &quot;Class must not be null&quot;);</span>
+<span class="nc" id="L121">    Assert.notNull(name, &quot;Method name must not be null&quot;);</span>
+<span class="nc" id="L122">    Class searchType = clazz;</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">    while (!Object.class.equals(searchType) &amp;&amp; searchType != null) {</span>
       Method[] methods =
-<span class="nc bnc" id="L127" title="All 2 branches missed.">          (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">      for (int i = 0; i &lt; methods.length; i++) {</span>
-<span class="nc" id="L129">        Method method = methods[i];</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (name.equals(method.getName())</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">            &amp;&amp; Arrays.equals(paramTypes, method.getParameterTypes())) {</span>
-<span class="nc" id="L132">          return method;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">          (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">      for (int i = 0; i &lt; methods.length; i++) {</span>
+<span class="nc" id="L127">        Method method = methods[i];</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (name.equals(method.getName())</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            &amp;&amp; Arrays.equals(paramTypes, method.getParameterTypes())) {</span>
+<span class="nc" id="L130">          return method;</span>
         }
       }
-<span class="nc" id="L135">      searchType = searchType.getSuperclass();</span>
-<span class="nc" id="L136">    }</span>
-<span class="nc" id="L137">    return null;</span>
+<span class="nc" id="L133">      searchType = searchType.getSuperclass();</span>
+<span class="nc" id="L134">    }</span>
+<span class="nc" id="L135">    return null;</span>
   }
 
   /**
@@ -151,7 +149,7 @@ import java.util.List;
    * @see #invokeMethod(java.lang.reflect.Method, Object, Object[])
    */
   public static Object invokeMethod(Method method, Object target) {
-<span class="nc" id="L154">    return invokeMethod(method, target, null);</span>
+<span class="nc" id="L152">    return invokeMethod(method, target, null);</span>
   }
 
   /**
@@ -170,15 +168,15 @@ import java.util.List;
    */
   public static Object invokeMethod(Method method, Object target, Object[] args) {
     try {
-<span class="nc" id="L173">      return method.invoke(target, args);</span>
-<span class="nc" id="L174">    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L175">      handleReflectionException(ex);</span>
-<span class="nc" id="L176">      throw new IllegalStateException(</span>
-<span class="nc" id="L177">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
-<span class="nc" id="L178">    } catch (InvocationTargetException ex) {</span>
-<span class="nc" id="L179">      handleReflectionException(ex);</span>
-<span class="nc" id="L180">      throw new IllegalStateException(</span>
-<span class="nc" id="L181">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
+<span class="nc" id="L171">      return method.invoke(target, args);</span>
+<span class="nc" id="L172">    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L173">      handleReflectionException(ex);</span>
+<span class="nc" id="L174">      throw new IllegalStateException(</span>
+<span class="nc" id="L175">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
+<span class="nc" id="L176">    } catch (InvocationTargetException ex) {</span>
+<span class="nc" id="L177">      handleReflectionException(ex);</span>
+<span class="nc" id="L178">      throw new IllegalStateException(</span>
+<span class="nc" id="L179">          &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
     }
   }
 
@@ -192,17 +190,17 @@ import java.util.List;
    * @param ex the reflection exception to handle
    */
   public static void handleReflectionException(Exception ex) {
-<span class="nc bnc" id="L195" title="All 2 branches missed.">    if (ex instanceof NoSuchMethodException) {</span>
-<span class="nc" id="L196">      throw new IllegalStateException(&quot;Method not found: &quot; + ex.getMessage());</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">    if (ex instanceof NoSuchMethodException) {</span>
+<span class="nc" id="L194">      throw new IllegalStateException(&quot;Method not found: &quot; + ex.getMessage());</span>
     }
-<span class="nc bnc" id="L198" title="All 2 branches missed.">    if (ex instanceof IllegalAccessException) {</span>
-<span class="nc" id="L199">      throw new IllegalStateException(&quot;Could not access method: &quot; + ex.getMessage());</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (ex instanceof IllegalAccessException) {</span>
+<span class="nc" id="L197">      throw new IllegalStateException(&quot;Could not access method: &quot; + ex.getMessage());</span>
     }
-<span class="nc bnc" id="L201" title="All 2 branches missed.">    if (ex instanceof InvocationTargetException) {</span>
-<span class="nc" id="L202">      handleInvocationTargetException((InvocationTargetException) ex);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (ex instanceof InvocationTargetException) {</span>
+<span class="nc" id="L200">      handleInvocationTargetException((InvocationTargetException) ex);</span>
     }
-<span class="nc" id="L204">    throw new IllegalStateException(</span>
-<span class="nc" id="L205">        &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
+<span class="nc" id="L202">    throw new IllegalStateException(</span>
+<span class="nc" id="L203">        &quot;Unexpected reflection exception - &quot; + ex.getClass().getName() + &quot;: &quot; + ex.getMessage());</span>
   }
 
   /**
@@ -214,17 +212,17 @@ import java.util.List;
    * @param ex the invocation target exception to handle
    */
   public static void handleInvocationTargetException(InvocationTargetException ex) {
-<span class="nc bnc" id="L217" title="All 2 branches missed.">    if (ex.getTargetException() instanceof RuntimeException) {</span>
-<span class="nc" id="L218">      throw (RuntimeException) ex.getTargetException();</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (ex.getTargetException() instanceof RuntimeException) {</span>
+<span class="nc" id="L216">      throw (RuntimeException) ex.getTargetException();</span>
     }
-<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (ex.getTargetException() instanceof Error) {</span>
-<span class="nc" id="L221">      throw (Error) ex.getTargetException();</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (ex.getTargetException() instanceof Error) {</span>
+<span class="nc" id="L219">      throw (Error) ex.getTargetException();</span>
     }
-<span class="nc" id="L223">    throw new IllegalStateException(</span>
+<span class="nc" id="L221">    throw new IllegalStateException(</span>
         &quot;Unexpected exception thrown by method - &quot;
-<span class="nc" id="L225">            + ex.getTargetException().getClass().getName()</span>
+<span class="nc" id="L223">            + ex.getTargetException().getClass().getName()</span>
             + &quot;: &quot;
-<span class="nc" id="L227">            + ex.getTargetException().getMessage());</span>
+<span class="nc" id="L225">            + ex.getTargetException().getMessage());</span>
   }
 
   /**
@@ -241,17 +239,17 @@ import java.util.List;
    * @throws Exception the rethrown exception (in case of a checked exception)
    */
   public static void rethrowException(Throwable ex) throws Exception {
-<span class="nc bnc" id="L244" title="All 2 branches missed.">    if (ex instanceof Exception) {</span>
-<span class="nc" id="L245">      throw (Exception) ex;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">    if (ex instanceof Exception) {</span>
+<span class="nc" id="L243">      throw (Exception) ex;</span>
     }
-<span class="nc bnc" id="L247" title="All 2 branches missed.">    if (ex instanceof Error) {</span>
-<span class="nc" id="L248">      throw (Error) ex;</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">    if (ex instanceof Error) {</span>
+<span class="nc" id="L246">      throw (Error) ex;</span>
     }
-<span class="nc" id="L250">    throw new IllegalStateException(</span>
+<span class="nc" id="L248">    throw new IllegalStateException(</span>
         &quot;Unexpected exception thrown by method - &quot;
-<span class="nc" id="L252">            + ex.getClass().getName()</span>
+<span class="nc" id="L250">            + ex.getClass().getName()</span>
             + &quot;: &quot;
-<span class="nc" id="L254">            + ex.getMessage());</span>
+<span class="nc" id="L252">            + ex.getMessage());</span>
   }
 
   /**
@@ -266,15 +264,15 @@ import java.util.List;
    *         &lt;code&gt;false&lt;/code&gt; if it needs to be wrapped
    */
   public static boolean declaresException(Method method, Class exceptionType) {
-<span class="nc" id="L269">    Assert.notNull(method, &quot;Method must not be null&quot;);</span>
-<span class="nc" id="L270">    Class[] declaredExceptions = method.getExceptionTypes();</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">    for (int i = 0; i &lt; declaredExceptions.length; i++) {</span>
-<span class="nc" id="L272">      Class declaredException = declaredExceptions[i];</span>
-<span class="nc bnc" id="L273" title="All 2 branches missed.">      if (declaredException.isAssignableFrom(exceptionType)) {</span>
-<span class="nc" id="L274">        return true;</span>
+<span class="nc" id="L267">    Assert.notNull(method, &quot;Method must not be null&quot;);</span>
+<span class="nc" id="L268">    Class[] declaredExceptions = method.getExceptionTypes();</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    for (int i = 0; i &lt; declaredExceptions.length; i++) {</span>
+<span class="nc" id="L270">      Class declaredException = declaredExceptions[i];</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">      if (declaredException.isAssignableFrom(exceptionType)) {</span>
+<span class="nc" id="L272">        return true;</span>
       }
     }
-<span class="nc" id="L277">    return false;</span>
+<span class="nc" id="L275">    return false;</span>
   }
 
   /**
@@ -283,10 +281,10 @@ import java.util.List;
    * @param field the field to check
    */
   public static boolean isPublicStaticFinal(Field field) {
-<span class="nc" id="L286">    int modifiers = field.getModifiers();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">    return (Modifier.isPublic(modifiers)</span>
-<span class="nc bnc" id="L288" title="All 2 branches missed.">        &amp;&amp; Modifier.isStatic(modifiers)</span>
-<span class="nc bnc" id="L289" title="All 2 branches missed.">        &amp;&amp; Modifier.isFinal(modifiers));</span>
+<span class="nc" id="L284">    int modifiers = field.getModifiers();</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    return (Modifier.isPublic(modifiers)</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        &amp;&amp; Modifier.isStatic(modifiers)</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">        &amp;&amp; Modifier.isFinal(modifiers));</span>
   }
 
   /**
@@ -299,11 +297,11 @@ import java.util.List;
    * @see java.lang.reflect.Field#setAccessible
    */
   public static void makeAccessible(Field field) {
-<span class="nc bnc" id="L302" title="All 2 branches missed.">    if (!Modifier.isPublic(field.getModifiers())</span>
-<span class="nc bnc" id="L303" title="All 2 branches missed.">        || !Modifier.isPublic(field.getDeclaringClass().getModifiers())) {</span>
-<span class="nc" id="L304">      field.setAccessible(true);</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">    if (!Modifier.isPublic(field.getModifiers())</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        || !Modifier.isPublic(field.getDeclaringClass().getModifiers())) {</span>
+<span class="nc" id="L302">      field.setAccessible(true);</span>
     }
-<span class="nc" id="L306">  }</span>
+<span class="nc" id="L304">  }</span>
 
   /**
    * Make the given method accessible, explicitly setting it accessible if necessary.
@@ -315,11 +313,11 @@ import java.util.List;
    * @see java.lang.reflect.Method#setAccessible
    */
   public static void makeAccessible(Method method) {
-<span class="nc bnc" id="L318" title="All 2 branches missed.">    if (!Modifier.isPublic(method.getModifiers())</span>
-<span class="nc bnc" id="L319" title="All 2 branches missed.">        || !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {</span>
-<span class="nc" id="L320">      method.setAccessible(true);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">    if (!Modifier.isPublic(method.getModifiers())</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        || !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {</span>
+<span class="nc" id="L318">      method.setAccessible(true);</span>
     }
-<span class="nc" id="L322">  }</span>
+<span class="nc" id="L320">  }</span>
 
   /**
    * Make the given constructor accessible, explicitly setting it accessible if necessary.
@@ -331,11 +329,11 @@ import java.util.List;
    * @see java.lang.reflect.Constructor#setAccessible
    */
   public static void makeAccessible(Constructor ctor) {
-<span class="nc bnc" id="L334" title="All 2 branches missed.">    if (!Modifier.isPublic(ctor.getModifiers())</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">        || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {</span>
-<span class="nc" id="L336">      ctor.setAccessible(true);</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">    if (!Modifier.isPublic(ctor.getModifiers())</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        || !Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {</span>
+<span class="nc" id="L334">      ctor.setAccessible(true);</span>
     }
-<span class="nc" id="L338">  }</span>
+<span class="nc" id="L336">  }</span>
 
   /**
    * Perform the given callback operation on all matching methods of the
@@ -350,8 +348,8 @@ import java.util.List;
    */
   public static void doWithMethods(Class targetClass, MethodCallback mc)
       throws IllegalArgumentException {
-<span class="nc" id="L353">    doWithMethods(targetClass, mc, null);</span>
-<span class="nc" id="L354">  }</span>
+<span class="nc" id="L351">    doWithMethods(targetClass, mc, null);</span>
+<span class="nc" id="L352">  }</span>
 
   /**
    * Perform the given callback operation on all matching methods of the
@@ -368,37 +366,37 @@ import java.util.List;
 
     // Keep backing up the inheritance hierarchy.
     do {
-<span class="nc" id="L371">      Method[] methods = targetClass.getDeclaredMethods();</span>
-<span class="nc bnc" id="L372" title="All 2 branches missed.">      for (int i = 0; i &lt; methods.length; i++) {</span>
-<span class="nc bnc" id="L373" title="All 4 branches missed.">        if (mf != null &amp;&amp; !mf.matches(methods[i])) {</span>
-<span class="nc" id="L374">          continue;</span>
+<span class="nc" id="L369">      Method[] methods = targetClass.getDeclaredMethods();</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">      for (int i = 0; i &lt; methods.length; i++) {</span>
+<span class="nc bnc" id="L371" title="All 4 branches missed.">        if (mf != null &amp;&amp; !mf.matches(methods[i])) {</span>
+<span class="nc" id="L372">          continue;</span>
         }
         try {
-<span class="nc" id="L377">          mc.doWith(methods[i]);</span>
-<span class="nc" id="L378">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L379">          throw new IllegalStateException(</span>
-<span class="nc" id="L380">              &quot;Shouldn't be illegal to access method '&quot; + methods[i].getName() + &quot;': &quot; + ex);</span>
-<span class="nc" id="L381">        }</span>
+<span class="nc" id="L375">          mc.doWith(methods[i]);</span>
+<span class="nc" id="L376">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L377">          throw new IllegalStateException(</span>
+<span class="nc" id="L378">              &quot;Shouldn't be illegal to access method '&quot; + methods[i].getName() + &quot;': &quot; + ex);</span>
+<span class="nc" id="L379">        }</span>
       }
-<span class="nc" id="L383">      targetClass = targetClass.getSuperclass();</span>
-<span class="nc bnc" id="L384" title="All 2 branches missed.">    } while (targetClass != null);</span>
-<span class="nc" id="L385">  }</span>
+<span class="nc" id="L381">      targetClass = targetClass.getSuperclass();</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">    } while (targetClass != null);</span>
+<span class="nc" id="L383">  }</span>
 
   /**
    * Get all declared methods on the leaf class and all superclasses.
    * Leaf class methods are included first.
    */
   public static Method[] getAllDeclaredMethods(Class leafClass) throws IllegalArgumentException {
-<span class="nc" id="L392">    final List list = new LinkedList();</span>
-<span class="nc" id="L393">    doWithMethods(</span>
+<span class="nc" id="L390">    final List list = new LinkedList();</span>
+<span class="nc" id="L391">    doWithMethods(</span>
         leafClass,
-<span class="nc" id="L395">        new MethodCallback() {</span>
+<span class="nc" id="L393">        new MethodCallback() {</span>
           @Override
           public void doWith(Method m) {
-<span class="nc" id="L398">            list.add(m);</span>
-<span class="nc" id="L399">          }</span>
+<span class="nc" id="L396">            list.add(m);</span>
+<span class="nc" id="L397">          }</span>
         });
-<span class="nc" id="L401">    return (Method[]) list.toArray(new Method[list.size()]);</span>
+<span class="nc" id="L399">    return (Method[]) list.toArray(new Method[list.size()]);</span>
   }
 
   /**
@@ -410,8 +408,8 @@ import java.util.List;
    */
   public static void doWithFields(Class targetClass, FieldCallback fc)
       throws IllegalArgumentException {
-<span class="nc" id="L413">    doWithFields(targetClass, fc, null);</span>
-<span class="nc" id="L414">  }</span>
+<span class="nc" id="L411">    doWithFields(targetClass, fc, null);</span>
+<span class="nc" id="L412">  }</span>
 
   /**
    * Invoke the given callback on all fields in the target class,
@@ -427,22 +425,22 @@ import java.util.List;
     // Keep backing up the inheritance hierarchy.
     do {
       // Copy each field declared on this class unless it's static or file.
-<span class="nc" id="L430">      Field[] fields = targetClass.getDeclaredFields();</span>
-<span class="nc bnc" id="L431" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
+<span class="nc" id="L428">      Field[] fields = targetClass.getDeclaredFields();</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">      for (int i = 0; i &lt; fields.length; i++) {</span>
         // Skip static and final fields.
-<span class="nc bnc" id="L433" title="All 4 branches missed.">        if (ff != null &amp;&amp; !ff.matches(fields[i])) {</span>
-<span class="nc" id="L434">          continue;</span>
+<span class="nc bnc" id="L431" title="All 4 branches missed.">        if (ff != null &amp;&amp; !ff.matches(fields[i])) {</span>
+<span class="nc" id="L432">          continue;</span>
         }
         try {
-<span class="nc" id="L437">          fc.doWith(fields[i]);</span>
-<span class="nc" id="L438">        } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L439">          throw new IllegalStateException(</span>
-<span class="nc" id="L440">              &quot;Shouldn't be illegal to access field '&quot; + fields[i].getName() + &quot;': &quot; + ex);</span>
-<span class="nc" id="L441">        }</span>
+<span class="nc" id="L435">          fc.doWith(fields[i]);</span>
+<span class="nc" id="L436">        } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L437">          throw new IllegalStateException(</span>
+<span class="nc" id="L438">              &quot;Shouldn't be illegal to access field '&quot; + fields[i].getName() + &quot;': &quot; + ex);</span>
+<span class="nc" id="L439">        }</span>
       }
-<span class="nc" id="L443">      targetClass = targetClass.getSuperclass();</span>
-<span class="nc bnc" id="L444" title="All 4 branches missed.">    } while (targetClass != null &amp;&amp; targetClass != Object.class);</span>
-<span class="nc" id="L445">  }</span>
+<span class="nc" id="L441">      targetClass = targetClass.getSuperclass();</span>
+<span class="nc bnc" id="L442" title="All 4 branches missed.">    } while (targetClass != null &amp;&amp; targetClass != Object.class);</span>
+<span class="nc" id="L443">  }</span>
 
   /**
    * Given the source object and the destination, which must be the same class
@@ -453,32 +451,32 @@ import java.util.List;
    */
   public static void shallowCopyFieldState(final Object src, final Object dest)
       throws IllegalArgumentException {
-<span class="nc bnc" id="L456" title="All 2 branches missed.">    if (src == null) {</span>
-<span class="nc" id="L457">      throw new IllegalArgumentException(&quot;Source for field copy cannot be null&quot;);</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">    if (src == null) {</span>
+<span class="nc" id="L455">      throw new IllegalArgumentException(&quot;Source for field copy cannot be null&quot;);</span>
     }
-<span class="nc bnc" id="L459" title="All 2 branches missed.">    if (dest == null) {</span>
-<span class="nc" id="L460">      throw new IllegalArgumentException(&quot;Destination for field copy cannot be null&quot;);</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">    if (dest == null) {</span>
+<span class="nc" id="L458">      throw new IllegalArgumentException(&quot;Destination for field copy cannot be null&quot;);</span>
     }
-<span class="nc bnc" id="L462" title="All 2 branches missed.">    if (!src.getClass().isAssignableFrom(dest.getClass())) {</span>
-<span class="nc" id="L463">      throw new IllegalArgumentException(</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">    if (!src.getClass().isAssignableFrom(dest.getClass())) {</span>
+<span class="nc" id="L461">      throw new IllegalArgumentException(</span>
           &quot;Destination class [&quot;
-<span class="nc" id="L465">              + dest.getClass().getName()</span>
+<span class="nc" id="L463">              + dest.getClass().getName()</span>
               + &quot;] must be same or subclass as source class [&quot;
-<span class="nc" id="L467">              + src.getClass().getName()</span>
+<span class="nc" id="L465">              + src.getClass().getName()</span>
               + &quot;]&quot;);
     }
-<span class="nc" id="L470">    doWithFields(</span>
-<span class="nc" id="L471">        src.getClass(),</span>
-<span class="nc" id="L472">        new ReflectionUtils.FieldCallback() {</span>
+<span class="nc" id="L468">    doWithFields(</span>
+<span class="nc" id="L469">        src.getClass(),</span>
+<span class="nc" id="L470">        new ReflectionUtils.FieldCallback() {</span>
           @Override
           public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-<span class="nc" id="L475">            makeAccessible(field);</span>
-<span class="nc" id="L476">            Object srcValue = field.get(src);</span>
-<span class="nc" id="L477">            field.set(dest, srcValue);</span>
-<span class="nc" id="L478">          }</span>
+<span class="nc" id="L473">            makeAccessible(field);</span>
+<span class="nc" id="L474">            Object srcValue = field.get(src);</span>
+<span class="nc" id="L475">            field.set(dest, srcValue);</span>
+<span class="nc" id="L476">          }</span>
         },
         ReflectionUtils.COPYABLE_FIELDS);
-<span class="nc" id="L481">  }</span>
+<span class="nc" id="L479">  }</span>
 
   /**
    * Action to take on each method.
@@ -535,12 +533,12 @@ import java.util.List;
   /**
    * Pre-built FieldFilter that matches all non-static, non-final fields.
    */
-<span class="nc" id="L538">  public static FieldFilter COPYABLE_FIELDS =</span>
-<span class="nc" id="L539">      new FieldFilter() {</span>
+<span class="nc" id="L536">  public static FieldFilter COPYABLE_FIELDS =</span>
+<span class="nc" id="L537">      new FieldFilter() {</span>
         @Override
         public boolean matches(Field field) {
-<span class="nc bnc" id="L542" title="All 2 branches missed.">          return !(Modifier.isStatic(field.getModifiers())</span>
-<span class="nc bnc" id="L543" title="All 2 branches missed.">              || Modifier.isFinal(field.getModifiers()));</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">          return !(Modifier.isStatic(field.getModifiers())</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">              || Modifier.isFinal(field.getModifiers()));</span>
         }
       };
 }

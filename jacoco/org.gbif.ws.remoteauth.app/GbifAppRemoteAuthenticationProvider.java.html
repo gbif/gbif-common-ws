@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GbifAppRemoteAuthenticationProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.remoteauth.app</a> &gt; <span class="el_source">GbifAppRemoteAuthenticationProvider.java</span></div><h1>GbifAppRemoteAuthenticationProvider.java</h1><pre class="source lang-java linenums">/*
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.remoteauth.app;
+
+import org.gbif.api.vocabulary.AppRole;
+import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.RemoteAuthClient;
+import org.gbif.ws.security.AppPrincipal;
+import org.gbif.ws.security.GbifAuthenticationToken;
+import org.gbif.ws.util.SecurityConstants;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME;
+
+/**
+ * GBIF APP authentication against the registry.
+ */
+<span class="nc" id="L38">@Slf4j</span>
+public class GbifAppRemoteAuthenticationProvider
+    extends AbstractRemoteAuthenticationProvider&lt;GbifAppAuthentication&gt; {
+
+  private static final String AUTH_PATH = &quot;/user/auth/app&quot;;
+
+  public GbifAppRemoteAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
+<span class="nc" id="L45">    super(GbifAppAuthentication.class, AUTH_PATH, remoteAuthClient);</span>
+<span class="nc" id="L46">  }</span>
+
+  @Override
+  public HttpHeaders createHttpHeaders(Authentication authentication) {
+<span class="nc" id="L50">    HttpHeaders headers = new HttpHeaders();</span>
+<span class="nc" id="L51">    GbifAppAuthentication gbifAppAuthentication = (GbifAppAuthentication) authentication;</span>
+<span class="nc" id="L52">    headers.add(HttpHeaders.AUTHORIZATION, gbifAppAuthentication.getGbifScheme());</span>
+<span class="nc" id="L53">    headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (authentication.getPrincipal() != null) {</span>
+<span class="nc" id="L55">      headers.add(SecurityConstants.HEADER_GBIF_USER, authentication.getPrincipal().toString());</span>
+    }
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (gbifAppAuthentication.getOriginalRequestUrl() != null</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        &amp;&amp; !gbifAppAuthentication.getOriginalRequestUrl().isEmpty()) {</span>
+<span class="nc" id="L59">      headers.add(</span>
+          SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,
+<span class="nc" id="L61">          gbifAppAuthentication.getOriginalRequestUrl());</span>
+    }
+<span class="nc" id="L63">    return headers;</span>
+  }
+
+  @Override
+  protected Authentication createSuccessAuthentication(
+      ResponseEntity&lt;String&gt; response, Authentication authentication) {
+<span class="nc" id="L69">    Collection&lt;SimpleGrantedAuthority&gt; authorities = extractRoles(readUserFromResponse(response));</span>
+<span class="nc" id="L70">    authorities.add(new SimpleGrantedAuthority(AppRole.APP.name()));</span>
+
+<span class="nc" id="L72">    return new GbifAuthenticationToken(</span>
+        new AppPrincipal(
+<span class="nc" id="L74">            ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList&lt;&gt;(authorities)),</span>
+        GBIF_SCHEME,
+        authorities);
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

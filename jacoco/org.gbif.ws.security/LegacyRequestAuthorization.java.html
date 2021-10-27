@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LegacyRequestAuthorization.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">LegacyRequestAuthorization.java</span></div><h1>LegacyRequestAuthorization.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,63 +30,63 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class LegacyRequestAuthorization implements Authentication {
 
-<span class="nc" id="L35">  private static final Logger LOG = LoggerFactory.getLogger(LegacyRequestAuthorization.class);</span>
+<span class="nc" id="L33">  private static final Logger LOG = LoggerFactory.getLogger(LegacyRequestAuthorization.class);</span>
 
-<span class="nc" id="L37">  private boolean authenticated = false;</span>
+<span class="nc" id="L35">  private boolean authenticated = false;</span>
   private final UUID userKey;
   private final UUID organizationKey;
   private final Collection&lt;GrantedAuthority&gt; authorities;
 
-<span class="nc" id="L42">  public LegacyRequestAuthorization(UUID userKey, UUID organizationKey) {</span>
-<span class="nc" id="L43">    this.userKey = userKey;</span>
-<span class="nc" id="L44">    this.organizationKey = organizationKey;</span>
-<span class="nc" id="L45">    this.authorities = Collections.singleton(new SimpleGrantedAuthority(AppRole.IPT.name()));</span>
-<span class="nc" id="L46">    setAuthenticated(true);</span>
-<span class="nc" id="L47">  }</span>
+<span class="nc" id="L40">  public LegacyRequestAuthorization(UUID userKey, UUID organizationKey) {</span>
+<span class="nc" id="L41">    this.userKey = userKey;</span>
+<span class="nc" id="L42">    this.organizationKey = organizationKey;</span>
+<span class="nc" id="L43">    this.authorities = Collections.singleton(new SimpleGrantedAuthority(AppRole.IPT.name()));</span>
+<span class="nc" id="L44">    setAuthenticated(true);</span>
+<span class="nc" id="L45">  }</span>
 
   public UUID getUserKey() {
-<span class="nc" id="L50">    return userKey;</span>
+<span class="nc" id="L48">    return userKey;</span>
   }
 
   public UUID getOrganizationKey() {
-<span class="nc" id="L54">    return organizationKey;</span>
+<span class="nc" id="L52">    return organizationKey;</span>
   }
 
   @Override
   public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
-<span class="nc" id="L59">    return authorities;</span>
+<span class="nc" id="L57">    return authorities;</span>
   }
 
   @Override
   public Object getCredentials() {
-<span class="nc" id="L64">    LOG.warn(&quot;LegacyRequestAuthorization#getCredentials is not used&quot;);</span>
-<span class="nc" id="L65">    return null;</span>
+<span class="nc" id="L62">    LOG.warn(&quot;LegacyRequestAuthorization#getCredentials is not used&quot;);</span>
+<span class="nc" id="L63">    return null;</span>
   }
 
   @Override
   public Object getDetails() {
-<span class="nc" id="L70">    LOG.warn(&quot;LegacyRequestAuthorization#getDetails is not used&quot;);</span>
-<span class="nc" id="L71">    return null;</span>
+<span class="nc" id="L68">    LOG.warn(&quot;LegacyRequestAuthorization#getDetails is not used&quot;);</span>
+<span class="nc" id="L69">    return null;</span>
   }
 
   @Override
   public Object getPrincipal() {
-<span class="nc" id="L76">    return new BasicUserPrincipal(userKey.toString());</span>
+<span class="nc" id="L74">    return new BasicUserPrincipal(userKey.toString());</span>
   }
 
   @Override
   public boolean isAuthenticated() {
-<span class="nc" id="L81">    return authenticated;</span>
+<span class="nc" id="L79">    return authenticated;</span>
   }
 
   @Override
   public void setAuthenticated(boolean isAuthenticated) {
-<span class="nc" id="L86">    this.authenticated = isAuthenticated;</span>
-<span class="nc" id="L87">  }</span>
+<span class="nc" id="L84">    this.authenticated = isAuthenticated;</span>
+<span class="nc" id="L85">  }</span>
 
   @Override
   public String getName() {
-<span class="nc" id="L91">    return userKey.toString();</span>
+<span class="nc" id="L89">    return userKey.toString();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

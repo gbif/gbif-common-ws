@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XSSUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.util</a> &gt; <span class="el_source">XSSUtil.java</span></div><h1>XSSUtil.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,46 +24,46 @@ import org.slf4j.LoggerFactory;
  * Class with utility methods for XSS filtering.
  */
 public class XSSUtil {
-<span class="fc" id="L29">  private static final Logger LOG = LoggerFactory.getLogger(XSSUtil.class);</span>
+<span class="fc" id="L27">  private static final Logger LOG = LoggerFactory.getLogger(XSSUtil.class);</span>
 
   private XSSUtil() {
     // empty private constructor
   }
 
-<span class="fc" id="L35">  private static final Pattern NULL_CHAR = Pattern.compile(&quot;\0&quot;);</span>
-<span class="fc" id="L36">  private static final Pattern[] PATTERNS =</span>
+<span class="fc" id="L33">  private static final Pattern NULL_CHAR = Pattern.compile(&quot;\0&quot;);</span>
+<span class="fc" id="L34">  private static final Pattern[] PATTERNS =</span>
       new Pattern[] {
         // Avoid anything in a &lt;script&gt; type of expression
-<span class="fc" id="L39">        Pattern.compile(&quot;&lt;script&gt;(.*?)&lt;/script&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
+<span class="fc" id="L37">        Pattern.compile(&quot;&lt;script&gt;(.*?)&lt;/script&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
         // Avoid anything in a src='...' type of expression
-<span class="fc" id="L41">        Pattern.compile(</span>
+<span class="fc" id="L39">        Pattern.compile(</span>
             &quot;src[\r\n]*=[\r\n]*\\\'(.*?)\\\'&quot;,
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
-<span class="fc" id="L44">        Pattern.compile(</span>
+<span class="fc" id="L42">        Pattern.compile(</span>
             &quot;src[\r\n]*=[\r\n]*\\\&quot;(.*?)\\\&quot;&quot;,
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
         // Remove any lonesome &lt;/script&gt; tag
-<span class="fc" id="L48">        Pattern.compile(&quot;&lt;/script&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
+<span class="fc" id="L46">        Pattern.compile(&quot;&lt;/script&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
         // Avoid anything in a &lt;iframe&gt; type of expression
-<span class="fc" id="L50">        Pattern.compile(&quot;&lt;iframe&gt;(.*?)&lt;/iframe&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
+<span class="fc" id="L48">        Pattern.compile(&quot;&lt;iframe&gt;(.*?)&lt;/iframe&gt;&quot;, Pattern.CASE_INSENSITIVE),</span>
         // Remove any lonesome &lt;script ...&gt; tag
-<span class="fc" id="L52">        Pattern.compile(</span>
+<span class="fc" id="L50">        Pattern.compile(</span>
             &quot;&lt;script(.*?)&gt;&quot;, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
         // Remove any lonesome &lt;img ...&gt; tag
-<span class="fc" id="L55">        Pattern.compile(</span>
+<span class="fc" id="L53">        Pattern.compile(</span>
             &quot;&lt;img(.*?)&gt;&quot;, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
         // Avoid eval(...) expressions
-<span class="fc" id="L58">        Pattern.compile(</span>
+<span class="fc" id="L56">        Pattern.compile(</span>
             &quot;eval\\((.*?)\\)&quot;, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
         // Avoid expression(...) expressions
-<span class="fc" id="L61">        Pattern.compile(</span>
+<span class="fc" id="L59">        Pattern.compile(</span>
             &quot;expression\\((.*?)\\)&quot;, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
         // Avoid javascript:... expressions
-<span class="fc" id="L64">        Pattern.compile(&quot;javascript:&quot;, Pattern.CASE_INSENSITIVE),</span>
+<span class="fc" id="L62">        Pattern.compile(&quot;javascript:&quot;, Pattern.CASE_INSENSITIVE),</span>
         // Avoid vbscript:... expressions
-<span class="fc" id="L66">        Pattern.compile(&quot;vbscript:&quot;, Pattern.CASE_INSENSITIVE),</span>
+<span class="fc" id="L64">        Pattern.compile(&quot;vbscript:&quot;, Pattern.CASE_INSENSITIVE),</span>
         // Avoid onload= expressions
-<span class="fc" id="L68">        Pattern.compile(</span>
+<span class="fc" id="L66">        Pattern.compile(</span>
             &quot;on(load|error|mouseover|submit|reset|focus|click)(.*?)=&quot;,
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
       };
@@ -78,21 +76,21 @@ public class XSSUtil {
    * @return true if string matches at least one XSS pattern, or false otherwise
    */
   public static boolean containsXSS(String value) {
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">    if (value != null) {</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">    if (value != null) {</span>
 
       // Avoid null characters
-<span class="fc" id="L84">      String cleanValue = NULL_CHAR.matcher(value).replaceAll(&quot;&quot;);</span>
+<span class="fc" id="L82">      String cleanValue = NULL_CHAR.matcher(value).replaceAll(&quot;&quot;);</span>
 
       // Remove all sections that match a pattern
-<span class="fc bfc" id="L87" title="All 2 branches covered.">      for (Pattern scriptPattern : PATTERNS) {</span>
-<span class="fc" id="L88">        Matcher matcher = scriptPattern.matcher(cleanValue);</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (matcher.find()) {</span>
-<span class="fc" id="L90">          LOG.warn(&quot;Potentially malicious XSS script found: {}&quot;, cleanValue);</span>
-<span class="fc" id="L91">          return true;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">      for (Pattern scriptPattern : PATTERNS) {</span>
+<span class="fc" id="L86">        Matcher matcher = scriptPattern.matcher(cleanValue);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (matcher.find()) {</span>
+<span class="fc" id="L88">          LOG.warn(&quot;Potentially malicious XSS script found: {}&quot;, cleanValue);</span>
+<span class="fc" id="L89">          return true;</span>
         }
       }
     }
-<span class="fc" id="L95">    return false;</span>
+<span class="fc" id="L93">    return false;</span>
   }
 
   /**
@@ -103,22 +101,22 @@ public class XSSUtil {
    */
   public static String stripXSS(String value) {
 
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (value == null) {</span>
-<span class="nc" id="L107">      return null;</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    if (value == null) {</span>
+<span class="nc" id="L105">      return null;</span>
     }
 
     // Avoid null characters
-<span class="fc" id="L111">    String cleanValue = NULL_CHAR.matcher(value).replaceAll(&quot;&quot;);</span>
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">    if (StringUtils.isBlank(cleanValue)) {</span>
-<span class="nc" id="L113">      return cleanValue;</span>
+<span class="fc" id="L109">    String cleanValue = NULL_CHAR.matcher(value).replaceAll(&quot;&quot;);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">    if (StringUtils.isBlank(cleanValue)) {</span>
+<span class="nc" id="L111">      return cleanValue;</span>
     }
 
     // Remove all sections that match a pattern
-<span class="fc bfc" id="L117" title="All 2 branches covered.">    for (Pattern scriptPattern : PATTERNS) {</span>
-<span class="fc" id="L118">      Matcher matcher = scriptPattern.matcher(cleanValue);</span>
-<span class="fc" id="L119">      cleanValue = matcher.replaceAll(&quot;&quot;);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">    for (Pattern scriptPattern : PATTERNS) {</span>
+<span class="fc" id="L116">      Matcher matcher = scriptPattern.matcher(cleanValue);</span>
+<span class="fc" id="L117">      cleanValue = matcher.replaceAll(&quot;&quot;);</span>
     }
-<span class="fc" id="L121">    return cleanValue;</span>
+<span class="fc" id="L119">    return cleanValue;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

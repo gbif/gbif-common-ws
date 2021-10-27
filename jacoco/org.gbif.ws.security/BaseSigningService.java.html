@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseSigningService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.security</a> &gt; <span class="el_source">BaseSigningService.java</span></div><h1>BaseSigningService.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2020 Global Biodiversity Information Facility (GBIF)
- *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +21,7 @@ import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-<span class="fc" id="L26">public abstract class BaseSigningService implements SigningService {</span>
+<span class="fc" id="L24">public abstract class BaseSigningService implements SigningService {</span>
 
   private static final String ALGORITHM = &quot;HmacSHA1&quot;;
 
@@ -37,17 +35,17 @@ import javax.crypto.spec.SecretKeySpec;
   @Override
   public String buildSignature(RequestDataToSign requestDataToSign, String secretKey) {
     try {
-<span class="fc" id="L40">      Mac mac = Mac.getInstance(ALGORITHM);</span>
-<span class="fc" id="L41">      SecretKeySpec secret =</span>
-<span class="fc" id="L42">          new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);</span>
-<span class="fc" id="L43">      mac.init(secret);</span>
-<span class="fc" id="L44">      byte[] digest = mac.doFinal(requestDataToSign.stringToSign().getBytes());</span>
+<span class="fc" id="L38">      Mac mac = Mac.getInstance(ALGORITHM);</span>
+<span class="fc" id="L39">      SecretKeySpec secret =</span>
+<span class="fc" id="L40">          new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);</span>
+<span class="fc" id="L41">      mac.init(secret);</span>
+<span class="fc" id="L42">      byte[] digest = mac.doFinal(requestDataToSign.stringToSign().getBytes());</span>
 
-<span class="fc" id="L46">      return new String(Base64.getEncoder().encode(digest), StandardCharsets.US_ASCII);</span>
-<span class="nc" id="L47">    } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L48">      throw new RuntimeException(&quot;Cant find &quot; + ALGORITHM + &quot; message digester&quot;, e);</span>
-<span class="nc" id="L49">    } catch (InvalidKeyException e) {</span>
-<span class="nc" id="L50">      throw new RuntimeException(&quot;Invalid secret key &quot; + secretKey, e);</span>
+<span class="fc" id="L44">      return new String(Base64.getEncoder().encode(digest), StandardCharsets.US_ASCII);</span>
+<span class="nc" id="L45">    } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L46">      throw new RuntimeException(&quot;Cant find &quot; + ALGORITHM + &quot; message digester&quot;, e);</span>
+<span class="nc" id="L47">    } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L48">      throw new RuntimeException(&quot;Invalid secret key &quot; + secretKey, e);</span>
     }
   }
 }
