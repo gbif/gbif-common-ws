@@ -28,7 +28,8 @@ import lombok.extern.slf4j.Slf4j;
  * JWT Remote authentication against the registry.
  */
 @Slf4j
-public class JwtRemoteBasicAuthenticationProvider extends AbstractRemoteAuthenticationProvider<JwtAuthentication> {
+public class JwtRemoteBasicAuthenticationProvider
+    extends AbstractRemoteAuthenticationProvider<JwtAuthentication> {
 
   private static final String AUTH_PATH = "/user/auth/jwt";
 
@@ -45,10 +46,12 @@ public class JwtRemoteBasicAuthenticationProvider extends AbstractRemoteAuthenti
   }
 
   @Override
-  protected Authentication createSuccessAuthentication(ResponseEntity<String> response,
-      Authentication authentication) {
+  protected Authentication createSuccessAuthentication(
+      ResponseEntity<String> response, Authentication authentication) {
     String newToken = response.getHeaders().getFirst("token");
-    GbifUserPrincipal gbifUserPrincipal = new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());
-    return new GbifAuthenticationToken(gbifUserPrincipal, gbifUserPrincipal.getAuthorities(), newToken);
+    GbifUserPrincipal gbifUserPrincipal =
+        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());
+    return new GbifAuthenticationToken(
+        gbifUserPrincipal, gbifUserPrincipal.getAuthorities(), newToken);
   }
 }

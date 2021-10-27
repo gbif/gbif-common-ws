@@ -53,7 +53,8 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     }
   }
 
-  public GbifHttpServletRequestWrapper(HttpServletRequest request, String contentAsString, boolean wrapContent) {
+  public GbifHttpServletRequestWrapper(
+      HttpServletRequest request, String contentAsString, boolean wrapContent) {
     super(request);
 
     try {
@@ -76,7 +77,8 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     if (wrappedRequest != null) {
       return wrappedRequest.getInputStream();
     } else {
-      final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content.getBytes());
+      final ByteArrayInputStream byteArrayInputStream =
+          new ByteArrayInputStream(content.getBytes());
       return new DelegatingServletInputStream(byteArrayInputStream);
     }
   }

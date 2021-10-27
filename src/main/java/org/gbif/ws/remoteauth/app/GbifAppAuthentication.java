@@ -29,7 +29,8 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String contentMd5;
   private String originalRequestUrl;
 
-  public GbifAppAuthentication(String gbifScheme, String gbifUser, String contentMd5, String originalRequestUrl) {
+  public GbifAppAuthentication(
+      String gbifScheme, String gbifUser, String contentMd5, String originalRequestUrl) {
     super(null);
     this.gbifScheme = gbifScheme;
     this.gbifUser = gbifUser;
@@ -76,9 +77,10 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
       return false;
     }
     GbifAppAuthentication that = (GbifAppAuthentication) o;
-    return Objects.equals(gbifScheme, that.gbifScheme) && Objects.equals(gbifUser, that.gbifUser)
-        && Objects.equals(contentMd5, that.contentMd5) && Objects.equals(originalRequestUrl,
-        that.originalRequestUrl);
+    return Objects.equals(gbifScheme, that.gbifScheme)
+        && Objects.equals(gbifUser, that.gbifUser)
+        && Objects.equals(contentMd5, that.contentMd5)
+        && Objects.equals(originalRequestUrl, that.originalRequestUrl);
   }
 
   @Override

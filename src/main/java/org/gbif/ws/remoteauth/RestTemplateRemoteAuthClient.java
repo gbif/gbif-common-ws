@@ -35,11 +35,7 @@ public class RestTemplateRemoteAuthClient implements RemoteAuthClient {
   @Override
   public ResponseEntity<String> remoteAuth(String path, HttpHeaders headers) {
     try {
-      return
-          restTemplate.postForEntity(
-              path,
-              new HttpEntity<>(headers),
-              String.class);
+      return restTemplate.postForEntity(path, new HttpEntity<>(headers), String.class);
     } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {
       throw new BadCredentialsException("Wrong credentials for user", e);
     } catch (Exception e) {

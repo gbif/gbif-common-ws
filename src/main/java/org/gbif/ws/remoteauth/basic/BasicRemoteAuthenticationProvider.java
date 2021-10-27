@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
  * Basic authentication against the registry.
  */
 @Slf4j
-public class BasicRemoteAuthenticationProvider extends
-    AbstractRemoteAuthenticationProvider<UsernamePasswordAuthenticationToken> {
+public class BasicRemoteAuthenticationProvider
+    extends AbstractRemoteAuthenticationProvider<UsernamePasswordAuthenticationToken> {
 
   private static final String AUTH_PATH = "/user/auth/basic";
 
@@ -46,10 +46,10 @@ public class BasicRemoteAuthenticationProvider extends
   }
 
   @Override
-  protected Authentication createSuccessAuthentication(ResponseEntity<String> response,
-      Authentication authentication) {
-    GbifUserPrincipal gbifUserPrincipal = new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());
+  protected Authentication createSuccessAuthentication(
+      ResponseEntity<String> response, Authentication authentication) {
+    GbifUserPrincipal gbifUserPrincipal =
+        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());
     return new GbifAuthenticationToken(gbifUserPrincipal, gbifUserPrincipal.getAuthorities());
   }
-
 }

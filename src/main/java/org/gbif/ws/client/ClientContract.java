@@ -44,14 +44,17 @@ public class ClientContract extends SpringMvcContract {
   }
 
   public static ClientContract withDefaultProcessors() {
-    return new ClientContract(Arrays.asList(new PartialDateParameterProcessor(),
-                                            new PathVariableParameterProcessor(),
-                                            new RequestParamParameterProcessor(),
-                                            new RequestHeaderParameterProcessor(),
-                                            new QueryMapParameterProcessor()));
+    return new ClientContract(
+        Arrays.asList(
+            new PartialDateParameterProcessor(),
+            new PathVariableParameterProcessor(),
+            new RequestParamParameterProcessor(),
+            new RequestHeaderParameterProcessor(),
+            new QueryMapParameterProcessor()));
   }
 
-  public static ClientContract withProcessors(AnnotatedParameterProcessor...annotatedParameterProcessors) {
+  public static ClientContract withProcessors(
+      AnnotatedParameterProcessor... annotatedParameterProcessors) {
     return new ClientContract(Arrays.asList(annotatedParameterProcessors));
   }
 

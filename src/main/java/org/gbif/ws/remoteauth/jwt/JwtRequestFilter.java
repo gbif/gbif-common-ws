@@ -42,21 +42,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
    * Performs the authentication, only if JWT token is found.
    */
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     JwtUtils.findTokenInRequest(request)
         .ifPresent(
             token -> {
               try {
                 GbifAuthenticationToken authentication =
-                    (GbifAuthenticationToken) authenticationManager.authenticate(new JwtAuthentication(token));
-                SecurityContextHolder.getContext()
-                    .setAuthentication(authentication);
+                    (GbifAuthenticationToken)
+                        authenticationManager.authenticate(new JwtAuthentication(token));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // set the new token in the response
-                response.setHeader(
-                    SecurityConstants.HEADER_TOKEN, authentication.getJwtToken());
-                response.addHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SecurityConstants.HEADER_TOKEN);
+                response.setHeader(SecurityConstants.HEADER_TOKEN, authentication.getJwtToken());
+                response.addHeader(
+                    HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SecurityConstants.HEADER_TOKEN);
               } catch (AuthenticationException exc) {
                 SecurityContextHolder.clearContext();
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -64,5 +65,4 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             });
     filterChain.doFilter(request, response);
   }
-
 }

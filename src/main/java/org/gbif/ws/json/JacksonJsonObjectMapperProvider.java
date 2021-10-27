@@ -56,7 +56,6 @@ public final class JacksonJsonObjectMapperProvider {
     return objectMapper;
   }
 
-
   /**
    * Creates an ObjectMapper that supports builders having a build method called "build" and without prefixes on methods.
    */
@@ -65,15 +64,17 @@ public final class JacksonJsonObjectMapperProvider {
   }
 
   public static ObjectMapper addBuilderSupport(ObjectMapper objectMapper) {
-    objectMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
-      @Override
-      public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
-        if (ac.hasAnnotation(JsonPOJOBuilder.class)) {//If no annotation present use default as empty prefix
-          return super.findPOJOBuilderConfig(ac);
-        }
-        return new JsonPOJOBuilder.Value("build", "");
-      }
-    });
+    objectMapper.setAnnotationIntrospector(
+        new JacksonAnnotationIntrospector() {
+          @Override
+          public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
+            if (ac.hasAnnotation(
+                JsonPOJOBuilder.class)) { // If no annotation present use default as empty prefix
+              return super.findPOJOBuilderConfig(ac);
+            }
+            return new JsonPOJOBuilder.Value("build", "");
+          }
+        });
     return objectMapper;
   }
 }

@@ -45,8 +45,8 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
 
   private final RemoteAuthClient remoteAuthClient;
 
-  public RemoteAuthWebSecurityConfigurer(ApplicationContext context,
-      RemoteAuthClient remoteAuthClient) {
+  public RemoteAuthWebSecurityConfigurer(
+      ApplicationContext context, RemoteAuthClient remoteAuthClient) {
 
     setApplicationContext(context);
     this.remoteAuthClient = remoteAuthClient;
@@ -59,16 +59,20 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
     auth.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
   }
 
-
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.httpBasic().and()
-        .addFilterAfter(getApplicationContext().getBean(HttpServletRequestWrapperFilter.class), CsrfFilter.class)
+    http.httpBasic()
+        .and()
+        .addFilterAfter(
+            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
+            CsrfFilter.class)
         .addFilterAfter(
             getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
             HttpServletRequestWrapperFilter.class)
-        .addFilterBefore(new JwtRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
-        .addFilterAfter(new GbifAppRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
+        .addFilterBefore(
+            new JwtRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
+        .addFilterAfter(
+            new GbifAppRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
         .csrf()
         .disable()
         .cors()

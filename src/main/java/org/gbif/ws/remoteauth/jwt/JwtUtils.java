@@ -50,5 +50,4 @@ class JwtUtils {
   private static boolean containsBearer(String header) {
     return BEARER_PATTERN.matcher(header).find();
   }
-
 }

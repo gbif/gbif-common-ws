@@ -36,8 +36,8 @@ import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME;
  * GBIF APP authentication against the registry.
  */
 @Slf4j
-public class GbifAppRemoteAuthenticationProvider extends
-    AbstractRemoteAuthenticationProvider<GbifAppAuthentication> {
+public class GbifAppRemoteAuthenticationProvider
+    extends AbstractRemoteAuthenticationProvider<GbifAppAuthentication> {
 
   private static final String AUTH_PATH = "/user/auth/app";
 
@@ -54,22 +54,25 @@ public class GbifAppRemoteAuthenticationProvider extends
     if (authentication.getPrincipal() != null) {
       headers.add(SecurityConstants.HEADER_GBIF_USER, authentication.getPrincipal().toString());
     }
-    if (gbifAppAuthentication.getOriginalRequestUrl() != null && !gbifAppAuthentication.getOriginalRequestUrl()
-        .isEmpty()) {
-      headers.add(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL, gbifAppAuthentication.getOriginalRequestUrl());
+    if (gbifAppAuthentication.getOriginalRequestUrl() != null
+        && !gbifAppAuthentication.getOriginalRequestUrl().isEmpty()) {
+      headers.add(
+          SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,
+          gbifAppAuthentication.getOriginalRequestUrl());
     }
     return headers;
   }
 
   @Override
-  protected Authentication createSuccessAuthentication(ResponseEntity<String> response,
-      Authentication authentication) {
+  protected Authentication createSuccessAuthentication(
+      ResponseEntity<String> response, Authentication authentication) {
     Collection<SimpleGrantedAuthority> authorities = extractRoles(readUserFromResponse(response));
     authorities.add(new SimpleGrantedAuthority(AppRole.APP.name()));
 
     return new GbifAuthenticationToken(
-        new AppPrincipal(((GbifAppAuthentication) authentication).getAppKey(),
-            new ArrayList<>(authorities)), GBIF_SCHEME, authorities);
+        new AppPrincipal(
+            ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList<>(authorities)),
+        GBIF_SCHEME,
+        authorities);
   }
-
 }

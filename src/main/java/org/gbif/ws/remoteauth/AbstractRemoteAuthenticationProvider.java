@@ -13,13 +13,13 @@
  */
 package org.gbif.ws.remoteauth;
 
+import org.gbif.api.vocabulary.UserRole;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.gbif.api.vocabulary.UserRole;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +33,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-public abstract class AbstractRemoteAuthenticationProvider<T extends Authentication> implements AuthenticationProvider {
+public abstract class AbstractRemoteAuthenticationProvider<T extends Authentication>
+    implements AuthenticationProvider {
 
   protected static final ObjectReader OBJECT_READER =
       new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).reader();
@@ -73,8 +75,7 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   }
 
   /** Performs the remote call to the login service. */
-  @Retryable(value = RuntimeException.class,
-      maxAttempts = 5, backoff = @Backoff(delay = 300))
+  @Retryable(value = RuntimeException.class, maxAttempts = 5, backoff = @Backoff(delay = 300))
   protected ResponseEntity<String> tryLogin(T authentication) {
     return remoteAuthClient.remoteAuth(authWsPath, createHttpHeaders(authentication));
   }
@@ -82,16 +83,18 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   public abstract HttpHeaders createHttpHeaders(Authentication authentication);
 
   /** Creates an UsernamePasswordAuthenticationToken from the supplied parameters. */
-  protected abstract Authentication createSuccessAuthentication(ResponseEntity<String> response,
-      Authentication authentication);
+  protected abstract Authentication createSuccessAuthentication(
+      ResponseEntity<String> response, Authentication authentication);
 
   /** Maps User roles to a list SimpleGrantedAuthority. */
   protected Collection<SimpleGrantedAuthority> extractRoles(LoggedUser loggedUser) {
     Objects.requireNonNull(loggedUser);
     return Optional.ofNullable(loggedUser.getRoles())
-        .map(roles -> roles.stream()
-            .map(r -> new SimpleGrantedAuthority(UserRole.valueOf(r).name()))
-            .collect(Collectors.toList()))
+        .map(
+            roles ->
+                roles.stream()
+                    .map(r -> new SimpleGrantedAuthority(UserRole.valueOf(r).name()))
+                    .collect(Collectors.toList()))
         .orElse(Collections.emptyList());
   }
 
@@ -99,5 +102,4 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   protected LoggedUser readUserFromResponse(ResponseEntity<String> response) {
     return OBJECT_READER.readValue(response.getBody(), LoggedUser.class);
   }
-
 }

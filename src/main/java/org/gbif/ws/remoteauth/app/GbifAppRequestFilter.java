@@ -41,20 +41,23 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
    * Performs the authentication, only if JWT token is found.
    */
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
 
     String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (authorization != null && StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+    if (authorization != null
+        && StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
       SecurityContextHolder.getContext()
-          .setAuthentication(authenticationManager.authenticate(
-              new GbifAppAuthentication(authorization, gbifUser, contentMd5, originalRequestUrl)));
+          .setAuthentication(
+              authenticationManager.authenticate(
+                  new GbifAppAuthentication(
+                      authorization, gbifUser, contentMd5, originalRequestUrl)));
     }
 
     filterChain.doFilter(request, response);
   }
-
 }

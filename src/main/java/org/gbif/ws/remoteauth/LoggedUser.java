@@ -13,6 +13,9 @@
  */
 package org.gbif.ws.remoteauth;
 
+import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.vocabulary.UserRole;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,12 +23,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gbif.api.model.common.GbifUser;
-import org.gbif.api.vocabulary.UserRole;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -43,11 +44,9 @@ public class LoggedUser {
   private String email;
   private String token;
 
-  @Builder.Default
-  private Map<String, String> settings = new HashMap<>();
+  @Builder.Default private Map<String, String> settings = new HashMap<>();
 
-  @Builder.Default
-  private Set<String> roles = new HashSet<>();
+  @Builder.Default private Set<String> roles = new HashSet<>();
 
   public GbifUser toGbifUser() {
     GbifUser gbifUser = new GbifUser();
@@ -57,17 +56,14 @@ public class LoggedUser {
     gbifUser.setEmail(email);
     gbifUser.setSettings(settings);
     gbifUser.setKey(key);
-    Optional.ofNullable(roles).map(r -> roles.stream().map(UserRole::valueOf).collect(Collectors.toSet()))
+    Optional.ofNullable(roles)
+        .map(r -> roles.stream().map(UserRole::valueOf).collect(Collectors.toSet()))
         .ifPresent(gbifUser::setRoles);
     return gbifUser;
   }
 
-  @JsonPOJOBuilder(
-      withPrefix = "",
-      buildMethodName = "build"
-  )
+  @JsonPOJOBuilder(withPrefix = "", buildMethodName = "build")
   public static class LoggedUserBuilder {
     // Lombok will add the rest
   }
-
 }

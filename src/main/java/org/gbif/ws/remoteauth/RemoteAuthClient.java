@@ -24,5 +24,4 @@ import org.springframework.http.ResponseEntity;
 public interface RemoteAuthClient {
 
   ResponseEntity<String> remoteAuth(String path, HttpHeaders headers);
-
 }

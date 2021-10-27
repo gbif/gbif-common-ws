@@ -174,13 +174,22 @@ public class ClientBuilder {
   public <T> T build(Class<T> clazz) {
     Feign.Builder builder =
         Feign.builder()
-            .encoder(formEncoder? new SpringFormEncoder(encoder) : encoder)
+            .encoder(formEncoder ? new SpringFormEncoder(encoder) : encoder)
             .decoder(decoder)
-            .errorDecoder(errorDecoder != null? errorDecoder : new ClientErrorDecoder())
-            .contract(contract != null? contract : ClientContract.withDefaultProcessors())
-            .options(new Request.Options(connectTimeoutMillis, TimeUnit.MILLISECONDS, readTimeoutMillis, TimeUnit.MILLISECONDS, true))
+            .errorDecoder(errorDecoder != null ? errorDecoder : new ClientErrorDecoder())
+            .contract(contract != null ? contract : ClientContract.withDefaultProcessors())
+            .options(
+                new Request.Options(
+                    connectTimeoutMillis,
+                    TimeUnit.MILLISECONDS,
+                    readTimeoutMillis,
+                    TimeUnit.MILLISECONDS,
+                    true))
             .decode404()
-            .invocationHandlerFactory(invocationHandlerFactory != null? invocationHandlerFactory : new ClientInvocationHandlerFactory());
+            .invocationHandlerFactory(
+                invocationHandlerFactory != null
+                    ? invocationHandlerFactory
+                    : new ClientInvocationHandlerFactory());
 
     if (retryer != null) {
       builder.retryer(retryer);

@@ -31,7 +31,8 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
 
   private boolean wrapContent;
 
-  public HttpServletRequestWrapperFilter(@Value("${gbif.ws.security.wrapContent:true}") boolean wrapContent) {
+  public HttpServletRequestWrapperFilter(
+      @Value("${gbif.ws.security.wrapContent:true}") boolean wrapContent) {
     this.wrapContent = wrapContent;
   }
 

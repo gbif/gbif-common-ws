@@ -13,12 +13,12 @@
  */
 package org.gbif.ws.remoteauth;
 
-import java.nio.charset.StandardCharsets;
-
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -33,28 +33,26 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 public interface IdentityServiceClient extends IdentityAccessService {
 
-  @GetMapping(
-      value = "admin/user/{userName}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "admin/user/{userName}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   @Override
   GbifUser get(@PathVariable("userName") String userName);
 
   @Override
   default GbifUser authenticate(String userName, String password) {
-    return login("Basic " + HttpHeaders.encodeBasicAuth(userName, password, StandardCharsets.UTF_8)).toGbifUser();
+    return login("Basic " + HttpHeaders.encodeBasicAuth(userName, password, StandardCharsets.UTF_8))
+        .toGbifUser();
   }
 
-  @PostMapping(
-      value = "user/login",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "user/login", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   LoggedUser login(@RequestHeader(HttpHeaders.AUTHORIZATION) String credentials);
 
   /**
    * Creates an instance suitable to be used by a registered application.
    */
-  static IdentityServiceClient getInstance(String apiUrl, String userName, String appKey, String secretKey) {
+  static IdentityServiceClient getInstance(
+      String apiUrl, String userName, String appKey, String secretKey) {
     return new ClientBuilder()
         .withUrl(apiUrl)
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
