@@ -18,6 +18,7 @@ import java.util.Collections;
 
 import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;
+import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
 import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
@@ -30,7 +31,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -66,17 +66,19 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
         .permitAll()
         .and()
         .httpBasic()
-        .and()
+        .disable()
         .addFilterAfter(
             getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
             CsrfFilter.class)
         .addFilterAfter(
             getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
             HttpServletRequestWrapperFilter.class)
-        .addFilterBefore(
-            new JwtRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
+        .addFilterAfter(new BasicAuthRequestFilter(authenticationManager()),
+            RequestHeaderParamUpdateFilter.class)
         .addFilterAfter(
-            new GbifAppRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)
+            new JwtRequestFilter(authenticationManager()), BasicAuthRequestFilter.class)
+        .addFilterAfter(
+            new GbifAppRequestFilter(authenticationManager()), JwtRequestFilter.class)
         .csrf()
         .disable()
         .cors()

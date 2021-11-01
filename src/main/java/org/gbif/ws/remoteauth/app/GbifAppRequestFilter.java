@@ -13,20 +13,21 @@
  */
 package org.gbif.ws.remoteauth.app;
 
+import java.io.IOException;
+
 import org.gbif.ws.util.SecurityConstants;
 
-import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Intercepts all requests to look for a JWT token. */
 public class GbifAppRequestFilter extends OncePerRequestFilter {
@@ -51,11 +52,18 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
-      SecurityContextHolder.getContext()
-          .setAuthentication(
-              authenticationManager.authenticate(
-                  new GbifAppAuthentication(
-                      authorization, gbifUser, contentMd5, originalRequestUrl)));
+
+      try {
+        SecurityContextHolder.getContext()
+            .setAuthentication(
+                authenticationManager.authenticate(
+                    new GbifAppAuthentication(
+                        authorization, gbifUser, contentMd5, originalRequestUrl)));
+      } catch (AuthenticationException exc) {
+        SecurityContextHolder.clearContext();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
     }
 
     filterChain.doFilter(request, response);

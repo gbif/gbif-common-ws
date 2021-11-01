@@ -11,18 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.ws.remoteauth.jwt;
+package org.gbif.ws.remoteauth.basic;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.util.SecurityConstants;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -30,35 +31,34 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Intercepts all requests to look for a JWT token. */
-public class JwtRequestFilter extends OncePerRequestFilter {
+/** Intercepts all requests that use basic authentication. */
+public class BasicAuthRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
+  private final BasicAuthenticationConverter authenticationConverter = new BasicAuthenticationConverter();
 
-  public JwtRequestFilter(AuthenticationManager authenticationManager) {
+  public BasicAuthRequestFilter(AuthenticationManager authenticationManager) {
     this.authenticationManager = authenticationManager;
   }
 
   /**
-   * Performs the authentication, only if JWT token is found.
+   * Performs the authentication, only if the basic auth header is found.
    */
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
 
-    Optional<String> token = JwtUtils.findTokenInRequest(request);
-    if (token.isPresent()) {
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+    if (authorization != null
+        && StringUtils.startsWith(authorization, SecurityConstants.BASIC_SCHEME_PREFIX)) {
       try {
-        GbifAuthenticationToken authentication =
-            (GbifAuthenticationToken)
-                authenticationManager.authenticate(new JwtAuthentication(token.get()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // set the new token in the response
-        response.setHeader(SecurityConstants.HEADER_TOKEN, authentication.getJwtToken());
-        response.addHeader(
-            HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, SecurityConstants.HEADER_TOKEN);
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+            authenticationConverter.convert(request);
+        SecurityContextHolder.getContext()
+            .setAuthentication(
+                authenticationManager.authenticate(
+                    usernamePasswordAuthenticationToken));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
