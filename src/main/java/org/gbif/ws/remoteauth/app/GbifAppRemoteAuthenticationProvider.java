@@ -13,20 +13,23 @@
  */
 package org.gbif.ws.remoteauth.app;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.LoggedUser;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.AppPrincipal;
 import org.gbif.ws.security.GbifAuthenticationToken;
+import org.gbif.ws.security.GbifUserPrincipal;
 import org.gbif.ws.util.SecurityConstants;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,12 +69,19 @@ public class GbifAppRemoteAuthenticationProvider
   @Override
   protected Authentication createSuccessAuthentication(
       ResponseEntity<String> response, Authentication authentication) {
-    Collection<SimpleGrantedAuthority> authorities = extractRoles(readUserFromResponse(response));
-    authorities.add(new SimpleGrantedAuthority(AppRole.APP.name()));
+    LoggedUser loggedUser = readUserFromResponse(response);
+    Collection<SimpleGrantedAuthority> authorities = extractRoles(loggedUser);
+
+    UserDetails userDetails = null;
+    if (loggedUser.getRoles().contains(AppRole.APP.name())) {
+      userDetails = new AppPrincipal(
+          ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList<>(authorities));
+    } else {
+      userDetails = new GbifUserPrincipal(loggedUser.toGbifUser());
+    }
 
     return new GbifAuthenticationToken(
-        new AppPrincipal(
-            ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList<>(authorities)),
+        userDetails,
         GBIF_SCHEME,
         authorities);
   }
