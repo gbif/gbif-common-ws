@@ -33,6 +33,7 @@ import lombok.Data;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.springframework.http.HttpHeaders.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -90,44 +91,47 @@ public class LoginServerExtension implements BeforeAllCallback, AfterAllCallback
                 aResponse().withStatus(HttpStatus.UNAUTHORIZED.value())));
     wireMockServer.stubFor(
         post("/user/auth/jwt")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + USER.getJwtToken()))
+            .withHeader(AUTHORIZATION, equalTo("Bearer " + USER.getJwtToken()))
             .willReturn(
                 aResponse()
                     .withBody(OBJECT_MAPPER.writeValueAsString(USER.getLoggedUser()))
                     .withHeader("token", UUID.randomUUID().toString())));
     wireMockServer.stubFor(
         post("/user/auth/jwt")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + ADMIN_USER.getJwtToken()))
+            .withHeader(AUTHORIZATION, equalTo("Bearer " + ADMIN_USER.getJwtToken()))
             .willReturn(
                 aResponse()
                     .withBody(OBJECT_MAPPER.writeValueAsString(ADMIN_USER.getLoggedUser()))
                     .withHeader("token", UUID.randomUUID().toString())));
     wireMockServer.stubFor(
         post("/user/auth/jwt")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + INVALID_USER.getJwtToken()))
+            .withHeader(AUTHORIZATION, equalTo("Bearer " + INVALID_USER.getJwtToken()))
             .willReturn(
                 aResponse().withStatus(HttpStatus.UNAUTHORIZED.value())));
     wireMockServer.stubFor(
         post("/user/auth/app")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo(USER.getGbifSchemeHeader()))
+            .withHeader(AUTHORIZATION, equalTo(USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(USER.getLoggedUser().getUserName()))
             .withHeader(HEADER_CONTENT_MD5, matching(".*"))
+            .withHeader(CONTENT_TYPE, matching(".*"))
             .willReturn(
                 aResponse()
                     .withBody(OBJECT_MAPPER.writeValueAsString(USER.getLoggedUser()))));
     wireMockServer.stubFor(
         post("/user/auth/app")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo(ADMIN_USER.getGbifSchemeHeader()))
+            .withHeader(AUTHORIZATION, equalTo(ADMIN_USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(ADMIN_USER.getLoggedUser().getUserName()))
             .withHeader(HEADER_CONTENT_MD5, matching(".*"))
+            .withHeader(CONTENT_TYPE, matching(".*"))
             .willReturn(
                 aResponse()
                     .withBody(OBJECT_MAPPER.writeValueAsString(ADMIN_USER.getLoggedUser()))));
     wireMockServer.stubFor(
         post("/user/auth/app")
-            .withHeader(HttpHeaders.AUTHORIZATION, equalTo(INVALID_USER.getGbifSchemeHeader()))
+            .withHeader(AUTHORIZATION, equalTo(INVALID_USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(INVALID_USER.getLoggedUser().getUserName()))
             .withHeader(HEADER_CONTENT_MD5, matching(".*"))
+            .withHeader(CONTENT_TYPE, matching(".*"))
             .willReturn(
                 aResponse().withStatus(HttpStatus.UNAUTHORIZED.value())));
 
