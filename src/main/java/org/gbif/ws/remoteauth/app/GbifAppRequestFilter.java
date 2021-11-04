@@ -28,8 +28,10 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 /** Intercepts all requests to look for a JWT token. */
+@Slf4j
 public class GbifAppRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
@@ -49,8 +51,12 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
     String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (authorization != null
         && StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+
+      log.info("Gbif APP request headers: {}", request.getHeaderNames());
+
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
+      String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
 
       try {
@@ -58,7 +64,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
             .setAuthentication(
                 authenticationManager.authenticate(
                     new GbifAppAuthentication(
-                        authorization, gbifUser, contentMd5, originalRequestUrl)));
+                        authorization, gbifUser, contentMd5, contentType, originalRequestUrl)));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

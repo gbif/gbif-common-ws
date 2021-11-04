@@ -13,9 +13,9 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import org.gbif.ws.security.GbifAuthUtils;
-
 import java.util.Objects;
+
+import org.gbif.ws.security.GbifAuthUtils;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
@@ -27,14 +27,16 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String gbifScheme;
   private String gbifUser;
   private String contentMd5;
+  private String contentType;
   private String originalRequestUrl;
 
   public GbifAppAuthentication(
-      String gbifScheme, String gbifUser, String contentMd5, String originalRequestUrl) {
+      String gbifScheme, String gbifUser, String contentMd5, String contentType, String originalRequestUrl) {
     super(null);
     this.gbifScheme = gbifScheme;
     this.gbifUser = gbifUser;
     this.contentMd5 = contentMd5;
+    this.contentType = contentType;
     this.originalRequestUrl = originalRequestUrl;
     super.setAuthenticated(false);
   }
@@ -65,6 +67,10 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
     return originalRequestUrl;
   }
 
+  public String getContentType() {
+    return contentType;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -77,14 +83,13 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
       return false;
     }
     GbifAppAuthentication that = (GbifAppAuthentication) o;
-    return Objects.equals(gbifScheme, that.gbifScheme)
-        && Objects.equals(gbifUser, that.gbifUser)
-        && Objects.equals(contentMd5, that.contentMd5)
-        && Objects.equals(originalRequestUrl, that.originalRequestUrl);
+    return Objects.equals(gbifScheme, that.gbifScheme) && Objects.equals(gbifUser, that.gbifUser)
+        && Objects.equals(contentMd5, that.contentMd5) && Objects.equals(contentType,
+        that.contentType) && Objects.equals(originalRequestUrl, that.originalRequestUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), gbifScheme, gbifUser, contentMd5, originalRequestUrl);
+    return Objects.hash(super.hashCode(), gbifScheme, gbifUser, contentMd5, contentType, originalRequestUrl);
   }
 }
