@@ -63,6 +63,9 @@ public class GbifAppRemoteAuthenticationProvider
           SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,
           gbifAppAuthentication.getOriginalRequestUrl());
     }
+
+    log.info("Headers Gbif APP: {}", headers);
+
     return headers;
   }
 
