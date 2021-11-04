@@ -52,7 +52,12 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
     if (authorization != null
         && StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
 
-      log.info("Gbif APP request headers: {}", request.getHeaderNames());
+      log.info("Gbif APP request headers:");
+      while(request.getHeaderNames().hasMoreElements()) {
+        String name = request.getHeaderNames().nextElement();
+        String value =request.getHeader(name);
+        log.info("Header {}: {}", name, value);
+      }
 
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
