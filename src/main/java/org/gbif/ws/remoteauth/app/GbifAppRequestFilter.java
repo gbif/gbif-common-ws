@@ -14,6 +14,7 @@
 package org.gbif.ws.remoteauth.app;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import org.gbif.ws.util.SecurityConstants;
 
@@ -56,6 +57,14 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
       String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
+
+      log.info("Gbif APP request headers:");
+      Enumeration<String> names = request.getHeaderNames();
+      while(names.hasMoreElements()) {
+        String name = names.nextElement();
+        String value =request.getHeader(name);
+        log.info("Header {}: {}", name, value);
+      }
 
       try {
         SecurityContextHolder.getContext()
