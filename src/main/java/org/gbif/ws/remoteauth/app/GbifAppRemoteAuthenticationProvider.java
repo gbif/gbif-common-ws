@@ -56,6 +56,9 @@ public class GbifAppRemoteAuthenticationProvider
 
     if (gbifAppAuthentication.getContentMd5() != null && !gbifAppAuthentication.getContentMd5().isEmpty()) {
       headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());
+    }
+
+    if (gbifAppAuthentication.getContentType() != null && !gbifAppAuthentication.getContentType().isEmpty()) {
       headers.add(HttpHeaders.CONTENT_TYPE, gbifAppAuthentication.getContentType());
     }
 
