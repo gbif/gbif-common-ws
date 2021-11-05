@@ -55,7 +55,6 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
       String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
-      String method = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
 
       try {
@@ -63,7 +62,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
             .setAuthentication(
                 authenticationManager.authenticate(
                     new GbifAppAuthentication(
-                        authorization, gbifUser, contentMd5, contentType, method, originalRequestUrl)));
+                        authorization, gbifUser, contentMd5, contentType, request.getMethod(), originalRequestUrl)));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
