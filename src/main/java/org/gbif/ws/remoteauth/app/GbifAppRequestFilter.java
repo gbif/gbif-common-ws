@@ -14,7 +14,6 @@
 package org.gbif.ws.remoteauth.app;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
 import org.gbif.ws.util.SecurityConstants;
 
@@ -53,17 +52,10 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
     if (authorization != null
         && StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
 
-      log.info("Gbif APP request headers:");
-      Enumeration<String> names = request.getHeaderNames();
-      while(names.hasMoreElements()) {
-        String name = names.nextElement();
-        String value =request.getHeader(name);
-        log.info("Header {}: {}", name, value);
-      }
-
       String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);
       String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);
       String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
+      String method = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD);
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
 
       try {
@@ -71,7 +63,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
             .setAuthentication(
                 authenticationManager.authenticate(
                     new GbifAppAuthentication(
-                        authorization, gbifUser, contentMd5, contentType, originalRequestUrl)));
+                        authorization, gbifUser, contentMd5, contentType, method, originalRequestUrl)));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

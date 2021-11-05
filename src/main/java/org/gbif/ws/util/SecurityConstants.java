@@ -28,4 +28,5 @@ public final class SecurityConstants {
   public static final String HEADER_GBIF_USER = "x-gbif-user";
   public static final String HEADER_CONTENT_MD5 = "Content-MD5";
   public static final String HEADER_ORIGINAL_REQUEST_URL = "x-url";
+  public static final String HEADER_ORIGINAL_REQUEST_METHOD = "x-method";
 }

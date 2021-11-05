@@ -28,15 +28,18 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String gbifUser;
   private String contentMd5;
   private String contentType;
+  private String method;
   private String originalRequestUrl;
 
   public GbifAppAuthentication(
-      String gbifScheme, String gbifUser, String contentMd5, String contentType, String originalRequestUrl) {
+      String gbifScheme, String gbifUser, String contentMd5, String contentType, String method,
+      String originalRequestUrl) {
     super(null);
     this.gbifScheme = gbifScheme;
     this.gbifUser = gbifUser;
     this.contentMd5 = contentMd5;
     this.contentType = contentType;
+    this.method = method;
     this.originalRequestUrl = originalRequestUrl;
     super.setAuthenticated(false);
   }
@@ -61,6 +64,10 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
 
   public String getContentMd5() {
     return contentMd5;
+  }
+
+  public String getMethod() {
+    return method;
   }
 
   public String getOriginalRequestUrl() {
