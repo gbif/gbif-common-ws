@@ -13,6 +13,9 @@
  */
 package org.gbif.ws.remoteauth;
 
+import java.time.Duration;
+
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -42,4 +45,13 @@ public class RestTemplateRemoteAuthClient implements RemoteAuthClient {
       throw new RestClientException("Could not authenticate user", e);
     }
   }
+
+  public static RestTemplateRemoteAuthClient createInstance(RestTemplateBuilder builder, String gbifApiUrl) {
+    return new RestTemplateRemoteAuthClient(builder
+        .setConnectTimeout(Duration.ofSeconds(30))
+        .setReadTimeout(Duration.ofSeconds(60))
+        .rootUri(gbifApiUrl)
+        .build());
+  }
+
 }
