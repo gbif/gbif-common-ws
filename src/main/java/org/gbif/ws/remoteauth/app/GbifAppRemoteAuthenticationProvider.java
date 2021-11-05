@@ -54,7 +54,7 @@ public class GbifAppRemoteAuthenticationProvider
     GbifAppAuthentication gbifAppAuthentication = (GbifAppAuthentication) authentication;
     headers.add(HttpHeaders.AUTHORIZATION, gbifAppAuthentication.getGbifScheme());
 
-    if (gbifAppAuthentication.getContentMd5() != null && !gbifAppAuthentication.getContentType().isEmpty()) {
+    if (gbifAppAuthentication.getContentMd5() != null && !gbifAppAuthentication.getContentMd5().isEmpty()) {
       headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());
       headers.add(HttpHeaders.CONTENT_TYPE, gbifAppAuthentication.getContentType());
     }
