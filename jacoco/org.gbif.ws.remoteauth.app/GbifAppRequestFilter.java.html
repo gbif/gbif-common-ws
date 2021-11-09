@@ -25,17 +25,21 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import lombok.extern.slf4j.Slf4j;
+
 /** Intercepts all requests to look for a JWT token. */
+<span class="fc" id="L35">@Slf4j</span>
 public class GbifAppRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
 
-<span class="nc" id="L36">  public GbifAppRequestFilter(AuthenticationManager authenticationManager) {</span>
-<span class="nc" id="L37">    this.authenticationManager = authenticationManager;</span>
-<span class="nc" id="L38">  }</span>
+<span class="fc" id="L40">  public GbifAppRequestFilter(AuthenticationManager authenticationManager) {</span>
+<span class="fc" id="L41">    this.authenticationManager = authenticationManager;</span>
+<span class="fc" id="L42">  }</span>
 
   /**
    * Performs the authentication, only if JWT token is found.
@@ -45,20 +49,34 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
 
-<span class="nc" id="L48">    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">    if (authorization != null</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        &amp;&amp; StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {</span>
-<span class="nc" id="L51">      String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);</span>
-<span class="nc" id="L52">      String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);</span>
-<span class="nc" id="L53">      String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);</span>
-<span class="nc" id="L54">      SecurityContextHolder.getContext()</span>
-<span class="nc" id="L55">          .setAuthentication(</span>
-<span class="nc" id="L56">              authenticationManager.authenticate(</span>
-                  new GbifAppAuthentication(
-                      authorization, gbifUser, contentMd5, originalRequestUrl)));
+<span class="fc" id="L52">    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (authorization != null</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        &amp;&amp; StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {</span>
+
+<span class="fc" id="L56">      String gbifUser = request.getHeader(SecurityConstants.HEADER_GBIF_USER);</span>
+<span class="fc" id="L57">      String contentMd5 = request.getHeader(SecurityConstants.HEADER_CONTENT_MD5);</span>
+<span class="fc" id="L58">      String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);</span>
+<span class="fc" id="L59">      String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);</span>
+
+      try {
+<span class="fc" id="L62">        SecurityContextHolder.getContext()</span>
+<span class="fc" id="L63">            .setAuthentication(</span>
+<span class="fc" id="L64">                authenticationManager.authenticate(</span>
+                    new GbifAppAuthentication(
+                        authorization,
+                        gbifUser,
+                        contentMd5,
+                        contentType,
+<span class="fc" id="L70">                        request.getMethod(),</span>
+                        originalRequestUrl)));
+<span class="fc" id="L72">      } catch (AuthenticationException exc) {</span>
+<span class="fc" id="L73">        SecurityContextHolder.clearContext();</span>
+<span class="fc" id="L74">        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="fc" id="L75">        return;</span>
+<span class="fc" id="L76">      }</span>
     }
 
-<span class="nc" id="L61">    filterChain.doFilter(request, response);</span>
-<span class="nc" id="L62">  }</span>
+<span class="fc" id="L79">    filterChain.doFilter(request, response);</span>
+<span class="fc" id="L80">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

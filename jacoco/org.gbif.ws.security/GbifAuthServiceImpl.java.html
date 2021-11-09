@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD;
 import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 
 /**
@@ -61,9 +62,9 @@ import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 @Service
 public class GbifAuthServiceImpl implements GbifAuthService {
 
-<span class="fc" id="L64">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthServiceImpl.class);</span>
+<span class="fc" id="L65">  private static final Logger LOG = LoggerFactory.getLogger(GbifAuthServiceImpl.class);</span>
 
-<span class="fc" id="L66">  private static final Pattern COLON_PATTERN = Pattern.compile(&quot;:&quot;);</span>
+<span class="fc" id="L67">  private static final Pattern COLON_PATTERN = Pattern.compile(&quot;:&quot;);</span>
 
   private final SigningService signingService;
   private final Md5EncodeService md5EncodeService;
@@ -72,78 +73,85 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   public GbifAuthServiceImpl(
       SigningService signingService,
       Md5EncodeService md5EncodeService,
-<span class="fc" id="L75">      @Autowired(required = false) AppKeyProvider appKeyProvider) {</span>
-<span class="fc" id="L76">    this.signingService = signingService;</span>
-<span class="fc" id="L77">    this.md5EncodeService = md5EncodeService;</span>
-<span class="fc" id="L78">    this.appKeyProvider = appKeyProvider;</span>
-<span class="fc" id="L79">  }</span>
+<span class="fc" id="L76">      @Autowired(required = false) AppKeyProvider appKeyProvider) {</span>
+<span class="fc" id="L77">    this.signingService = signingService;</span>
+<span class="fc" id="L78">    this.md5EncodeService = md5EncodeService;</span>
+<span class="fc" id="L79">    this.appKeyProvider = appKeyProvider;</span>
+<span class="fc" id="L80">  }</span>
 
   @Override
   public boolean isValidRequest(final GbifHttpServletRequestWrapper request) {
     // parse auth header
-<span class="fc" id="L84">    final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);</span>
-<span class="pc bpc" id="L85" title="2 of 4 branches missed.">    if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME_PREFIX)) {</span>
-<span class="nc" id="L86">      LOG.info(&quot;{} header is no GBIF scheme&quot;, HttpHeaders.AUTHORIZATION);</span>
-<span class="nc" id="L87">      return false;</span>
+<span class="fc" id="L85">    final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);</span>
+<span class="pc bpc" id="L86" title="2 of 4 branches missed.">    if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith(GBIF_SCHEME_PREFIX)) {</span>
+<span class="nc" id="L87">      LOG.info(&quot;{} header is no GBIF scheme&quot;, HttpHeaders.AUTHORIZATION);</span>
+<span class="nc" id="L88">      return false;</span>
     }
 
-<span class="fc" id="L90">    String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (values.length &lt; 2) {</span>
-<span class="nc" id="L92">      LOG.warn(&quot;Invalid syntax for application key and signature: {}&quot;, authHeader);</span>
-<span class="nc" id="L93">      return false;</span>
+<span class="fc" id="L91">    String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (values.length &lt; 2) {</span>
+<span class="nc" id="L93">      LOG.warn(&quot;Invalid syntax for application key and signature: {}&quot;, authHeader);</span>
+<span class="nc" id="L94">      return false;</span>
     }
 
-<span class="fc" id="L96">    final String appKey = values[0];</span>
-<span class="fc" id="L97">    final String signatureFound = values[1];</span>
-<span class="pc bpc" id="L98" title="2 of 4 branches missed.">    if (appKey == null || signatureFound == null) {</span>
-<span class="nc" id="L99">      LOG.warn(&quot;Authentication header missing applicationKey or signature: {}&quot;, authHeader);</span>
-<span class="nc" id="L100">      return false;</span>
+<span class="fc" id="L97">    final String appKey = values[0];</span>
+<span class="fc" id="L98">    final String signatureFound = values[1];</span>
+<span class="pc bpc" id="L99" title="2 of 4 branches missed.">    if (appKey == null || signatureFound == null) {</span>
+<span class="nc" id="L100">      LOG.warn(&quot;Authentication header missing applicationKey or signature: {}&quot;, authHeader);</span>
+<span class="nc" id="L101">      return false;</span>
     }
 
-<span class="fc" id="L103">    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);</span>
-<span class="fc" id="L104">    LOG.debug(&quot;Request data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
+<span class="fc" id="L104">    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);</span>
+<span class="fc" id="L105">    LOG.debug(&quot;Request data to sign: {}&quot;, requestDataToSign.stringToSign());</span>
     // sign
     final String signature;
     try {
-<span class="fc" id="L108">      signature = signingService.buildSignature(requestDataToSign, appKey);</span>
-<span class="nc" id="L109">    } catch (PrivateKeyNotFoundException e) {</span>
-<span class="nc" id="L110">      LOG.debug(&quot;Private key was not found for app key {}&quot;, appKey);</span>
-<span class="nc" id="L111">      return false;</span>
-<span class="fc" id="L112">    }</span>
+<span class="fc" id="L109">      signature = signingService.buildSignature(requestDataToSign, appKey);</span>
+<span class="nc" id="L110">    } catch (PrivateKeyNotFoundException e) {</span>
+<span class="nc" id="L111">      LOG.debug(&quot;Private key was not found for app key {}&quot;, appKey);</span>
+<span class="nc" id="L112">      return false;</span>
+<span class="fc" id="L113">    }</span>
     // compare signatures
-<span class="fc bfc" id="L114" title="All 2 branches covered.">    if (signatureFound.equals(signature)) {</span>
-<span class="fc" id="L115">      LOG.debug(&quot;Trusted application with matching signatures&quot;);</span>
-<span class="fc" id="L116">      return true;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">    if (signatureFound.equals(signature)) {</span>
+<span class="fc" id="L116">      LOG.debug(&quot;Trusted application with matching signatures&quot;);</span>
+<span class="fc" id="L117">      return true;</span>
     }
-<span class="fc" id="L118">    LOG.info(&quot;Invalid signature: {}&quot;, authHeader);</span>
+<span class="fc" id="L119">    LOG.info(&quot;Invalid signature: {}&quot;, authHeader);</span>
 
-<span class="fc" id="L120">    return false;</span>
+<span class="fc" id="L121">    return false;</span>
   }
 
   private RequestDataToSign buildRequestDataToSign(final GbifHttpServletRequestWrapper request) {
-<span class="fc" id="L124">    final HttpHeaders headers = request.getHttpHeaders();</span>
-<span class="fc" id="L125">    final RequestDataToSign dataToSign = new RequestDataToSign();</span>
+<span class="fc" id="L125">    final HttpHeaders headers = request.getHttpHeaders();</span>
+<span class="fc" id="L126">    final RequestDataToSign dataToSign = new RequestDataToSign();</span>
 
-<span class="fc" id="L127">    dataToSign.setMethod(request.getMethod());</span>
+    // custom header to keep the original method in the case the request is forwarded as the remote
+    // auth does
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">    if (headers.containsKey(HEADER_ORIGINAL_REQUEST_METHOD)) {</span>
+<span class="nc" id="L131">      dataToSign.setMethod(headers.getFirst(HEADER_ORIGINAL_REQUEST_METHOD));</span>
+    } else {
+<span class="fc" id="L133">      dataToSign.setMethod(request.getMethod());</span>
+    }
+
     // custom header set by varnish overrides real URI
     // see http://dev.gbif.org/issues/browse/GBIFCOM-137
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">    if (headers.containsKey(HEADER_ORIGINAL_REQUEST_URL)) {</span>
-<span class="fc" id="L131">      dataToSign.setUrl(headers.getFirst(HEADER_ORIGINAL_REQUEST_URL));</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">    if (headers.containsKey(HEADER_ORIGINAL_REQUEST_URL)) {</span>
+<span class="fc" id="L139">      dataToSign.setUrl(headers.getFirst(HEADER_ORIGINAL_REQUEST_URL));</span>
     } else {
-<span class="nc" id="L133">      dataToSign.setUrl(getCanonicalizedPath(request.getRequestURI()));</span>
+<span class="nc" id="L141">      dataToSign.setUrl(getCanonicalizedPath(request.getRequestURI()));</span>
     }
-<span class="fc" id="L135">    dataToSign.setContentType(headers.getFirst(HttpHeaders.CONTENT_TYPE));</span>
-<span class="fc" id="L136">    dataToSign.setContentTypeMd5(headers.getFirst(HEADER_CONTENT_MD5));</span>
-<span class="fc" id="L137">    dataToSign.setUser(headers.getFirst(HEADER_GBIF_USER));</span>
+<span class="fc" id="L143">    dataToSign.setContentType(headers.getFirst(HttpHeaders.CONTENT_TYPE));</span>
+<span class="fc" id="L144">    dataToSign.setContentTypeMd5(headers.getFirst(HEADER_CONTENT_MD5));</span>
+<span class="fc" id="L145">    dataToSign.setUser(headers.getFirst(HEADER_GBIF_USER));</span>
 
-<span class="fc" id="L139">    return dataToSign;</span>
+<span class="fc" id="L147">    return dataToSign;</span>
   }
 
   /**
    * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
    */
   private String getCanonicalizedPath(final String strUri) {
-<span class="fc" id="L146">    return URI.create(strUri).normalize().getPath();</span>
+<span class="fc" id="L154">    return URI.create(strUri).normalize().getPath();</span>
   }
 
   /**
@@ -156,54 +164,54 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   @Override
   public GbifHttpServletRequestWrapper signRequest(
       final String username, final GbifHttpServletRequestWrapper request) {
-<span class="fc" id="L159">    String appKey = appKeyProvider.get();</span>
-<span class="fc" id="L160">    Objects.requireNonNull(appKey, &quot;To sign the request a single application key is required&quot;);</span>
+<span class="fc" id="L167">    String appKey = appKeyProvider.get();</span>
+<span class="fc" id="L168">    Objects.requireNonNull(appKey, &quot;To sign the request a single application key is required&quot;);</span>
     // first add custom GBIF headers so we can use them to build the string to sign
     // the proxied username
-<span class="fc" id="L163">    request.getHttpHeaders().add(HEADER_GBIF_USER, username);</span>
+<span class="fc" id="L171">    request.getHttpHeaders().add(HEADER_GBIF_USER, username);</span>
 
     // the canonical path header
-<span class="fc" id="L166">    request</span>
-<span class="fc" id="L167">        .getHttpHeaders()</span>
-<span class="fc" id="L168">        .add(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getRequestURI()));</span>
+<span class="fc" id="L174">    request</span>
+<span class="fc" id="L175">        .getHttpHeaders()</span>
+<span class="fc" id="L176">        .add(HEADER_ORIGINAL_REQUEST_URL, getCanonicalizedPath(request.getRequestURI()));</span>
 
-<span class="fc" id="L170">    String content = null;</span>
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">    if (request.getContent() != null) {</span>
-<span class="fc" id="L172">      content = request.getContent();</span>
+<span class="fc" id="L178">    String content = null;</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">    if (request.getContent() != null) {</span>
+<span class="fc" id="L180">      content = request.getContent();</span>
     }
 
     // adds content md5
-<span class="pc bpc" id="L176" title="1 of 2 branches missed.">    if (StringUtils.isNotEmpty(content)) {</span>
-<span class="fc" id="L177">      request.getHttpHeaders().add(HEADER_CONTENT_MD5, md5EncodeService.encode(content));</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">    if (StringUtils.isNotEmpty(content)) {</span>
+<span class="fc" id="L185">      request.getHttpHeaders().add(HEADER_CONTENT_MD5, md5EncodeService.encode(content));</span>
     }
 
     // build the unique request data object to sign
-<span class="fc" id="L181">    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);</span>
+<span class="fc" id="L189">    final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);</span>
 
     // sign
     final String signature;
     try {
-<span class="fc" id="L186">      signature = signingService.buildSignature(requestDataToSign, appKey);</span>
-<span class="nc" id="L187">    } catch (PrivateKeyNotFoundException e) {</span>
-<span class="nc" id="L188">      LOG.warn(&quot;Skip signing request with unknown application key: {}&quot;, appKey);</span>
-<span class="nc" id="L189">      return request;</span>
-<span class="fc" id="L190">    }</span>
+<span class="fc" id="L194">      signature = signingService.buildSignature(requestDataToSign, appKey);</span>
+<span class="nc" id="L195">    } catch (PrivateKeyNotFoundException e) {</span>
+<span class="nc" id="L196">      LOG.warn(&quot;Skip signing request with unknown application key: {}&quot;, appKey);</span>
+<span class="nc" id="L197">      return request;</span>
+<span class="fc" id="L198">    }</span>
 
     // build authorization header string
-<span class="fc" id="L193">    final String header = buildAuthHeader(appKey, signature);</span>
+<span class="fc" id="L201">    final String header = buildAuthHeader(appKey, signature);</span>
     // add authorization header
-<span class="fc" id="L195">    LOG.debug(</span>
+<span class="fc" id="L203">    LOG.debug(</span>
         &quot;Adding authentication header to request {} for proxied user {} : {}&quot;,
-<span class="fc" id="L197">        request.getRequestURI(),</span>
+<span class="fc" id="L205">        request.getRequestURI(),</span>
         username,
         header);
-<span class="fc" id="L200">    request.getHttpHeaders().add(HttpHeaders.AUTHORIZATION, header);</span>
+<span class="fc" id="L208">    request.getHttpHeaders().add(HttpHeaders.AUTHORIZATION, header);</span>
 
-<span class="fc" id="L202">    return request;</span>
+<span class="fc" id="L210">    return request;</span>
   }
 
   private static String buildAuthHeader(String applicationKey, String signature) {
-<span class="fc" id="L206">    return GBIF_SCHEME_PREFIX + applicationKey + ':' + signature;</span>
+<span class="fc" id="L214">    return GBIF_SCHEME_PREFIX + applicationKey + ':' + signature;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

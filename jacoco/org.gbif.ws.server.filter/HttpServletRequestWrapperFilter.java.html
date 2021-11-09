@@ -32,20 +32,20 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
   private boolean wrapContent;
 
   public HttpServletRequestWrapperFilter(
-<span class="nc" id="L35">      @Value(&quot;${gbif.ws.security.wrapContent:true}&quot;) boolean wrapContent) {</span>
-<span class="nc" id="L36">    this.wrapContent = wrapContent;</span>
-<span class="nc" id="L37">  }</span>
+<span class="fc" id="L35">      @Value(&quot;${gbif.ws.security.wrapContent:true}&quot;) boolean wrapContent) {</span>
+<span class="fc" id="L36">    this.wrapContent = wrapContent;</span>
+<span class="fc" id="L37">  }</span>
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     final GbifHttpServletRequestWrapper requestWrapper =
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        request instanceof GbifHttpServletRequestWrapper</span>
 <span class="nc" id="L45">            ? (GbifHttpServletRequestWrapper) request</span>
-<span class="nc" id="L46">            : new GbifHttpServletRequestWrapper(request, wrapContent);</span>
+<span class="fc" id="L46">            : new GbifHttpServletRequestWrapper(request, wrapContent);</span>
 
-<span class="nc" id="L48">    filterChain.doFilter(requestWrapper, response);</span>
-<span class="nc" id="L49">  }</span>
+<span class="fc" id="L48">    filterChain.doFilter(requestWrapper, response);</span>
+<span class="fc" id="L49">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

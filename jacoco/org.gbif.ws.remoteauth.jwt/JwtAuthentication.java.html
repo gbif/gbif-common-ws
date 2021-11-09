@@ -27,10 +27,10 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
   private String token;
 
   public JwtAuthentication(String token) {
-<span class="nc" id="L30">    super(null);</span>
-<span class="nc" id="L31">    this.token = token;</span>
-<span class="nc" id="L32">    super.setAuthenticated(false);</span>
-<span class="nc" id="L33">  }</span>
+<span class="fc" id="L30">    super(null);</span>
+<span class="fc" id="L31">    this.token = token;</span>
+<span class="fc" id="L32">    super.setAuthenticated(false);</span>
+<span class="fc" id="L33">  }</span>
 
   @Override
   public Object getCredentials() {
@@ -43,7 +43,7 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
   }
 
   public String getToken() {
-<span class="nc" id="L46">    return token;</span>
+<span class="fc" id="L46">    return token;</span>
   }
 
   @Override

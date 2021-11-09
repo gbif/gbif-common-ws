@@ -27,32 +27,32 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * JWT Remote authentication against the registry.
  */
-<span class="nc" id="L30">@Slf4j</span>
+<span class="fc" id="L30">@Slf4j</span>
 public class JwtRemoteBasicAuthenticationProvider
     extends AbstractRemoteAuthenticationProvider&lt;JwtAuthentication&gt; {
 
   private static final String AUTH_PATH = &quot;/user/auth/jwt&quot;;
 
   public JwtRemoteBasicAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
-<span class="nc" id="L37">    super(JwtAuthentication.class, AUTH_PATH, remoteAuthClient);</span>
-<span class="nc" id="L38">  }</span>
+<span class="fc" id="L37">    super(JwtAuthentication.class, AUTH_PATH, remoteAuthClient);</span>
+<span class="fc" id="L38">  }</span>
 
   @Override
   public HttpHeaders createHttpHeaders(Authentication authentication) {
-<span class="nc" id="L42">    String token = ((JwtAuthentication) authentication).getToken();</span>
-<span class="nc" id="L43">    HttpHeaders headers = new HttpHeaders();</span>
-<span class="nc" id="L44">    headers.setBearerAuth(token);</span>
-<span class="nc" id="L45">    return headers;</span>
+<span class="fc" id="L42">    String token = ((JwtAuthentication) authentication).getToken();</span>
+<span class="fc" id="L43">    HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L44">    headers.setBearerAuth(token);</span>
+<span class="fc" id="L45">    return headers;</span>
   }
 
   @Override
   protected Authentication createSuccessAuthentication(
       ResponseEntity&lt;String&gt; response, Authentication authentication) {
-<span class="nc" id="L51">    String newToken = response.getHeaders().getFirst(&quot;token&quot;);</span>
-<span class="nc" id="L52">    GbifUserPrincipal gbifUserPrincipal =</span>
-<span class="nc" id="L53">        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());</span>
-<span class="nc" id="L54">    return new GbifAuthenticationToken(</span>
-<span class="nc" id="L55">        gbifUserPrincipal, gbifUserPrincipal.getAuthorities(), newToken);</span>
+<span class="fc" id="L51">    String newToken = response.getHeaders().getFirst(&quot;token&quot;);</span>
+<span class="fc" id="L52">    GbifUserPrincipal gbifUserPrincipal =</span>
+<span class="fc" id="L53">        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());</span>
+<span class="fc" id="L54">    return new GbifAuthenticationToken(</span>
+<span class="fc" id="L55">        gbifUserPrincipal, gbifUserPrincipal.getAuthorities(), newToken);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * Licensed under the Apache License, Version 2.0 (the "License");<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * you may not use this file except in compliance with the License.<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * You may obtain a copy of the License at<a name="line.4"></a>
+<span class="sourceLineNo">005</span> *<a name="line.5"></a>
+<span class="sourceLineNo">006</span> *     http://www.apache.org/licenses/LICENSE-2.0<a name="line.6"></a>
+<span class="sourceLineNo">007</span> *<a name="line.7"></a>
+<span class="sourceLineNo">008</span> * Unless required by applicable law or agreed to in writing, software<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * distributed under the License is distributed on an "AS IS" BASIS,<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * See the License for the specific language governing permissions and<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * limitations under the License.<a name="line.12"></a>
+<span class="sourceLineNo">013</span> */<a name="line.13"></a>
+<span class="sourceLineNo">014</span>package org.gbif.ws.remoteauth;<a name="line.14"></a>
+<span class="sourceLineNo">015</span><a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.gbif.ws.remoteauth.TestApplication.TestController;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.nio.charset.StandardCharsets;<a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.junit.jupiter.api.Test;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.junit.jupiter.api.extension.ExtendWith;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.junit.jupiter.api.extension.RegisterExtension;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.springframework.beans.factory.annotation.Autowired;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.springframework.boot.test.util.TestPropertyValues;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.springframework.context.ApplicationContextInitializer;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.springframework.context.ConfigurableApplicationContext;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.springframework.http.HttpHeaders;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.springframework.test.context.ContextConfiguration;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.springframework.test.context.junit.jupiter.SpringExtension;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.springframework.test.web.servlet.MockMvc;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.springframework.test.web.servlet.result.MockMvcResultMatchers;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>import static org.gbif.ws.remoteauth.LoginServerExtension.ADMIN_USER;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import static org.gbif.ws.remoteauth.LoginServerExtension.INVALID_USER;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import static org.gbif.ws.remoteauth.LoginServerExtension.USER;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>/**<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * Tests the remote auth classes<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * @see org.gbif.ws.remoteauth<a name="line.46"></a>
+<span class="sourceLineNo">047</span> */<a name="line.47"></a>
+<span class="sourceLineNo">048</span>@ExtendWith(SpringExtension.class)<a name="line.48"></a>
+<span class="sourceLineNo">049</span>@WebMvcTest(controllers = TestController.class)<a name="line.49"></a>
+<span class="sourceLineNo">050</span>@AutoConfigureMockMvc<a name="line.50"></a>
+<span class="sourceLineNo">051</span>@AutoConfigureWebClient<a name="line.51"></a>
+<span class="sourceLineNo">052</span>@ContextConfiguration(initializers = {RemoteAuthTest.ContextInitializer.class})<a name="line.52"></a>
+<span class="sourceLineNo">053</span>public class RemoteAuthTest {<a name="line.53"></a>
+<span class="sourceLineNo">054</span><a name="line.54"></a>
+<span class="sourceLineNo">055</span>  @RegisterExtension static LoginServerExtension loginServer = new LoginServerExtension();<a name="line.55"></a>
+<span class="sourceLineNo">056</span><a name="line.56"></a>
+<span class="sourceLineNo">057</span>  @Autowired MockMvc mockMvc;<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>  @Test<a name="line.59"></a>
+<span class="sourceLineNo">060</span>  public void noAuthSentTest() throws Exception {<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    // non-secured endpoint<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    mockMvc<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        .perform(MockMvcRequestBuilders.get("/noAuth"))<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        .andExpect(MockMvcResultMatchers.status().isOk());<a name="line.64"></a>
+<span class="sourceLineNo">065</span><a name="line.65"></a>
+<span class="sourceLineNo">066</span>    // secured endpoint<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    mockMvc<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        .perform(MockMvcRequestBuilders.get("/admin"))<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        .andExpect(MockMvcResultMatchers.status().isForbidden());<a name="line.69"></a>
+<span class="sourceLineNo">070</span>  }<a name="line.70"></a>
+<span class="sourceLineNo">071</span><a name="line.71"></a>
+<span class="sourceLineNo">072</span>  @Test<a name="line.72"></a>
+<span class="sourceLineNo">073</span>  public void securedBasicAuthTest() throws Exception {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    // user with no permissions<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    mockMvc<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        .perform(<a name="line.76"></a>
+<span class="sourceLineNo">077</span>            MockMvcRequestBuilders.get("/admin")<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                .header(<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                    HttpHeaders.AUTHORIZATION,<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                    "Basic "<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        + HttpHeaders.encodeBasicAuth(<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                            USER.getLoggedUser().getUserName(),<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                            USER.getPassword(),<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                            StandardCharsets.UTF_8)))<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        .andExpect(MockMvcResultMatchers.status().isForbidden());<a name="line.85"></a>
+<span class="sourceLineNo">086</span><a name="line.86"></a>
+<span class="sourceLineNo">087</span>    // user with permissions<a name="line.87"></a>
+<span class="sourceLineNo">088</span>    mockMvc<a name="line.88"></a>
+<span class="sourceLineNo">089</span>        .perform(<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            MockMvcRequestBuilders.get("/admin")<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                .header(<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                    HttpHeaders.AUTHORIZATION,<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                    "Basic "<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                        + HttpHeaders.encodeBasicAuth(<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                            ADMIN_USER.getLoggedUser().getUserName(),<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                            ADMIN_USER.getPassword(),<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                            StandardCharsets.UTF_8)))<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        .andExpect(MockMvcResultMatchers.status().isOk());<a name="line.98"></a>
+<span class="sourceLineNo">099</span><a name="line.99"></a>
+<span class="sourceLineNo">100</span>    // invalid user<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    mockMvc<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        .perform(<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            MockMvcRequestBuilders.get("/admin")<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                .header(<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                    HttpHeaders.AUTHORIZATION,<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                    "Basic "<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        + HttpHeaders.encodeBasicAuth(<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                            INVALID_USER.getLoggedUser().getUserName(),<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                            INVALID_USER.getPassword(),<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                            StandardCharsets.UTF_8)))<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        .andExpect(MockMvcResultMatchers.status().isUnauthorized());<a name="line.111"></a>
+<span class="sourceLineNo">112</span>  }<a name="line.112"></a>
+<span class="sourceLineNo">113</span><a name="line.113"></a>
+<span class="sourceLineNo">114</span>  @Test<a name="line.114"></a>
+<span class="sourceLineNo">115</span>  public void securedJwtTest() throws Exception {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>    // user with no permissions<a name="line.116"></a>
+<span class="sourceLineNo">117</span>    mockMvc<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        .perform(<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            MockMvcRequestBuilders.get("/admin")<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USER.getJwtToken()))<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        .andExpect(MockMvcResultMatchers.status().isForbidden());<a name="line.121"></a>
+<span class="sourceLineNo">122</span><a name="line.122"></a>
+<span class="sourceLineNo">123</span>    // user with permissions<a name="line.123"></a>
+<span class="sourceLineNo">124</span>    mockMvc<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        .perform(<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            MockMvcRequestBuilders.get("/admin")<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                .header(HttpHeaders.AUTHORIZATION, "Bearer " + ADMIN_USER.getJwtToken()))<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        .andExpect(MockMvcResultMatchers.status().isOk());<a name="line.128"></a>
+<span class="sourceLineNo">129</span><a name="line.129"></a>
+<span class="sourceLineNo">130</span>    // invalid user<a name="line.130"></a>
+<span class="sourceLineNo">131</span>    mockMvc<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        .perform(<a name="line.132"></a>
+<span class="sourceLineNo">133</span>            MockMvcRequestBuilders.get("/admin")<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_USER.getJwtToken()))<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        .andExpect(MockMvcResultMatchers.status().isUnauthorized());<a name="line.135"></a>
+<span class="sourceLineNo">136</span>  }<a name="line.136"></a>
+<span class="sourceLineNo">137</span><a name="line.137"></a>
+<span class="sourceLineNo">138</span>  @Test<a name="line.138"></a>
+<span class="sourceLineNo">139</span>  public void securedGbifAppTest() throws Exception {<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    // user with no permissions<a name="line.140"></a>
+<span class="sourceLineNo">141</span>    mockMvc<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        .perform(<a name="line.142"></a>
+<span class="sourceLineNo">143</span>            MockMvcRequestBuilders.get("/admin")<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                .header(HttpHeaders.AUTHORIZATION, USER.getGbifSchemeHeader())<a name="line.144"></a>
+<span class="sourceLineNo">145</span>                .header(HEADER_GBIF_USER, USER.getLoggedUser().getUserName())<a name="line.145"></a>
+<span class="sourceLineNo">146</span>                .header(HEADER_CONTENT_MD5, "foo"))<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        .andExpect(MockMvcResultMatchers.status().isForbidden());<a name="line.147"></a>
+<span class="sourceLineNo">148</span><a name="line.148"></a>
+<span class="sourceLineNo">149</span>    // user with permissions<a name="line.149"></a>
+<span class="sourceLineNo">150</span>    mockMvc<a name="line.150"></a>
+<span class="sourceLineNo">151</span>        .perform(<a name="line.151"></a>
+<span class="sourceLineNo">152</span>            MockMvcRequestBuilders.get("/admin")<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())<a name="line.154"></a>
+<span class="sourceLineNo">155</span>                .header(HEADER_CONTENT_MD5, "foo"))<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        .andExpect(MockMvcResultMatchers.status().isOk());<a name="line.156"></a>
+<span class="sourceLineNo">157</span><a name="line.157"></a>
+<span class="sourceLineNo">158</span>    // invalid user<a name="line.158"></a>
+<span class="sourceLineNo">159</span>    mockMvc<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        .perform(<a name="line.160"></a>
+<span class="sourceLineNo">161</span>            MockMvcRequestBuilders.get("/admin")<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                .header(HttpHeaders.AUTHORIZATION, INVALID_USER.getGbifSchemeHeader())<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                .header(HEADER_GBIF_USER, INVALID_USER.getLoggedUser().getUserName())<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                .header(HEADER_CONTENT_MD5, "foo"))<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        .andExpect(MockMvcResultMatchers.status().isUnauthorized());<a name="line.165"></a>
+<span class="sourceLineNo">166</span>  }<a name="line.166"></a>
+<span class="sourceLineNo">167</span><a name="line.167"></a>
+<span class="sourceLineNo">168</span>  static class ContextInitializer<a name="line.168"></a>
+<span class="sourceLineNo">169</span>      implements ApplicationContextInitializer&lt;ConfigurableApplicationContext&gt; {<a name="line.169"></a>
+<span class="sourceLineNo">170</span><a name="line.170"></a>
+<span class="sourceLineNo">171</span>    @Override<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {<a name="line.172"></a>
+<span class="sourceLineNo">173</span>      TestPropertyValues.of("login.url=" + loginServer.getWireMockServer().baseUrl())<a name="line.173"></a>
+<span class="sourceLineNo">174</span>          .applyTo(configurableApplicationContext.getEnvironment());<a name="line.174"></a>
+<span class="sourceLineNo">175</span>    }<a name="line.175"></a>
+<span class="sourceLineNo">176</span>  }<a name="line.176"></a>
+<span class="sourceLineNo">177</span>}<a name="line.177"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

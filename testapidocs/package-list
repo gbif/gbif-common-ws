@@ -26,6 +26,7 @@ org.gbif.utils.file.tabular
 org.gbif.utils.number
 org.gbif.utils.rs
 org.gbif.utils.text
+org.gbif.ws.remoteauth
 org.gbif.ws.security
 org.gbif.ws.server.filter
 org.gbif.ws.server.interceptor

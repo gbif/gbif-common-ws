@@ -15,9 +15,11 @@ package org.gbif.ws.remoteauth.app;
 
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.LoggedUser;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.security.AppPrincipal;
 import org.gbif.ws.security.GbifAuthenticationToken;
+import org.gbif.ws.security.GbifUserPrincipal;
 import org.gbif.ws.util.SecurityConstants;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,45 +38,65 @@ import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME;
 /**
  * GBIF APP authentication against the registry.
  */
-<span class="nc" id="L38">@Slf4j</span>
+<span class="fc" id="L41">@Slf4j</span>
 public class GbifAppRemoteAuthenticationProvider
     extends AbstractRemoteAuthenticationProvider&lt;GbifAppAuthentication&gt; {
 
   private static final String AUTH_PATH = &quot;/user/auth/app&quot;;
 
   public GbifAppRemoteAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
-<span class="nc" id="L45">    super(GbifAppAuthentication.class, AUTH_PATH, remoteAuthClient);</span>
-<span class="nc" id="L46">  }</span>
+<span class="fc" id="L48">    super(GbifAppAuthentication.class, AUTH_PATH, remoteAuthClient);</span>
+<span class="fc" id="L49">  }</span>
 
   @Override
   public HttpHeaders createHttpHeaders(Authentication authentication) {
-<span class="nc" id="L50">    HttpHeaders headers = new HttpHeaders();</span>
-<span class="nc" id="L51">    GbifAppAuthentication gbifAppAuthentication = (GbifAppAuthentication) authentication;</span>
-<span class="nc" id="L52">    headers.add(HttpHeaders.AUTHORIZATION, gbifAppAuthentication.getGbifScheme());</span>
-<span class="nc" id="L53">    headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (authentication.getPrincipal() != null) {</span>
-<span class="nc" id="L55">      headers.add(SecurityConstants.HEADER_GBIF_USER, authentication.getPrincipal().toString());</span>
+<span class="fc" id="L53">    HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L54">    GbifAppAuthentication gbifAppAuthentication = (GbifAppAuthentication) authentication;</span>
+<span class="fc" id="L55">    headers.add(HttpHeaders.AUTHORIZATION, gbifAppAuthentication.getGbifScheme());</span>
+
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (gbifAppAuthentication.getContentMd5() != null</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        &amp;&amp; !gbifAppAuthentication.getContentMd5().isEmpty()) {</span>
+<span class="fc" id="L59">      headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());</span>
     }
-<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (gbifAppAuthentication.getOriginalRequestUrl() != null</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        &amp;&amp; !gbifAppAuthentication.getOriginalRequestUrl().isEmpty()) {</span>
-<span class="nc" id="L59">      headers.add(</span>
+
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (gbifAppAuthentication.getContentType() != null</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        &amp;&amp; !gbifAppAuthentication.getContentType().isEmpty()) {</span>
+<span class="nc" id="L64">      headers.add(HttpHeaders.CONTENT_TYPE, gbifAppAuthentication.getContentType());</span>
+    }
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (authentication.getPrincipal() != null) {</span>
+<span class="fc" id="L68">      headers.add(SecurityConstants.HEADER_GBIF_USER, authentication.getPrincipal().toString());</span>
+    }
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (gbifAppAuthentication.getOriginalRequestUrl() != null</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        &amp;&amp; !gbifAppAuthentication.getOriginalRequestUrl().isEmpty()) {</span>
+<span class="nc" id="L72">      headers.add(</span>
           SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,
-<span class="nc" id="L61">          gbifAppAuthentication.getOriginalRequestUrl());</span>
+<span class="nc" id="L74">          gbifAppAuthentication.getOriginalRequestUrl());</span>
     }
-<span class="nc" id="L63">    return headers;</span>
+<span class="pc bpc" id="L76" title="2 of 4 branches missed.">    if (gbifAppAuthentication.getMethod() != null &amp;&amp; !gbifAppAuthentication.getMethod().isEmpty()) {</span>
+<span class="fc" id="L77">      headers.add(</span>
+<span class="fc" id="L78">          SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD, gbifAppAuthentication.getMethod());</span>
+    }
+
+<span class="fc" id="L81">    return headers;</span>
   }
 
   @Override
   protected Authentication createSuccessAuthentication(
       ResponseEntity&lt;String&gt; response, Authentication authentication) {
-<span class="nc" id="L69">    Collection&lt;SimpleGrantedAuthority&gt; authorities = extractRoles(readUserFromResponse(response));</span>
-<span class="nc" id="L70">    authorities.add(new SimpleGrantedAuthority(AppRole.APP.name()));</span>
+<span class="fc" id="L87">    LoggedUser loggedUser = readUserFromResponse(response);</span>
+<span class="fc" id="L88">    Collection&lt;SimpleGrantedAuthority&gt; authorities = extractRoles(loggedUser);</span>
 
-<span class="nc" id="L72">    return new GbifAuthenticationToken(</span>
-        new AppPrincipal(
-<span class="nc" id="L74">            ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList&lt;&gt;(authorities)),</span>
-        GBIF_SCHEME,
-        authorities);
+<span class="fc" id="L90">    UserDetails userDetails = null;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (loggedUser.getRoles().contains(AppRole.APP.name())) {</span>
+<span class="nc" id="L92">      userDetails =</span>
+          new AppPrincipal(
+<span class="nc" id="L94">              ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList&lt;&gt;(authorities));</span>
+    } else {
+<span class="fc" id="L96">      userDetails = new GbifUserPrincipal(loggedUser.toGbifUser());</span>
+    }
+
+<span class="fc" id="L99">    return new GbifAuthenticationToken(userDetails, GBIF_SCHEME, authorities);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

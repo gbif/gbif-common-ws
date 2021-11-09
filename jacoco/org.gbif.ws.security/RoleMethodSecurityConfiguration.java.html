@@ -22,19 +22,19 @@ import org.springframework.security.config.annotation.method.configuration.Globa
 
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
-<span class="nc" id="L25">public class RoleMethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {</span>
+<span class="fc" id="L25">public class RoleMethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {</span>
 
   @Override
   protected AccessDecisionManager accessDecisionManager() {
-<span class="nc" id="L29">    AffirmativeBased accessDecisionManager = (AffirmativeBased) super.accessDecisionManager();</span>
+<span class="fc" id="L29">    AffirmativeBased accessDecisionManager = (AffirmativeBased) super.accessDecisionManager();</span>
 
     // Remove the ROLE_ prefix from RoleVoter for @Secured and hasRole checks on methods
-<span class="nc" id="L32">    accessDecisionManager.getDecisionVoters().stream()</span>
-<span class="nc" id="L33">        .filter(RoleVoter.class::isInstance)</span>
-<span class="nc" id="L34">        .map(RoleVoter.class::cast)</span>
-<span class="nc" id="L35">        .forEach(it -&gt; it.setRolePrefix(&quot;&quot;));</span>
+<span class="fc" id="L32">    accessDecisionManager.getDecisionVoters().stream()</span>
+<span class="fc" id="L33">        .filter(RoleVoter.class::isInstance)</span>
+<span class="fc" id="L34">        .map(RoleVoter.class::cast)</span>
+<span class="fc" id="L35">        .forEach(it -&gt; it.setRolePrefix(&quot;&quot;));</span>
 
-<span class="nc" id="L37">    return accessDecisionManager;</span>
+<span class="fc" id="L37">    return accessDecisionManager;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

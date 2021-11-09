@@ -13,6 +13,9 @@
  */
 package org.gbif.ws.remoteauth;
 
+import java.time.Duration;
+
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -28,19 +31,31 @@ public class RestTemplateRemoteAuthClient implements RemoteAuthClient {
 
   private final RestTemplate restTemplate;
 
-<span class="nc" id="L31">  public RestTemplateRemoteAuthClient(RestTemplate restTemplate) {</span>
-<span class="nc" id="L32">    this.restTemplate = restTemplate;</span>
-<span class="nc" id="L33">  }</span>
+<span class="fc" id="L34">  public RestTemplateRemoteAuthClient(RestTemplate restTemplate) {</span>
+<span class="fc" id="L35">    this.restTemplate = restTemplate;</span>
+<span class="fc" id="L36">  }</span>
 
   @Override
   public ResponseEntity&lt;String&gt; remoteAuth(String path, HttpHeaders headers) {
     try {
-<span class="nc" id="L38">      return restTemplate.postForEntity(path, new HttpEntity&lt;&gt;(headers), String.class);</span>
-<span class="nc" id="L39">    } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {</span>
-<span class="nc" id="L40">      throw new BadCredentialsException(&quot;Wrong credentials for user&quot;, e);</span>
-<span class="nc" id="L41">    } catch (Exception e) {</span>
-<span class="nc" id="L42">      throw new RestClientException(&quot;Could not authenticate user&quot;, e);</span>
+<span class="fc" id="L41">      return restTemplate.postForEntity(path, new HttpEntity&lt;&gt;(headers), String.class);</span>
+<span class="fc" id="L42">    } catch (HttpClientErrorException.Unauthorized</span>
+        | HttpClientErrorException.Forbidden
+        | HttpClientErrorException.BadRequest e) {
+<span class="fc" id="L45">      throw new BadCredentialsException(&quot;Wrong credentials for user&quot;, e);</span>
+<span class="nc" id="L46">    } catch (Exception e) {</span>
+<span class="nc" id="L47">      throw new RestClientException(&quot;Could not authenticate user&quot;, e);</span>
     }
+  }
+
+  public static RestTemplateRemoteAuthClient createInstance(
+      RestTemplateBuilder builder, String gbifApiUrl) {
+<span class="nc" id="L53">    return new RestTemplateRemoteAuthClient(</span>
+        builder
+<span class="nc" id="L55">            .setConnectTimeout(Duration.ofSeconds(30))</span>
+<span class="nc" id="L56">            .setReadTimeout(Duration.ofSeconds(60))</span>
+<span class="nc" id="L57">            .rootUri(gbifApiUrl)</span>
+<span class="nc" id="L58">            .build());</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

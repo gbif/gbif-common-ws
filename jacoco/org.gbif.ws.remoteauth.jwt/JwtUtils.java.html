@@ -27,14 +27,14 @@ import lombok.NoArgsConstructor;
 class JwtUtils {
 
   // Patterns that catches case-insensitive versions of word 'bearer'
-<span class="nc" id="L30">  private static final Pattern BEARER_PATTERN = Pattern.compile(&quot;(?i)bearer&quot;);</span>
+<span class="fc" id="L30">  private static final Pattern BEARER_PATTERN = Pattern.compile(&quot;(?i)bearer&quot;);</span>
 
   /** Tries to find the token in the {@link HttpHeaders#AUTHORIZATION} header. */
   static Optional&lt;String&gt; findTokenInRequest(HttpServletRequest request) {
     // check header first
-<span class="nc" id="L35">    return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))</span>
-<span class="nc" id="L36">        .filter(JwtUtils::containsBearer)</span>
-<span class="nc" id="L37">        .map(JwtUtils::removeBearer);</span>
+<span class="fc" id="L35">    return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))</span>
+<span class="fc" id="L36">        .filter(JwtUtils::containsBearer)</span>
+<span class="fc" id="L37">        .map(JwtUtils::removeBearer);</span>
   }
 
   /**
@@ -44,11 +44,11 @@ class JwtUtils {
    * @return a token without whitespaces and the word 'bearer'
    */
   private static String removeBearer(String token) {
-<span class="nc" id="L47">    return BEARER_PATTERN.matcher(token).replaceAll(&quot;&quot;).trim();</span>
+<span class="fc" id="L47">    return BEARER_PATTERN.matcher(token).replaceAll(&quot;&quot;).trim();</span>
   }
 
   private static boolean containsBearer(String header) {
-<span class="nc" id="L51">    return BEARER_PATTERN.matcher(header).find();</span>
+<span class="fc" id="L51">    return BEARER_PATTERN.matcher(header).find();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

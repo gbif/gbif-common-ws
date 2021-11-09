@@ -23,22 +23,22 @@
 <span class="sourceLineNo">015</span><a name="line.15"></a>
 <span class="sourceLineNo">016</span>import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;<a name="line.16"></a>
 <span class="sourceLineNo">017</span>import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;<a name="line.17"></a>
-<span class="sourceLineNo">018</span>import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;<a name="line.18"></a>
-<span class="sourceLineNo">019</span>import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;<a name="line.19"></a>
-<span class="sourceLineNo">020</span>import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;<a name="line.20"></a>
-<span class="sourceLineNo">021</span>import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;<a name="line.21"></a>
-<span class="sourceLineNo">022</span>import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;<a name="line.22"></a>
-<span class="sourceLineNo">023</span><a name="line.23"></a>
-<span class="sourceLineNo">024</span>import java.util.Arrays;<a name="line.24"></a>
-<span class="sourceLineNo">025</span>import java.util.Collections;<a name="line.25"></a>
-<span class="sourceLineNo">026</span><a name="line.26"></a>
-<span class="sourceLineNo">027</span>import org.springframework.context.ApplicationContext;<a name="line.27"></a>
-<span class="sourceLineNo">028</span>import org.springframework.context.annotation.Bean;<a name="line.28"></a>
-<span class="sourceLineNo">029</span>import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;<a name="line.29"></a>
-<span class="sourceLineNo">030</span>import org.springframework.security.config.annotation.web.builders.HttpSecurity;<a name="line.30"></a>
-<span class="sourceLineNo">031</span>import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;<a name="line.31"></a>
-<span class="sourceLineNo">032</span>import org.springframework.security.config.http.SessionCreationPolicy;<a name="line.32"></a>
-<span class="sourceLineNo">033</span>import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;<a name="line.33"></a>
+<span class="sourceLineNo">018</span>import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>import java.util.Arrays;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import java.util.Collections;<a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.springframework.context.ApplicationContext;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.springframework.context.annotation.Bean;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.springframework.security.config.annotation.web.builders.HttpSecurity;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.springframework.security.config.http.SessionCreationPolicy;<a name="line.33"></a>
 <span class="sourceLineNo">034</span>import org.springframework.security.web.csrf.CsrfFilter;<a name="line.34"></a>
 <span class="sourceLineNo">035</span>import org.springframework.web.cors.CorsConfiguration;<a name="line.35"></a>
 <span class="sourceLineNo">036</span>import org.springframework.web.cors.CorsConfigurationSource;<a name="line.36"></a>
@@ -69,50 +69,52 @@
 <span class="sourceLineNo">061</span><a name="line.61"></a>
 <span class="sourceLineNo">062</span>  @Override<a name="line.62"></a>
 <span class="sourceLineNo">063</span>  protected void configure(HttpSecurity http) throws Exception {<a name="line.63"></a>
-<span class="sourceLineNo">064</span>    http.httpBasic()<a name="line.64"></a>
-<span class="sourceLineNo">065</span>        .and()<a name="line.65"></a>
-<span class="sourceLineNo">066</span>        .addFilterAfter(<a name="line.66"></a>
-<span class="sourceLineNo">067</span>            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),<a name="line.67"></a>
-<span class="sourceLineNo">068</span>            CsrfFilter.class)<a name="line.68"></a>
-<span class="sourceLineNo">069</span>        .addFilterAfter(<a name="line.69"></a>
-<span class="sourceLineNo">070</span>            getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),<a name="line.70"></a>
-<span class="sourceLineNo">071</span>            HttpServletRequestWrapperFilter.class)<a name="line.71"></a>
-<span class="sourceLineNo">072</span>        .addFilterBefore(<a name="line.72"></a>
-<span class="sourceLineNo">073</span>            new JwtRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)<a name="line.73"></a>
-<span class="sourceLineNo">074</span>        .addFilterAfter(<a name="line.74"></a>
-<span class="sourceLineNo">075</span>            new GbifAppRequestFilter(authenticationManager()), BasicAuthenticationFilter.class)<a name="line.75"></a>
-<span class="sourceLineNo">076</span>        .csrf()<a name="line.76"></a>
-<span class="sourceLineNo">077</span>        .disable()<a name="line.77"></a>
-<span class="sourceLineNo">078</span>        .cors()<a name="line.78"></a>
-<span class="sourceLineNo">079</span>        .and()<a name="line.79"></a>
-<span class="sourceLineNo">080</span>        .authorizeRequests()<a name="line.80"></a>
-<span class="sourceLineNo">081</span>        .anyRequest()<a name="line.81"></a>
-<span class="sourceLineNo">082</span>        .authenticated();<a name="line.82"></a>
-<span class="sourceLineNo">083</span><a name="line.83"></a>
-<span class="sourceLineNo">084</span>    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);<a name="line.84"></a>
-<span class="sourceLineNo">085</span>  }<a name="line.85"></a>
-<span class="sourceLineNo">086</span><a name="line.86"></a>
-<span class="sourceLineNo">087</span>  /**<a name="line.87"></a>
-<span class="sourceLineNo">088</span>   * Cors configuration, allows all methods and origins.<a name="line.88"></a>
-<span class="sourceLineNo">089</span>   */<a name="line.89"></a>
-<span class="sourceLineNo">090</span>  @Bean<a name="line.90"></a>
-<span class="sourceLineNo">091</span>  CorsConfigurationSource corsConfigurationSource() {<a name="line.91"></a>
-<span class="sourceLineNo">092</span>    // CorsFilter only applies this if the origin header is present in the request<a name="line.92"></a>
-<span class="sourceLineNo">093</span>    CorsConfiguration configuration = new CorsConfiguration();<a name="line.93"></a>
-<span class="sourceLineNo">094</span>    configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));<a name="line.94"></a>
-<span class="sourceLineNo">095</span>    configuration.setAllowedOrigins(Collections.singletonList("*"));<a name="line.95"></a>
-<span class="sourceLineNo">096</span>    configuration.setAllowedMethods(<a name="line.96"></a>
-<span class="sourceLineNo">097</span>        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));<a name="line.97"></a>
-<span class="sourceLineNo">098</span>    configuration.setExposedHeaders(<a name="line.98"></a>
-<span class="sourceLineNo">099</span>        Arrays.asList(<a name="line.99"></a>
-<span class="sourceLineNo">100</span>            "Access-Control-Allow-Origin",<a name="line.100"></a>
-<span class="sourceLineNo">101</span>            "Access-Control-Allow-Methods",<a name="line.101"></a>
-<span class="sourceLineNo">102</span>            "Access-Control-Allow-Headers"));<a name="line.102"></a>
-<span class="sourceLineNo">103</span>    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();<a name="line.103"></a>
-<span class="sourceLineNo">104</span>    source.registerCorsConfiguration("/**", configuration);<a name="line.104"></a>
-<span class="sourceLineNo">105</span>    return source;<a name="line.105"></a>
-<span class="sourceLineNo">106</span>  }<a name="line.106"></a>
-<span class="sourceLineNo">107</span>}<a name="line.107"></a>
+<span class="sourceLineNo">064</span>    http.authorizeRequests()<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        .anyRequest()<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        .permitAll()<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        .and()<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        .httpBasic()<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        .disable()<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        .addFilterAfter(<a name="line.70"></a>
+<span class="sourceLineNo">071</span>            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),<a name="line.71"></a>
+<span class="sourceLineNo">072</span>            CsrfFilter.class)<a name="line.72"></a>
+<span class="sourceLineNo">073</span>        .addFilterAfter(<a name="line.73"></a>
+<span class="sourceLineNo">074</span>            getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),<a name="line.74"></a>
+<span class="sourceLineNo">075</span>            HttpServletRequestWrapperFilter.class)<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        .addFilterAfter(<a name="line.76"></a>
+<span class="sourceLineNo">077</span>            new BasicAuthRequestFilter(authenticationManager()),<a name="line.77"></a>
+<span class="sourceLineNo">078</span>            RequestHeaderParamUpdateFilter.class)<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        .addFilterAfter(new JwtRequestFilter(authenticationManager()), BasicAuthRequestFilter.class)<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        .addFilterAfter(new GbifAppRequestFilter(authenticationManager()), JwtRequestFilter.class)<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        .csrf()<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        .disable()<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        .cors()<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        .and()<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        .sessionManagement()<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        .sessionCreationPolicy(SessionCreationPolicy.STATELESS);<a name="line.86"></a>
+<span class="sourceLineNo">087</span>  }<a name="line.87"></a>
+<span class="sourceLineNo">088</span><a name="line.88"></a>
+<span class="sourceLineNo">089</span>  /**<a name="line.89"></a>
+<span class="sourceLineNo">090</span>   * Cors configuration, allows all methods and origins.<a name="line.90"></a>
+<span class="sourceLineNo">091</span>   */<a name="line.91"></a>
+<span class="sourceLineNo">092</span>  @Bean<a name="line.92"></a>
+<span class="sourceLineNo">093</span>  CorsConfigurationSource corsConfigurationSource() {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>    // CorsFilter only applies this if the origin header is present in the request<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    CorsConfiguration configuration = new CorsConfiguration();<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));<a name="line.96"></a>
+<span class="sourceLineNo">097</span>    configuration.setAllowedOrigins(Collections.singletonList("*"));<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    configuration.setAllowedMethods(<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));<a name="line.99"></a>
+<span class="sourceLineNo">100</span>    configuration.setExposedHeaders(<a name="line.100"></a>
+<span class="sourceLineNo">101</span>        Arrays.asList(<a name="line.101"></a>
+<span class="sourceLineNo">102</span>            "Access-Control-Allow-Origin",<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            "Access-Control-Allow-Methods",<a name="line.103"></a>
+<span class="sourceLineNo">104</span>            "Access-Control-Allow-Headers"));<a name="line.104"></a>
+<span class="sourceLineNo">105</span>    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>    source.registerCorsConfiguration("/**", configuration);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    return source;<a name="line.107"></a>
+<span class="sourceLineNo">108</span>  }<a name="line.108"></a>
+<span class="sourceLineNo">109</span>}<a name="line.109"></a>
 
 
 

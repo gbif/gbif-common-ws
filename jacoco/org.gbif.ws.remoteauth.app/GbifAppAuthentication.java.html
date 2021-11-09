@@ -27,65 +27,84 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String gbifScheme;
   private String gbifUser;
   private String contentMd5;
+  private String contentType;
+  private String method;
   private String originalRequestUrl;
 
   public GbifAppAuthentication(
-      String gbifScheme, String gbifUser, String contentMd5, String originalRequestUrl) {
-<span class="nc" id="L34">    super(null);</span>
-<span class="nc" id="L35">    this.gbifScheme = gbifScheme;</span>
-<span class="nc" id="L36">    this.gbifUser = gbifUser;</span>
-<span class="nc" id="L37">    this.contentMd5 = contentMd5;</span>
-<span class="nc" id="L38">    this.originalRequestUrl = originalRequestUrl;</span>
-<span class="nc" id="L39">    super.setAuthenticated(false);</span>
-<span class="nc" id="L40">  }</span>
+      String gbifScheme,
+      String gbifUser,
+      String contentMd5,
+      String contentType,
+      String method,
+      String originalRequestUrl) {
+<span class="fc" id="L41">    super(null);</span>
+<span class="fc" id="L42">    this.gbifScheme = gbifScheme;</span>
+<span class="fc" id="L43">    this.gbifUser = gbifUser;</span>
+<span class="fc" id="L44">    this.contentMd5 = contentMd5;</span>
+<span class="fc" id="L45">    this.contentType = contentType;</span>
+<span class="fc" id="L46">    this.method = method;</span>
+<span class="fc" id="L47">    this.originalRequestUrl = originalRequestUrl;</span>
+<span class="fc" id="L48">    super.setAuthenticated(false);</span>
+<span class="fc" id="L49">  }</span>
 
   @Override
   public Object getCredentials() {
-<span class="nc" id="L44">    return null;</span>
+<span class="nc" id="L53">    return null;</span>
   }
 
   @Override
   public Object getPrincipal() {
-<span class="nc" id="L49">    return gbifUser;</span>
+<span class="fc" id="L58">    return gbifUser;</span>
   }
 
   public String getAppKey() {
-<span class="nc" id="L53">    return GbifAuthUtils.getAppKeyFromRequest(gbifScheme);</span>
+<span class="nc" id="L62">    return GbifAuthUtils.getAppKeyFromRequest(gbifScheme);</span>
   }
 
   public String getGbifScheme() {
-<span class="nc" id="L57">    return gbifScheme;</span>
+<span class="fc" id="L66">    return gbifScheme;</span>
   }
 
   public String getContentMd5() {
-<span class="nc" id="L61">    return contentMd5;</span>
+<span class="fc" id="L70">    return contentMd5;</span>
+  }
+
+  public String getMethod() {
+<span class="fc" id="L74">    return method;</span>
   }
 
   public String getOriginalRequestUrl() {
-<span class="nc" id="L65">    return originalRequestUrl;</span>
+<span class="fc" id="L78">    return originalRequestUrl;</span>
+  }
+
+  public String getContentType() {
+<span class="fc" id="L82">    return contentType;</span>
   }
 
   @Override
   public boolean equals(Object o) {
-<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (this == o) {</span>
-<span class="nc" id="L71">      return true;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L88">      return true;</span>
     }
-<span class="nc bnc" id="L73" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
-<span class="nc" id="L74">      return false;</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L91">      return false;</span>
     }
-<span class="nc bnc" id="L76" title="All 2 branches missed.">    if (!super.equals(o)) {</span>
-<span class="nc" id="L77">      return false;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (!super.equals(o)) {</span>
+<span class="nc" id="L94">      return false;</span>
     }
-<span class="nc" id="L79">    GbifAppAuthentication that = (GbifAppAuthentication) o;</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">    return Objects.equals(gbifScheme, that.gbifScheme)</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        &amp;&amp; Objects.equals(gbifUser, that.gbifUser)</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        &amp;&amp; Objects.equals(contentMd5, that.contentMd5)</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        &amp;&amp; Objects.equals(originalRequestUrl, that.originalRequestUrl);</span>
+<span class="nc" id="L96">    GbifAppAuthentication that = (GbifAppAuthentication) o;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    return Objects.equals(gbifScheme, that.gbifScheme)</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        &amp;&amp; Objects.equals(gbifUser, that.gbifUser)</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        &amp;&amp; Objects.equals(contentMd5, that.contentMd5)</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        &amp;&amp; Objects.equals(contentType, that.contentType)</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        &amp;&amp; Objects.equals(originalRequestUrl, that.originalRequestUrl);</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L88">    return Objects.hash(super.hashCode(), gbifScheme, gbifUser, contentMd5, originalRequestUrl);</span>
+<span class="nc" id="L106">    return Objects.hash(</span>
+<span class="nc" id="L107">        super.hashCode(), gbifScheme, gbifUser, contentMd5, contentType, originalRequestUrl);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

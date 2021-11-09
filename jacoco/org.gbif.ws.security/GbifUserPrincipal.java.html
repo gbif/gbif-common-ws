@@ -39,9 +39,9 @@ public class GbifUserPrincipal implements UserDetails {
 
   @Override
   public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
-<span class="nc" id="L42">    return user.getRoles().stream()</span>
-<span class="nc" id="L43">        .map(p -&gt; new SimpleGrantedAuthority(p.toString()))</span>
-<span class="nc" id="L44">        .collect(Collectors.toList());</span>
+<span class="fc" id="L42">    return user.getRoles().stream()</span>
+<span class="fc" id="L43">        .map(p -&gt; new SimpleGrantedAuthority(p.toString()))</span>
+<span class="fc" id="L44">        .collect(Collectors.toList());</span>
   }
 
   @Override

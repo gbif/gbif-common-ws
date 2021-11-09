@@ -32,34 +32,34 @@ import lombok.Data;
 
 /** Class top map responses from token-based (JWT) authentication services. */
 <span class="nc bnc" id="L34" title="All 70 branches missed.">@Data</span>
-<span class="nc bnc" id="L35" title="All 4 branches missed.">@Builder</span>
+<span class="pc bpc" id="L35" title="1 of 4 branches missed.">@Builder</span>
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonDeserialize(builder = LoggedUser.LoggedUserBuilder.class)
 public class LoggedUser {
 
-<span class="nc" id="L40">  private Integer key;</span>
-<span class="nc" id="L41">  private String userName;</span>
-<span class="nc" id="L42">  private String firstName;</span>
-<span class="nc" id="L43">  private String lastName;</span>
-<span class="nc" id="L44">  private String email;</span>
-<span class="nc" id="L45">  private String token;</span>
+<span class="fc" id="L40">  private Integer key;</span>
+<span class="fc" id="L41">  private String userName;</span>
+<span class="fc" id="L42">  private String firstName;</span>
+<span class="fc" id="L43">  private String lastName;</span>
+<span class="fc" id="L44">  private String email;</span>
+<span class="fc" id="L45">  private String token;</span>
 
-<span class="nc" id="L47">  @Builder.Default private Map&lt;String, String&gt; settings = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L47">  @Builder.Default private Map&lt;String, String&gt; settings = new HashMap&lt;&gt;();</span>
 
-<span class="nc" id="L49">  @Builder.Default private Set&lt;String&gt; roles = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L49">  @Builder.Default private Set&lt;String&gt; roles = new HashSet&lt;&gt;();</span>
 
   public GbifUser toGbifUser() {
-<span class="nc" id="L52">    GbifUser gbifUser = new GbifUser();</span>
-<span class="nc" id="L53">    gbifUser.setUserName(userName);</span>
-<span class="nc" id="L54">    gbifUser.setFirstName(firstName);</span>
-<span class="nc" id="L55">    gbifUser.setLastName(lastName);</span>
-<span class="nc" id="L56">    gbifUser.setEmail(email);</span>
-<span class="nc" id="L57">    gbifUser.setSettings(settings);</span>
-<span class="nc" id="L58">    gbifUser.setKey(key);</span>
-<span class="nc" id="L59">    Optional.ofNullable(roles)</span>
-<span class="nc" id="L60">        .map(r -&gt; roles.stream().map(UserRole::valueOf).collect(Collectors.toSet()))</span>
-<span class="nc" id="L61">        .ifPresent(gbifUser::setRoles);</span>
-<span class="nc" id="L62">    return gbifUser;</span>
+<span class="fc" id="L52">    GbifUser gbifUser = new GbifUser();</span>
+<span class="fc" id="L53">    gbifUser.setUserName(userName);</span>
+<span class="fc" id="L54">    gbifUser.setFirstName(firstName);</span>
+<span class="fc" id="L55">    gbifUser.setLastName(lastName);</span>
+<span class="fc" id="L56">    gbifUser.setEmail(email);</span>
+<span class="fc" id="L57">    gbifUser.setSettings(settings);</span>
+<span class="fc" id="L58">    gbifUser.setKey(key);</span>
+<span class="fc" id="L59">    Optional.ofNullable(roles)</span>
+<span class="fc" id="L60">        .map(r -&gt; roles.stream().map(UserRole::valueOf).collect(Collectors.toSet()))</span>
+<span class="fc" id="L61">        .ifPresent(gbifUser::setRoles);</span>
+<span class="fc" id="L62">    return gbifUser;</span>
   }
 
   @JsonPOJOBuilder(withPrefix = &quot;&quot;, buildMethodName = &quot;build&quot;)

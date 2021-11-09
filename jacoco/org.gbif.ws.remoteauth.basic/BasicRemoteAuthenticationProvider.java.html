@@ -28,29 +28,29 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Basic authentication against the registry.
  */
-<span class="nc" id="L31">@Slf4j</span>
+<span class="fc" id="L31">@Slf4j</span>
 public class BasicRemoteAuthenticationProvider
     extends AbstractRemoteAuthenticationProvider&lt;UsernamePasswordAuthenticationToken&gt; {
 
   private static final String AUTH_PATH = &quot;/user/auth/basic&quot;;
 
   public BasicRemoteAuthenticationProvider(RemoteAuthClient remoteAuthClient) {
-<span class="nc" id="L38">    super(UsernamePasswordAuthenticationToken.class, AUTH_PATH, remoteAuthClient);</span>
-<span class="nc" id="L39">  }</span>
+<span class="fc" id="L38">    super(UsernamePasswordAuthenticationToken.class, AUTH_PATH, remoteAuthClient);</span>
+<span class="fc" id="L39">  }</span>
 
   @Override
   public HttpHeaders createHttpHeaders(Authentication authentication) {
-<span class="nc" id="L43">    HttpHeaders headers = new HttpHeaders();</span>
-<span class="nc" id="L44">    headers.setBasicAuth(authentication.getName(), authentication.getCredentials().toString());</span>
-<span class="nc" id="L45">    return headers;</span>
+<span class="fc" id="L43">    HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L44">    headers.setBasicAuth(authentication.getName(), authentication.getCredentials().toString());</span>
+<span class="fc" id="L45">    return headers;</span>
   }
 
   @Override
   protected Authentication createSuccessAuthentication(
       ResponseEntity&lt;String&gt; response, Authentication authentication) {
-<span class="nc" id="L51">    GbifUserPrincipal gbifUserPrincipal =</span>
-<span class="nc" id="L52">        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());</span>
-<span class="nc" id="L53">    return new GbifAuthenticationToken(gbifUserPrincipal, gbifUserPrincipal.getAuthorities());</span>
+<span class="fc" id="L51">    GbifUserPrincipal gbifUserPrincipal =</span>
+<span class="fc" id="L52">        new GbifUserPrincipal(readUserFromResponse(response).toGbifUser());</span>
+<span class="fc" id="L53">    return new GbifAuthenticationToken(gbifUserPrincipal, gbifUserPrincipal.getAuthorities());</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
