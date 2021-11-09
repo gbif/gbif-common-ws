@@ -1,11 +1,24 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.ws.remoteauth;
-
-import java.time.Duration;
 
 import org.gbif.ws.security.RoleMethodSecurityConfiguration;
 import org.gbif.ws.security.UserRoles;
 import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
+
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -37,24 +50,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * LoginServerExtension}.
  */
 @TestConfiguration
-@SpringBootApplication(exclude = {
-    FeignAutoConfiguration.class
-})
+@SpringBootApplication(exclude = {FeignAutoConfiguration.class})
 @Import({
-    RoleMethodSecurityConfiguration.class,
-    HttpServletRequestWrapperFilter.class,
-    RequestHeaderParamUpdateFilter.class
+  RoleMethodSecurityConfiguration.class,
+  HttpServletRequestWrapperFilter.class,
+  RequestHeaderParamUpdateFilter.class
 })
 @ComponentScan(
-    basePackages = {
-        "org.gbif.ws.remoteauth"
-    },
+    basePackages = {"org.gbif.ws.remoteauth"},
     excludeFilters = {
-        @ComponentScan.Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = {
-                IdentityServiceClient.class
-            })
+      @ComponentScan.Filter(
+          type = FilterType.ASSIGNABLE_TYPE,
+          classes = {IdentityServiceClient.class})
     })
 public class TestApplication {
 
@@ -63,8 +70,7 @@ public class TestApplication {
   }
 
   @Configuration
-  public class WebMvcConfig implements WebMvcConfigurer {
-  }
+  public class WebMvcConfig implements WebMvcConfigurer {}
 
   @Bean
   public RestTemplate restTemplate(
@@ -89,8 +95,7 @@ public class TestApplication {
   @Configuration
   static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {
 
-    public SecurityConfigurer(ApplicationContext context,
-        RemoteAuthClient remoteAuthClient) {
+    public SecurityConfigurer(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
       super(context, remoteAuthClient);
     }
   }
@@ -99,15 +104,10 @@ public class TestApplication {
   static class TestController {
 
     @GetMapping("noAuth")
-    public void noAuth() {
-
-    }
+    public void noAuth() {}
 
     @Secured(UserRoles.ADMIN_ROLE)
     @GetMapping("admin")
-    public void admin() {
-
-    }
+    public void admin() {}
   }
-
 }

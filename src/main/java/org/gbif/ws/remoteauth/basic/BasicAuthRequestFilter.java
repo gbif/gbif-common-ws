@@ -13,9 +13,14 @@
  */
 package org.gbif.ws.remoteauth.basic;
 
+import org.gbif.ws.util.SecurityConstants;
+
 import java.io.IOException;
 
-import org.gbif.ws.util.SecurityConstants;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -26,16 +31,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /** Intercepts all requests that use basic authentication. */
 public class BasicAuthRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
-  private final BasicAuthenticationConverter authenticationConverter = new BasicAuthenticationConverter();
+  private final BasicAuthenticationConverter authenticationConverter =
+      new BasicAuthenticationConverter();
 
   public BasicAuthRequestFilter(AuthenticationManager authenticationManager) {
     this.authenticationManager = authenticationManager;
@@ -57,8 +58,7 @@ public class BasicAuthRequestFilter extends OncePerRequestFilter {
             authenticationConverter.convert(request);
         SecurityContextHolder.getContext()
             .setAuthentication(
-                authenticationManager.authenticate(
-                    usernamePasswordAuthenticationToken));
+                authenticationManager.authenticate(usernamePasswordAuthenticationToken));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

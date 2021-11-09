@@ -13,10 +13,14 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import java.io.IOException;
-import java.util.Enumeration;
-
 import org.gbif.ws.util.SecurityConstants;
+
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -25,10 +29,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /** Intercepts all requests to look for a JWT token. */
@@ -63,7 +63,12 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
             .setAuthentication(
                 authenticationManager.authenticate(
                     new GbifAppAuthentication(
-                        authorization, gbifUser, contentMd5, contentType, request.getMethod(), originalRequestUrl)));
+                        authorization,
+                        gbifUser,
+                        contentMd5,
+                        contentType,
+                        request.getMethod(),
+                        originalRequestUrl)));
       } catch (AuthenticationException exc) {
         SecurityContextHolder.clearContext();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

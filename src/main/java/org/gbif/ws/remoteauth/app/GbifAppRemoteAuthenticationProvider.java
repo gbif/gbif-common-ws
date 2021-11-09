@@ -13,9 +13,6 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.gbif.api.vocabulary.AppRole;
 import org.gbif.ws.remoteauth.AbstractRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.LoggedUser;
@@ -24,6 +21,9 @@ import org.gbif.ws.security.AppPrincipal;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.security.GbifUserPrincipal;
 import org.gbif.ws.util.SecurityConstants;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -54,11 +54,13 @@ public class GbifAppRemoteAuthenticationProvider
     GbifAppAuthentication gbifAppAuthentication = (GbifAppAuthentication) authentication;
     headers.add(HttpHeaders.AUTHORIZATION, gbifAppAuthentication.getGbifScheme());
 
-    if (gbifAppAuthentication.getContentMd5() != null && !gbifAppAuthentication.getContentMd5().isEmpty()) {
+    if (gbifAppAuthentication.getContentMd5() != null
+        && !gbifAppAuthentication.getContentMd5().isEmpty()) {
       headers.add(SecurityConstants.HEADER_CONTENT_MD5, gbifAppAuthentication.getContentMd5());
     }
 
-    if (gbifAppAuthentication.getContentType() != null && !gbifAppAuthentication.getContentType().isEmpty()) {
+    if (gbifAppAuthentication.getContentType() != null
+        && !gbifAppAuthentication.getContentType().isEmpty()) {
       headers.add(HttpHeaders.CONTENT_TYPE, gbifAppAuthentication.getContentType());
     }
 
@@ -72,7 +74,8 @@ public class GbifAppRemoteAuthenticationProvider
           gbifAppAuthentication.getOriginalRequestUrl());
     }
     if (gbifAppAuthentication.getMethod() != null && !gbifAppAuthentication.getMethod().isEmpty()) {
-      headers.add(SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD, gbifAppAuthentication.getMethod());
+      headers.add(
+          SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD, gbifAppAuthentication.getMethod());
     }
 
     return headers;
@@ -86,15 +89,13 @@ public class GbifAppRemoteAuthenticationProvider
 
     UserDetails userDetails = null;
     if (loggedUser.getRoles().contains(AppRole.APP.name())) {
-      userDetails = new AppPrincipal(
-          ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList<>(authorities));
+      userDetails =
+          new AppPrincipal(
+              ((GbifAppAuthentication) authentication).getAppKey(), new ArrayList<>(authorities));
     } else {
       userDetails = new GbifUserPrincipal(loggedUser.toGbifUser());
     }
 
-    return new GbifAuthenticationToken(
-        userDetails,
-        GBIF_SCHEME,
-        authorities);
+    return new GbifAuthenticationToken(userDetails, GBIF_SCHEME, authorities);
   }
 }

@@ -13,9 +13,9 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import java.util.Objects;
-
 import org.gbif.ws.security.GbifAuthUtils;
+
+import java.util.Objects;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
@@ -32,7 +32,11 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String originalRequestUrl;
 
   public GbifAppAuthentication(
-      String gbifScheme, String gbifUser, String contentMd5, String contentType, String method,
+      String gbifScheme,
+      String gbifUser,
+      String contentMd5,
+      String contentType,
+      String method,
       String originalRequestUrl) {
     super(null);
     this.gbifScheme = gbifScheme;
@@ -90,13 +94,16 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
       return false;
     }
     GbifAppAuthentication that = (GbifAppAuthentication) o;
-    return Objects.equals(gbifScheme, that.gbifScheme) && Objects.equals(gbifUser, that.gbifUser)
-        && Objects.equals(contentMd5, that.contentMd5) && Objects.equals(contentType,
-        that.contentType) && Objects.equals(originalRequestUrl, that.originalRequestUrl);
+    return Objects.equals(gbifScheme, that.gbifScheme)
+        && Objects.equals(gbifUser, that.gbifUser)
+        && Objects.equals(contentMd5, that.contentMd5)
+        && Objects.equals(contentType, that.contentType)
+        && Objects.equals(originalRequestUrl, that.originalRequestUrl);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), gbifScheme, gbifUser, contentMd5, contentType, originalRequestUrl);
+    return Objects.hash(
+        super.hashCode(), gbifScheme, gbifUser, contentMd5, contentType, originalRequestUrl);
   }
 }

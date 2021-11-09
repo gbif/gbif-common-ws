@@ -13,11 +13,11 @@
  */
 package org.gbif.ws.security;
 
+import org.gbif.ws.server.GbifHttpServletRequestWrapper;
+
 import java.net.URI;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
-import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -125,13 +125,13 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     final HttpHeaders headers = request.getHttpHeaders();
     final RequestDataToSign dataToSign = new RequestDataToSign();
 
-    // custom header to keep the original method in the case the request is forwarded as the remote auth does
+    // custom header to keep the original method in the case the request is forwarded as the remote
+    // auth does
     if (headers.containsKey(HEADER_ORIGINAL_REQUEST_METHOD)) {
       dataToSign.setMethod(headers.getFirst(HEADER_ORIGINAL_REQUEST_METHOD));
     } else {
       dataToSign.setMethod(request.getMethod());
     }
-
 
     // custom header set by varnish overrides real URI
     // see http://dev.gbif.org/issues/browse/GBIFCOM-137

@@ -39,19 +39,22 @@ public class RestTemplateRemoteAuthClient implements RemoteAuthClient {
   public ResponseEntity<String> remoteAuth(String path, HttpHeaders headers) {
     try {
       return restTemplate.postForEntity(path, new HttpEntity<>(headers), String.class);
-    } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden | HttpClientErrorException.BadRequest e) {
+    } catch (HttpClientErrorException.Unauthorized
+        | HttpClientErrorException.Forbidden
+        | HttpClientErrorException.BadRequest e) {
       throw new BadCredentialsException("Wrong credentials for user", e);
     } catch (Exception e) {
       throw new RestClientException("Could not authenticate user", e);
     }
   }
 
-  public static RestTemplateRemoteAuthClient createInstance(RestTemplateBuilder builder, String gbifApiUrl) {
-    return new RestTemplateRemoteAuthClient(builder
-        .setConnectTimeout(Duration.ofSeconds(30))
-        .setReadTimeout(Duration.ofSeconds(60))
-        .rootUri(gbifApiUrl)
-        .build());
+  public static RestTemplateRemoteAuthClient createInstance(
+      RestTemplateBuilder builder, String gbifApiUrl) {
+    return new RestTemplateRemoteAuthClient(
+        builder
+            .setConnectTimeout(Duration.ofSeconds(30))
+            .setReadTimeout(Duration.ofSeconds(60))
+            .rootUri(gbifApiUrl)
+            .build());
   }
-
 }
