@@ -71,6 +71,7 @@ public class IdentityFilter extends OncePerRequestFilter {
     } catch (final WebApplicationException e) {
       LOG.debug("Exception while authentication in IdentityFilter: {}", e.getMessage());
       response.setStatus(e.getStatus());
+      response.getOutputStream().println(e.getMessage());
     }
   }
 }
