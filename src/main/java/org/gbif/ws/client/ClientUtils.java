@@ -24,6 +24,6 @@ public final class ClientUtils {
   }
 
   public static boolean isRequestBodyNotEmpty(RequestTemplate template) {
-    return template.body().length != 0;
+    return template.body() != null && template.body().length != 0;
   }
 }
