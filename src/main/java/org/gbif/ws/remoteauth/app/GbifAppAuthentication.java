@@ -87,7 +87,7 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof GbifAppAuthentication)) {
       return false;
     }
     if (!super.equals(o)) {

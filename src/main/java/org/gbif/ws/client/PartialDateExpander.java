@@ -30,11 +30,7 @@ public class PartialDateExpander implements Param.Expander {
   private static final Logger LOG = LoggerFactory.getLogger(PartialDateExpander.class);
 
   private static final String UTIL_DATE_FORMAT_PATTERN = "EEE MMM dd HH:mm:ss zzz yyyy";
-  private static final SimpleDateFormat UTIL_DATE_FORMAT =
-      new SimpleDateFormat(UTIL_DATE_FORMAT_PATTERN);
   private static final String CUSTOM_DATE_FORMAT_PATTERN = "yyyy-MM";
-  private static final SimpleDateFormat CUSTOM_DATE_FORMAT =
-      new SimpleDateFormat(CUSTOM_DATE_FORMAT_PATTERN);
 
   @Override
   public String expand(Object value) {
@@ -45,12 +41,12 @@ public class PartialDateExpander implements Param.Expander {
     Date utilDate;
 
     try {
-      utilDate = UTIL_DATE_FORMAT.parse(rawDate.toString());
+      utilDate = new SimpleDateFormat(UTIL_DATE_FORMAT_PATTERN).parse(rawDate.toString());
     } catch (ParseException e) {
       LOG.error("Wrong date format {}. Expected format: {}", rawDate, UTIL_DATE_FORMAT_PATTERN);
       return null;
     }
 
-    return CUSTOM_DATE_FORMAT.format(utilDate);
+    return new SimpleDateFormat(CUSTOM_DATE_FORMAT_PATTERN).format(utilDate);
   }
 }

@@ -70,7 +70,7 @@ public class TestApplication {
   }
 
   @Configuration
-  public class WebMvcConfig implements WebMvcConfigurer {}
+  public static class WebMvcConfig implements WebMvcConfigurer {}
 
   @Bean
   public RestTemplate restTemplate(

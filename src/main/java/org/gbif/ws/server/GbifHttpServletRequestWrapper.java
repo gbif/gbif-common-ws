@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -78,14 +79,14 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
       return wrappedRequest.getInputStream();
     } else {
       final ByteArrayInputStream byteArrayInputStream =
-          new ByteArrayInputStream(content.getBytes());
+          new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
       return new DelegatingServletInputStream(byteArrayInputStream);
     }
   }
 
   @Override
   public BufferedReader getReader() throws IOException {
-    return new BufferedReader(new InputStreamReader(this.getInputStream()));
+    return new BufferedReader(new InputStreamReader(this.getInputStream(), StandardCharsets.UTF_8));
   }
 
   private HttpHeaders getHttpHeaders(HttpServletRequest request) {

@@ -89,7 +89,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
               : "application/json";
       requestDataToSign.setContentType(contentType);
 
-      String contentMd5 = md5EncodeService.encode(template.requestBody().asString());
+      String contentMd5 = md5EncodeService.encode(template.body());
       requestDataToSign.setContentTypeMd5(contentMd5);
 
       template.header("Content-MD5", contentMd5);

@@ -19,6 +19,7 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,9 +67,9 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   @Override
   public RT getValue(WebRequest webRequest) {
     try {
-      RT req = requestType.newInstance();
+      RT req = requestType.getDeclaredConstructor().newInstance();
       return getSearchRequest(webRequest, req);
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       // should never happen
       throw new CommonRuntimeException(e);
     }

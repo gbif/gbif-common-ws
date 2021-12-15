@@ -43,6 +43,15 @@ public class DelegatingServletInputStream extends ServletInputStream {
   }
 
   @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    int data = this.sourceStream.read(b, off, len);
+    if (data == -1) {
+      this.finished = true;
+    }
+    return data;
+  }
+
+  @Override
   public int available() throws IOException {
     return this.sourceStream.available();
   }

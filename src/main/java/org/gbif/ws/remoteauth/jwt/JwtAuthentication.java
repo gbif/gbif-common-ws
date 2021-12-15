@@ -51,7 +51,7 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof JwtAuthentication)) {
       return false;
     }
     if (!super.equals(o)) {
