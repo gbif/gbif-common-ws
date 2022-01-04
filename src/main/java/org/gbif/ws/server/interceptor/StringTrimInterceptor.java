@@ -13,12 +13,12 @@
  */
 package org.gbif.ws.server.interceptor;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+
 import org.gbif.api.annotation.Trim;
 import org.gbif.api.model.collections.Collection;
 import org.gbif.api.model.registry.Dataset;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
 
 import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
@@ -74,7 +74,7 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
       MethodParameter methodParameter,
       Type type,
       Class<? extends HttpMessageConverter<?>> aClass) {
-    trimStringsOf(o);
+    trimStringsOf(o, removeControlChars(methodParameter));
     return o;
   }
 
@@ -88,11 +88,11 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
     return o;
   }
 
-  void trimStringsOf(Object target) {
-    trimStringsOf(target, 0);
+  void trimStringsOf(Object target, boolean removeControlChars) {
+    trimStringsOf(target, 0, removeControlChars);
   }
 
-  private void trimStringsOf(Object target, int level) {
+  private void trimStringsOf(Object target, int level, boolean removeControlChars) {
     if (target != null && level <= MAX_RECURSION) {
       LOG.debug("Trimming class: {}", target.getClass());
 
@@ -104,12 +104,16 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
           String orig = (String) wrapped.get(prop);
           if (orig != null) {
             String trimmed = StringUtils.trimToNull(orig);
-            String withoutControlChars =
-                RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
-            if (ObjectUtils.notEqual(orig, withoutControlChars)) {
+
+            if (removeControlChars) {
+              trimmed =
+                  RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
+            }
+
+            if (ObjectUtils.notEqual(orig, trimmed)) {
               LOG.debug(
-                  "Overriding value of [{}] from [{}] to [{}]", prop, orig, withoutControlChars);
-              wrapped.set(prop, withoutControlChars);
+                  "Overriding value of [{}] from [{}] to [{}]", prop, orig, trimmed);
+              wrapped.set(prop, trimmed);
             }
           }
         } else {
@@ -119,8 +123,8 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
             Object property = wrapped.get(dynaProp.getName());
             if (property != null
                 && (Dataset.class.getPackage() == property.getClass().getPackage()
-                    || Collection.class.getPackage() == property.getClass().getPackage())) {
-              trimStringsOf(property, level + 1);
+                || Collection.class.getPackage() == property.getClass().getPackage())) {
+              trimStringsOf(property, level + 1, removeControlChars);
             }
 
           } catch (IllegalArgumentException e) {
@@ -129,5 +133,17 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
         }
       }
     }
+  }
+
+  private boolean removeControlChars(MethodParameter methodParameter) {
+    if (methodParameter.getMethodAnnotation(Trim.class) != null) {
+      return methodParameter.getMethodAnnotation(Trim.class).removeControlChars();
+    }
+
+    if (methodParameter.getParameterAnnotation(Trim.class) != null) {
+      return methodParameter.getParameterAnnotation(Trim.class).removeControlChars();
+    }
+
+    return false;
   }
 }

@@ -31,19 +31,21 @@ public class StringTrimInterceptorTest {
   public void test() {
     Dataset dataset = new Dataset();
     dataset.setTitle("   ");
-    TRIMMER.trimStringsOf(dataset);
+    TRIMMER.trimStringsOf(dataset, false);
     assertNull(dataset.getTitle(), "Dataset title shall be null");
 
     Citation citation = new Citation();
     citation.setText("");
     dataset.setCitation(citation);
-    TRIMMER.trimStringsOf(dataset);
+    TRIMMER.trimStringsOf(dataset, false);
     assertNull(dataset.getCitation().getText(), "Citation text shall be null");
 
     System.out.println("a\u0001b");
     Organization organization = new Organization();
     organization.setTitle(" hello \u0001world \u001a");
-    TRIMMER.trimStringsOf(organization);
+    TRIMMER.trimStringsOf(organization, false);
+    assertEquals("hello \u0001world", organization.getTitle(), "Titles shall match");
+    TRIMMER.trimStringsOf(organization, true);
     assertEquals("hello world", organization.getTitle(), "Titles shall match");
   }
 }
