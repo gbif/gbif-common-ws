@@ -24,7 +24,7 @@ public final class ClientUtils {
   }
 
   public static boolean isRequestBodyNotEmpty(RequestTemplate template) {
-<span class="nc bnc" id="L27" title="All 2 branches missed.">    return template.requestBody().length() != 0;</span>
+<span class="nc bnc" id="L27" title="All 4 branches missed.">    return template.body() != null &amp;&amp; template.body().length != 0;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

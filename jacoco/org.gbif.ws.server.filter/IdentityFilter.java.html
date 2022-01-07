@@ -71,7 +71,8 @@ public class IdentityFilter extends OncePerRequestFilter {
 <span class="fc" id="L71">    } catch (final WebApplicationException e) {</span>
 <span class="fc" id="L72">      LOG.debug(&quot;Exception while authentication in IdentityFilter: {}&quot;, e.getMessage());</span>
 <span class="nc" id="L73">      response.setStatus(e.getStatus());</span>
-<span class="fc" id="L74">    }</span>
-<span class="fc" id="L75">  }</span>
+<span class="nc" id="L74">      response.getOutputStream().println(e.getMessage());</span>
+<span class="fc" id="L75">    }</span>
+<span class="fc" id="L76">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

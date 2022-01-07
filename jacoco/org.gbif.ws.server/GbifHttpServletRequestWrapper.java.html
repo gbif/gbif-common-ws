@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -40,100 +41,100 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   private HttpServletRequest wrappedRequest;
 
   public GbifHttpServletRequestWrapper(HttpServletRequest request) {
-<span class="fc" id="L43">    this(request, false);</span>
-<span class="fc" id="L44">  }</span>
+<span class="fc" id="L44">    this(request, false);</span>
+<span class="fc" id="L45">  }</span>
 
   /**
    *
    */
   public GbifHttpServletRequestWrapper(HttpServletRequest request, boolean wrapContent) {
-<span class="fc" id="L50">    this(request, null, wrapContent);</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">    if (!wrapContent) {</span>
-<span class="fc" id="L52">      this.wrappedRequest = request;</span>
+<span class="fc" id="L51">    this(request, null, wrapContent);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    if (!wrapContent) {</span>
+<span class="fc" id="L53">      this.wrappedRequest = request;</span>
     }
-<span class="fc" id="L54">  }</span>
+<span class="fc" id="L55">  }</span>
 
   public GbifHttpServletRequestWrapper(
       HttpServletRequest request, String contentAsString, boolean wrapContent) {
-<span class="fc" id="L58">    super(request);</span>
+<span class="fc" id="L59">    super(request);</span>
 
     try {
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">      if (StringUtils.isNotEmpty(contentAsString)) {</span>
-<span class="nc" id="L62">        content = contentAsString;</span>
-<span class="pc bpc" id="L63" title="1 of 4 branches missed.">      } else if (request.getInputStream() != null &amp;&amp; wrapContent) {</span>
-<span class="fc" id="L64">        content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">      if (StringUtils.isNotEmpty(contentAsString)) {</span>
+<span class="nc" id="L63">        content = contentAsString;</span>
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">      } else if (request.getInputStream() != null &amp;&amp; wrapContent) {</span>
+<span class="fc" id="L65">        content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());</span>
       } else {
-<span class="fc" id="L66">        content = null;</span>
+<span class="fc" id="L67">        content = null;</span>
       }
-<span class="nc" id="L68">    } catch (IOException e) {</span>
-<span class="nc" id="L69">      throw new RuntimeException(&quot;Stream can't be read&quot;, e);</span>
-<span class="fc" id="L70">    }</span>
+<span class="nc" id="L69">    } catch (IOException e) {</span>
+<span class="nc" id="L70">      throw new RuntimeException(&quot;Stream can't be read&quot;, e);</span>
+<span class="fc" id="L71">    }</span>
 
-<span class="fc" id="L72">    httpHeaders = getHttpHeaders(request);</span>
-<span class="fc" id="L73">  }</span>
+<span class="fc" id="L73">    httpHeaders = getHttpHeaders(request);</span>
+<span class="fc" id="L74">  }</span>
 
   @Override
   public ServletInputStream getInputStream() throws IOException {
-<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (wrappedRequest != null) {</span>
-<span class="nc" id="L78">      return wrappedRequest.getInputStream();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (wrappedRequest != null) {</span>
+<span class="nc" id="L79">      return wrappedRequest.getInputStream();</span>
     } else {
-<span class="nc" id="L80">      final ByteArrayInputStream byteArrayInputStream =</span>
-<span class="nc" id="L81">          new ByteArrayInputStream(content.getBytes());</span>
-<span class="nc" id="L82">      return new DelegatingServletInputStream(byteArrayInputStream);</span>
+<span class="nc" id="L81">      final ByteArrayInputStream byteArrayInputStream =</span>
+<span class="nc" id="L82">          new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L83">      return new DelegatingServletInputStream(byteArrayInputStream);</span>
     }
   }
 
   @Override
   public BufferedReader getReader() throws IOException {
-<span class="nc" id="L88">    return new BufferedReader(new InputStreamReader(this.getInputStream()));</span>
+<span class="nc" id="L89">    return new BufferedReader(new InputStreamReader(this.getInputStream(), StandardCharsets.UTF_8));</span>
   }
 
   private HttpHeaders getHttpHeaders(HttpServletRequest request) {
-<span class="fc" id="L92">    final HttpHeaders requestHeaders = new HttpHeaders();</span>
-<span class="fc" id="L93">    Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span>
+<span class="fc" id="L93">    final HttpHeaders requestHeaders = new HttpHeaders();</span>
+<span class="fc" id="L94">    Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span>
 
-<span class="fc bfc" id="L95" title="All 2 branches covered.">    if (headerNames != null) {</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">      while (headerNames.hasMoreElements()) {</span>
-<span class="fc" id="L97">        String currentHeaderName = headerNames.nextElement();</span>
-<span class="fc" id="L98">        requestHeaders.set(currentHeaderName, request.getHeader(currentHeaderName));</span>
-<span class="fc" id="L99">      }</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (headerNames != null) {</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">      while (headerNames.hasMoreElements()) {</span>
+<span class="fc" id="L98">        String currentHeaderName = headerNames.nextElement();</span>
+<span class="fc" id="L99">        requestHeaders.set(currentHeaderName, request.getHeader(currentHeaderName));</span>
+<span class="fc" id="L100">      }</span>
     }
 
-<span class="fc" id="L102">    return requestHeaders;</span>
+<span class="fc" id="L103">    return requestHeaders;</span>
   }
 
   public String getContent() {
-<span class="nc" id="L106">    return content;</span>
+<span class="nc" id="L107">    return content;</span>
   }
 
   public HttpHeaders getHttpHeaders() {
-<span class="fc" id="L110">    return new HttpHeaders(httpHeaders);</span>
+<span class="fc" id="L111">    return new HttpHeaders(httpHeaders);</span>
   }
 
   public void overwriteLanguageHeader(String newValue) {
-<span class="nc" id="L114">    httpHeaders.set(HttpHeaders.ACCEPT_LANGUAGE, newValue);</span>
-<span class="nc" id="L115">  }</span>
+<span class="nc" id="L115">    httpHeaders.set(HttpHeaders.ACCEPT_LANGUAGE, newValue);</span>
+<span class="nc" id="L116">  }</span>
 
   @Override
   public String getHeader(String name) {
-<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (getHttpHeaders().containsKey(name)) {</span>
-<span class="fc" id="L120">      return getHttpHeaders().getFirst(name);</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">    if (getHttpHeaders().containsKey(name)) {</span>
+<span class="fc" id="L121">      return getHttpHeaders().getFirst(name);</span>
     }
-<span class="fc" id="L122">    return super.getHeader(name);</span>
+<span class="fc" id="L123">    return super.getHeader(name);</span>
   }
 
   @Override
   public Enumeration&lt;String&gt; getHeaderNames() {
-<span class="nc" id="L127">    return Collections.enumeration(httpHeaders.keySet());</span>
+<span class="nc" id="L128">    return Collections.enumeration(httpHeaders.keySet());</span>
   }
 
   @Override
   public Enumeration&lt;String&gt; getHeaders(String name) {
-<span class="fc" id="L132">    List&lt;String&gt; values = new ArrayList&lt;&gt;();</span>
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    if (httpHeaders.containsKey(name)) {</span>
-<span class="nc" id="L134">      Optional.ofNullable(httpHeaders.get(name)).ifPresent(values::addAll);</span>
+<span class="fc" id="L133">    List&lt;String&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    if (httpHeaders.containsKey(name)) {</span>
+<span class="nc" id="L135">      Optional.ofNullable(httpHeaders.get(name)).ifPresent(values::addAll);</span>
     }
-<span class="fc" id="L136">    return Collections.enumeration(values);</span>
+<span class="fc" id="L137">    return Collections.enumeration(values);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

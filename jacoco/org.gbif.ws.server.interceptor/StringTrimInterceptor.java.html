@@ -74,7 +74,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
       MethodParameter methodParameter,
       Type type,
       Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; aClass) {
-<span class="nc" id="L77">    trimStringsOf(o);</span>
+<span class="nc" id="L77">    trimStringsOf(o, removeControlChars(methodParameter));</span>
 <span class="nc" id="L78">    return o;</span>
   }
 
@@ -88,11 +88,11 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 <span class="nc" id="L88">    return o;</span>
   }
 
-  void trimStringsOf(Object target) {
-<span class="fc" id="L92">    trimStringsOf(target, 0);</span>
+  void trimStringsOf(Object target, boolean removeControlChars) {
+<span class="fc" id="L92">    trimStringsOf(target, 0, removeControlChars);</span>
 <span class="fc" id="L93">  }</span>
 
-  private void trimStringsOf(Object target, int level) {
+  private void trimStringsOf(Object target, int level, boolean removeControlChars) {
 <span class="pc bpc" id="L96" title="2 of 4 branches missed.">    if (target != null &amp;&amp; level &lt;= MAX_RECURSION) {</span>
 <span class="fc" id="L97">      LOG.debug(&quot;Trimming class: {}&quot;, target.getClass());</span>
 
@@ -104,31 +104,45 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 <span class="fc" id="L104">          String orig = (String) wrapped.get(prop);</span>
 <span class="fc bfc" id="L105" title="All 2 branches covered.">          if (orig != null) {</span>
 <span class="fc" id="L106">            String trimmed = StringUtils.trimToNull(orig);</span>
-<span class="fc" id="L107">            String withoutControlChars =</span>
-<span class="fc" id="L108">                RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);</span>
-<span class="fc bfc" id="L109" title="All 2 branches covered.">            if (ObjectUtils.notEqual(orig, withoutControlChars)) {</span>
-<span class="fc" id="L110">              LOG.debug(</span>
-                  &quot;Overriding value of [{}] from [{}] to [{}]&quot;, prop, orig, withoutControlChars);
-<span class="fc" id="L112">              wrapped.set(prop, withoutControlChars);</span>
+
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            if (removeControlChars) {</span>
+<span class="fc" id="L109">              trimmed = RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);</span>
+            }
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">            if (ObjectUtils.notEqual(orig, trimmed)) {</span>
+<span class="fc" id="L113">              LOG.debug(&quot;Overriding value of [{}] from [{}] to [{}]&quot;, prop, orig, trimmed);</span>
+<span class="fc" id="L114">              wrapped.set(prop, trimmed);</span>
             }
           }
-<span class="fc" id="L115">        } else {</span>
+<span class="fc" id="L117">        } else {</span>
           try {
             // trim everything in the registry model package (assume that Dataset resides in the
             // correct package here)
-<span class="fc" id="L119">            Object property = wrapped.get(dynaProp.getName());</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">            if (property != null</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">                &amp;&amp; (Dataset.class.getPackage() == property.getClass().getPackage()</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">                    || Collection.class.getPackage() == property.getClass().getPackage())) {</span>
-<span class="fc" id="L123">              trimStringsOf(property, level + 1);</span>
+<span class="fc" id="L121">            Object property = wrapped.get(dynaProp.getName());</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">            if (property != null</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">                &amp;&amp; (Dataset.class.getPackage() == property.getClass().getPackage()</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">                    || Collection.class.getPackage() == property.getClass().getPackage())) {</span>
+<span class="fc" id="L125">              trimStringsOf(property, level + 1, removeControlChars);</span>
             }
 
-<span class="nc" id="L126">          } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L128">          } catch (IllegalArgumentException e) {</span>
             // expected for non accessible properties
-<span class="fc" id="L128">          }</span>
+<span class="fc" id="L130">          }</span>
         }
       }
     }
-<span class="fc" id="L132">  }</span>
+<span class="fc" id="L134">  }</span>
+
+  private boolean removeControlChars(MethodParameter methodParameter) {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (methodParameter.getMethodAnnotation(Trim.class) != null) {</span>
+<span class="nc" id="L138">      return methodParameter.getMethodAnnotation(Trim.class).removeControlChars();</span>
+    }
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (methodParameter.getParameterAnnotation(Trim.class) != null) {</span>
+<span class="nc" id="L142">      return methodParameter.getParameterAnnotation(Trim.class).removeControlChars();</span>
+    }
+
+<span class="nc" id="L145">    return false;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

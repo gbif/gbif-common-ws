@@ -19,19 +19,20 @@
 <span class="sourceLineNo">011</span> * See the License for the specific language governing permissions and<a name="line.11"></a>
 <span class="sourceLineNo">012</span> * limitations under the License.<a name="line.12"></a>
 <span class="sourceLineNo">013</span> */<a name="line.13"></a>
-<span class="sourceLineNo">014</span>package org.gbif.api.model.collections;<a name="line.14"></a>
+<span class="sourceLineNo">014</span>package org.gbif.ws.server.provider;<a name="line.14"></a>
 <span class="sourceLineNo">015</span><a name="line.15"></a>
-<span class="sourceLineNo">016</span>/** ID type for user IDs in GRSciColl contacts. */<a name="line.16"></a>
-<span class="sourceLineNo">017</span>public enum IdType {<a name="line.17"></a>
-<span class="sourceLineNo">018</span>  ORCID,<a name="line.18"></a>
-<span class="sourceLineNo">019</span>  WIKIDATA,<a name="line.19"></a>
-<span class="sourceLineNo">020</span>  RESEARCHER_ID,<a name="line.20"></a>
-<span class="sourceLineNo">021</span>  HUH,<a name="line.21"></a>
-<span class="sourceLineNo">022</span>  ISNI,<a name="line.22"></a>
-<span class="sourceLineNo">023</span>  VIAF,<a name="line.23"></a>
-<span class="sourceLineNo">024</span>  IH_IRN,<a name="line.24"></a>
-<span class="sourceLineNo">025</span>  OTHER;<a name="line.25"></a>
-<span class="sourceLineNo">026</span>}<a name="line.26"></a>
+<span class="sourceLineNo">016</span>import java.lang.annotation.ElementType;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import java.lang.annotation.Retention;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.lang.annotation.RetentionPolicy;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import java.lang.annotation.Target;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>/**<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * This annotation is used to mark Date parameter that can accept partial dates as input. For<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * example: 01-2018 or 01/2018 will be translated into 01-01-2018.<a name="line.23"></a>
+<span class="sourceLineNo">024</span> */<a name="line.24"></a>
+<span class="sourceLineNo">025</span>@Retention(RetentionPolicy.RUNTIME)<a name="line.25"></a>
+<span class="sourceLineNo">026</span>@Target({ElementType.FIELD, ElementType.PARAMETER})<a name="line.26"></a>
+<span class="sourceLineNo">027</span>public @interface PartialDate {}<a name="line.27"></a>
 
 
 

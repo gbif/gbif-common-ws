@@ -47,7 +47,7 @@ public class UuidTextMessageConverter extends AbstractHttpMessageConverter&lt;UU
   @Override
   protected void writeInternal(UUID uuid, HttpOutputMessage outputMessage) throws IOException {
 <span class="nc" id="L49">    try (OutputStream os = outputMessage.getBody()) {</span>
-<span class="nc" id="L50">      os.write(uuid.toString().getBytes());</span>
+<span class="nc" id="L50">      os.write(uuid.toString().getBytes(StandardCharsets.UTF_8));</span>
     }
 <span class="nc" id="L52">  }</span>
 

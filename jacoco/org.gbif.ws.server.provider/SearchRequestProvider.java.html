@@ -19,6 +19,7 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,47 +51,50 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
   private final Class&lt;RT&gt; requestType;
   private final Integer maxPageSize;
 
-<span class="nc" id="L53">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {</span>
-<span class="nc" id="L54">    this.requestType = requestType;</span>
-<span class="nc" id="L55">    this.searchParameterClass = searchParameterClass;</span>
-<span class="nc" id="L56">    this.maxPageSize = MAX_PAGE_SIZE;</span>
-<span class="nc" id="L57">  }</span>
+<span class="nc" id="L54">  public SearchRequestProvider(Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass) {</span>
+<span class="nc" id="L55">    this.requestType = requestType;</span>
+<span class="nc" id="L56">    this.searchParameterClass = searchParameterClass;</span>
+<span class="nc" id="L57">    this.maxPageSize = MAX_PAGE_SIZE;</span>
+<span class="nc" id="L58">  }</span>
 
   public SearchRequestProvider(
-<span class="nc" id="L60">      Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {</span>
-<span class="nc" id="L61">    this.requestType = requestType;</span>
-<span class="nc" id="L62">    this.searchParameterClass = searchParameterClass;</span>
-<span class="nc" id="L63">    this.maxPageSize = maxPageSize;</span>
-<span class="nc" id="L64">  }</span>
+<span class="nc" id="L61">      Class&lt;RT&gt; requestType, Class&lt;P&gt; searchParameterClass, Integer maxPageSize) {</span>
+<span class="nc" id="L62">    this.requestType = requestType;</span>
+<span class="nc" id="L63">    this.searchParameterClass = searchParameterClass;</span>
+<span class="nc" id="L64">    this.maxPageSize = maxPageSize;</span>
+<span class="nc" id="L65">  }</span>
 
   @Override
   public RT getValue(WebRequest webRequest) {
     try {
-<span class="nc" id="L69">      RT req = requestType.newInstance();</span>
-<span class="nc" id="L70">      return getSearchRequest(webRequest, req);</span>
-<span class="nc" id="L71">    } catch (InstantiationException | IllegalAccessException e) {</span>
+<span class="nc" id="L70">      RT req = requestType.getDeclaredConstructor().newInstance();</span>
+<span class="nc" id="L71">      return getSearchRequest(webRequest, req);</span>
+<span class="nc" id="L72">    } catch (InstantiationException</span>
+        | IllegalAccessException
+        | NoSuchMethodException
+        | InvocationTargetException e) {
       // should never happen
-<span class="nc" id="L73">      throw new CommonRuntimeException(e);</span>
+<span class="nc" id="L77">      throw new CommonRuntimeException(e);</span>
     }
   }
 
   protected P findSearchParam(String name) {
     try {
-<span class="nc" id="L79">      return VocabularyUtils.lookupEnum(name, searchParameterClass);</span>
-<span class="nc" id="L80">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L83">      return VocabularyUtils.lookupEnum(name, searchParameterClass);</span>
+<span class="nc" id="L84">    } catch (IllegalArgumentException e) {</span>
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }
-<span class="nc" id="L83">    return null;</span>
+<span class="nc" id="L87">    return null;</span>
   }
 
   protected RT getSearchRequest(WebRequest webRequest, RT searchRequest) {
-<span class="nc" id="L87">    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));</span>
+<span class="nc" id="L91">    searchRequest.copyPagingValues(PageableProvider.getPagingRequest(webRequest, maxPageSize));</span>
 
-<span class="nc" id="L89">    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
+<span class="nc" id="L93">    final Map&lt;String, String[]&gt; params = webRequest.getParameterMap();</span>
 
-<span class="nc" id="L91">    getSearchRequestFromQueryParams(searchRequest, params);</span>
+<span class="nc" id="L95">    getSearchRequestFromQueryParams(searchRequest, params);</span>
 
-<span class="nc" id="L93">    return searchRequest;</span>
+<span class="nc" id="L97">    return searchRequest;</span>
   }
 
   /**
@@ -98,46 +102,46 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
    */
   protected void getSearchRequestFromQueryParams(
       RT searchRequest, final Map&lt;String, String[]&gt; params) {
-<span class="nc" id="L101">    final String q = getFirst(params, PARAM_QUERY_STRING);</span>
-<span class="nc" id="L102">    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);</span>
-<span class="nc" id="L103">    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);</span>
-<span class="nc" id="L104">    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);</span>
+<span class="nc" id="L105">    final String q = getFirst(params, PARAM_QUERY_STRING);</span>
+<span class="nc" id="L106">    final String highlightValue = getFirst(params, PARAM_HIGHLIGHT);</span>
+<span class="nc" id="L107">    final String spellCheck = getFirst(params, PARAM_SPELLCHECK);</span>
+<span class="nc" id="L108">    final String spellCheckCount = getFirst(params, PARAM_SPELLCHECK_COUNT);</span>
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(q)) {</span>
-<span class="nc" id="L107">      searchRequest.setQ(q);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(q)) {</span>
+<span class="nc" id="L111">      searchRequest.setQ(q);</span>
     }
 
-<span class="nc bnc" id="L110" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(highlightValue)) {</span>
-<span class="nc" id="L111">      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(highlightValue)) {</span>
+<span class="nc" id="L115">      searchRequest.setHighlight(Boolean.parseBoolean(highlightValue));</span>
     }
 
-<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(spellCheck)) {</span>
-<span class="nc" id="L115">      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(spellCheck)) {</span>
+<span class="nc" id="L119">      searchRequest.setSpellCheck(Boolean.parseBoolean(spellCheck));</span>
     }
 
-<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(spellCheckCount)) {</span>
-<span class="nc" id="L119">      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(spellCheckCount)) {</span>
+<span class="nc" id="L123">      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));</span>
     } else {
-<span class="nc" id="L121">      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);</span>
+<span class="nc" id="L125">      searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);</span>
     }
 
     // find search parameter enum based filters
-<span class="nc" id="L125">    setSearchParams(searchRequest, params);</span>
-<span class="nc" id="L126">  }</span>
+<span class="nc" id="L129">    setSearchParams(searchRequest, params);</span>
+<span class="nc" id="L130">  }</span>
 
   /**
    * Removes all empty and null parameters from the list.
    * Each value is trimmed(String.trim()) in order to remove all sizes of empty parameters.
    */
   private static List&lt;String&gt; removeEmptyParameters(List&lt;String&gt; parameters) {
-<span class="nc" id="L133">    List&lt;String&gt; cleanParameters = new ArrayList&lt;&gt;(parameters.size());</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">    for (String param : parameters) {</span>
-<span class="nc" id="L135">      String cleanParam = StringUtils.trimToEmpty(param);</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">      if (!cleanParam.isEmpty()) {</span>
-<span class="nc" id="L137">        cleanParameters.add(cleanParam);</span>
+<span class="nc" id="L137">    List&lt;String&gt; cleanParameters = new ArrayList&lt;&gt;(parameters.size());</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">    for (String param : parameters) {</span>
+<span class="nc" id="L139">      String cleanParam = StringUtils.trimToEmpty(param);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">      if (!cleanParam.isEmpty()) {</span>
+<span class="nc" id="L141">        cleanParameters.add(cleanParam);</span>
       }
-<span class="nc" id="L139">    }</span>
-<span class="nc" id="L140">    return cleanParameters;</span>
+<span class="nc" id="L143">    }</span>
+<span class="nc" id="L144">    return cleanParameters;</span>
   }
 
   /**
@@ -146,18 +150,18 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
    * Empty (of all size) and null parameters are discarded.
    */
   private void setSearchParams(RT searchRequest, Map&lt;String, String[]&gt; params) {
-<span class="nc bnc" id="L149" title="All 2 branches missed.">    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {</span>
-<span class="nc" id="L150">      P p = findSearchParam(entry.getKey());</span>
-<span class="nc bnc" id="L151" title="All 2 branches missed.">      if (p != null) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    for (Entry&lt;String, String[]&gt; entry : params.entrySet()) {</span>
+<span class="nc" id="L154">      P p = findSearchParam(entry.getKey());</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">      if (p != null) {</span>
         final List&lt;String&gt; list =
-<span class="nc bnc" id="L153" title="All 2 branches missed.">            entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();</span>
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        for (String val : removeEmptyParameters(list)) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        for (String val : removeEmptyParameters(list)) {</span>
           // validate value for certain types
-<span class="nc" id="L156">          SearchTypeValidator.validate(p, val);</span>
-<span class="nc" id="L157">          searchRequest.addParameter(p, val);</span>
-<span class="nc" id="L158">        }</span>
+<span class="nc" id="L160">          SearchTypeValidator.validate(p, val);</span>
+<span class="nc" id="L161">          searchRequest.addParameter(p, val);</span>
+<span class="nc" id="L162">        }</span>
       }
-<span class="nc" id="L160">    }</span>
-<span class="nc" id="L161">  }</span>
+<span class="nc" id="L164">    }</span>
+<span class="nc" id="L165">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

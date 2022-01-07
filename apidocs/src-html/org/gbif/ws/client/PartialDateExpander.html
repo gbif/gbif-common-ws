@@ -38,30 +38,26 @@
 <span class="sourceLineNo">030</span>  private static final Logger LOG = LoggerFactory.getLogger(PartialDateExpander.class);<a name="line.30"></a>
 <span class="sourceLineNo">031</span><a name="line.31"></a>
 <span class="sourceLineNo">032</span>  private static final String UTIL_DATE_FORMAT_PATTERN = "EEE MMM dd HH:mm:ss zzz yyyy";<a name="line.32"></a>
-<span class="sourceLineNo">033</span>  private static final SimpleDateFormat UTIL_DATE_FORMAT =<a name="line.33"></a>
-<span class="sourceLineNo">034</span>      new SimpleDateFormat(UTIL_DATE_FORMAT_PATTERN);<a name="line.34"></a>
-<span class="sourceLineNo">035</span>  private static final String CUSTOM_DATE_FORMAT_PATTERN = "yyyy-MM";<a name="line.35"></a>
-<span class="sourceLineNo">036</span>  private static final SimpleDateFormat CUSTOM_DATE_FORMAT =<a name="line.36"></a>
-<span class="sourceLineNo">037</span>      new SimpleDateFormat(CUSTOM_DATE_FORMAT_PATTERN);<a name="line.37"></a>
-<span class="sourceLineNo">038</span><a name="line.38"></a>
-<span class="sourceLineNo">039</span>  @Override<a name="line.39"></a>
-<span class="sourceLineNo">040</span>  public String expand(Object value) {<a name="line.40"></a>
-<span class="sourceLineNo">041</span>    return convertDate(value);<a name="line.41"></a>
-<span class="sourceLineNo">042</span>  }<a name="line.42"></a>
-<span class="sourceLineNo">043</span><a name="line.43"></a>
-<span class="sourceLineNo">044</span>  private String convertDate(Object rawDate) {<a name="line.44"></a>
-<span class="sourceLineNo">045</span>    Date utilDate;<a name="line.45"></a>
-<span class="sourceLineNo">046</span><a name="line.46"></a>
-<span class="sourceLineNo">047</span>    try {<a name="line.47"></a>
-<span class="sourceLineNo">048</span>      utilDate = UTIL_DATE_FORMAT.parse(rawDate.toString());<a name="line.48"></a>
-<span class="sourceLineNo">049</span>    } catch (ParseException e) {<a name="line.49"></a>
-<span class="sourceLineNo">050</span>      LOG.error("Wrong date format {}. Expected format: {}", rawDate, UTIL_DATE_FORMAT_PATTERN);<a name="line.50"></a>
-<span class="sourceLineNo">051</span>      return null;<a name="line.51"></a>
-<span class="sourceLineNo">052</span>    }<a name="line.52"></a>
-<span class="sourceLineNo">053</span><a name="line.53"></a>
-<span class="sourceLineNo">054</span>    return CUSTOM_DATE_FORMAT.format(utilDate);<a name="line.54"></a>
-<span class="sourceLineNo">055</span>  }<a name="line.55"></a>
-<span class="sourceLineNo">056</span>}<a name="line.56"></a>
+<span class="sourceLineNo">033</span>  private static final String CUSTOM_DATE_FORMAT_PATTERN = "yyyy-MM";<a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>  @Override<a name="line.35"></a>
+<span class="sourceLineNo">036</span>  public String expand(Object value) {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    return convertDate(value);<a name="line.37"></a>
+<span class="sourceLineNo">038</span>  }<a name="line.38"></a>
+<span class="sourceLineNo">039</span><a name="line.39"></a>
+<span class="sourceLineNo">040</span>  private String convertDate(Object rawDate) {<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    Date utilDate;<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>    try {<a name="line.43"></a>
+<span class="sourceLineNo">044</span>      utilDate = new SimpleDateFormat(UTIL_DATE_FORMAT_PATTERN).parse(rawDate.toString());<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    } catch (ParseException e) {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>      LOG.error("Wrong date format {}. Expected format: {}", rawDate, UTIL_DATE_FORMAT_PATTERN);<a name="line.46"></a>
+<span class="sourceLineNo">047</span>      return null;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>    }<a name="line.48"></a>
+<span class="sourceLineNo">049</span><a name="line.49"></a>
+<span class="sourceLineNo">050</span>    return new SimpleDateFormat(CUSTOM_DATE_FORMAT_PATTERN).format(utilDate);<a name="line.50"></a>
+<span class="sourceLineNo">051</span>  }<a name="line.51"></a>
+<span class="sourceLineNo">052</span>}<a name="line.52"></a>
 
 
 
