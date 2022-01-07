@@ -69,7 +69,10 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
     try {
       RT req = requestType.getDeclaredConstructor().newInstance();
       return getSearchRequest(webRequest, req);
-    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+    } catch (InstantiationException
+        | IllegalAccessException
+        | NoSuchMethodException
+        | InvocationTargetException e) {
       // should never happen
       throw new CommonRuntimeException(e);
     }

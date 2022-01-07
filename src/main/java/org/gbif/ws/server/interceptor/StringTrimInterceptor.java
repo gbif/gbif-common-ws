@@ -13,12 +13,12 @@
  */
 package org.gbif.ws.server.interceptor;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-
 import org.gbif.api.annotation.Trim;
 import org.gbif.api.model.collections.Collection;
 import org.gbif.api.model.registry.Dataset;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
 
 import org.apache.commons.beanutils.DynaClass;
 import org.apache.commons.beanutils.DynaProperty;
@@ -106,13 +106,11 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
             String trimmed = StringUtils.trimToNull(orig);
 
             if (removeControlChars) {
-              trimmed =
-                  RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
+              trimmed = RegExUtils.removeAll(trimmed, REGEX_INVISIBLE_CONTROL_CHARS);
             }
 
             if (ObjectUtils.notEqual(orig, trimmed)) {
-              LOG.debug(
-                  "Overriding value of [{}] from [{}] to [{}]", prop, orig, trimmed);
+              LOG.debug("Overriding value of [{}] from [{}] to [{}]", prop, orig, trimmed);
               wrapped.set(prop, trimmed);
             }
           }
@@ -123,7 +121,7 @@ public class StringTrimInterceptor implements RequestBodyAdvice {
             Object property = wrapped.get(dynaProp.getName());
             if (property != null
                 && (Dataset.class.getPackage() == property.getClass().getPackage()
-                || Collection.class.getPackage() == property.getClass().getPackage())) {
+                    || Collection.class.getPackage() == property.getClass().getPackage())) {
               trimStringsOf(property, level + 1, removeControlChars);
             }
 

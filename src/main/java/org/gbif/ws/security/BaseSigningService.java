@@ -39,7 +39,8 @@ public abstract class BaseSigningService implements SigningService {
       SecretKeySpec secret =
           new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);
       mac.init(secret);
-      byte[] digest = mac.doFinal(requestDataToSign.stringToSign().getBytes(StandardCharsets.UTF_8));
+      byte[] digest =
+          mac.doFinal(requestDataToSign.stringToSign().getBytes(StandardCharsets.UTF_8));
 
       return new String(Base64.getEncoder().encode(digest), StandardCharsets.US_ASCII);
     } catch (NoSuchAlgorithmException e) {

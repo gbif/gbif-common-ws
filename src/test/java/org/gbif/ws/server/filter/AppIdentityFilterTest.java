@@ -88,7 +88,9 @@ public class AppIdentityFilterTest {
     when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER))
         .thenReturn("myuser"); // user does not match appkey
     when(mockRequest.getInputStream())
-        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+        .thenReturn(
+            new DelegatingServletInputStream(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
@@ -117,7 +119,9 @@ public class AppIdentityFilterTest {
     when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER))
         .thenReturn("myuser"); // user does not match appkey
     when(mockRequest.getInputStream())
-        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+        .thenReturn(
+            new DelegatingServletInputStream(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
@@ -145,7 +149,9 @@ public class AppIdentityFilterTest {
     when(mockRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("GBIF appkey:blabla");
     when(mockRequest.getHeader(SecurityConstants.HEADER_GBIF_USER)).thenReturn("appkey");
     when(mockRequest.getInputStream())
-        .thenReturn(new DelegatingServletInputStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+        .thenReturn(
+            new DelegatingServletInputStream(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class))).thenReturn(true);
 
     // WHEN
