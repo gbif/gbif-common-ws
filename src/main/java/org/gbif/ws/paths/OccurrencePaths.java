@@ -54,6 +54,10 @@ public final class OccurrencePaths {
 
   public static final String FRAGMENT_PATH = "fragment";
 
+  public static final String DATASET_NAME_PATH = "datasetName";
+
+  public static final String OTHER_CATALOG_NUMBERS_PATH = "otherCatalogNumbers";
+
   /**
    * Private default constructor.
    */
