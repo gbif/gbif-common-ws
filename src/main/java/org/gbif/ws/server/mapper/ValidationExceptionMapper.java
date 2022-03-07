@@ -16,6 +16,7 @@ package org.gbif.ws.server.mapper;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ValidationExceptionMapper {
 
   private static final Logger LOG = LoggerFactory.getLogger(ValidationExceptionMapper.class);
+
+  private static final Pattern LIST_PATH = Pattern.compile("\\[0\\]\\.<[^<>]+>$");
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Object> toResponse(MethodArgumentNotValidException exception) {
@@ -90,6 +93,10 @@ public class ValidationExceptionMapper {
 
     if (propertyPath != null) {
       resultProperty = propertyPath.toString();
+
+      // remove the list elements to take the name of the field
+      resultProperty = LIST_PATH.matcher(resultProperty).replaceAll("");
+
       int lastDotIndex = resultProperty.lastIndexOf('.');
       if (lastDotIndex != -1) {
         resultProperty = resultProperty.substring(lastDotIndex + 1);
