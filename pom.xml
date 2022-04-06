@@ -39,7 +39,7 @@
     <aopalliance.version>1.0</aopalliance.version>
     <gbif-api.version>0.166</gbif-api.version>
     <gbif-common.version>0.52</gbif-common.version>
-    <jackson.version>2.11.3</jackson.version>
+    <jackson.version>2.12.6.1</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <jsr250.version>1.0</jsr250.version>
     <junit.version>5.8.1</junit.version>
