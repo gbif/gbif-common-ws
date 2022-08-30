@@ -17,6 +17,7 @@ import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.ws.NotFoundException;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -25,6 +26,9 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * This aspect throws a {@link NotFoundException} for every {@code null} return value of a method.
@@ -40,27 +44,59 @@ public class NullToNotFoundAspect {
       returning = "retVal")
   public void afterReturningAdvice(JoinPoint jp, Object retVal) {
     if (retVal == null) {
-      String uri =
-          ((MethodSignature) jp.getSignature())
-              .getMethod()
-              .getAnnotation(NullToNotFound.class)
-              .value();
-
-      String[] parameterNames = ((MethodSignature) jp.getSignature()).getParameterNames();
-      Object[] parameterValues = jp.getArgs();
+      NullToNotFound nullToNotFound = getAnnotation(jp);
 
       // replace pat variables in URI with values
-      for (int i = 0; i < parameterNames.length; i++) {
-        if (uri.contains('{' + parameterNames[i] + '}')) {
-          uri = uri.replace('{' + parameterNames[i] + '}', parameterValues[i].toString());
-        }
-      }
+      URI uri = getTargetUrl(jp, nullToNotFound);
 
-      if (uri.contains("{") || uri.contains("}")) {
-        LOG.warn("URI was not processed properly and contains special characters {}", uri);
-      }
-
-      throw new NotFoundException("Entity not found", URI.create(uri));
+      throw new NotFoundException("Entity not found", uri);
     }
+  }
+
+  /**
+   * Gets the NullToNotFound annotation.
+   */
+  private static NullToNotFound getAnnotation(JoinPoint jp) {
+    return ((MethodSignature) jp.getSignature())
+      .getMethod()
+      .getAnnotation(NullToNotFound.class);
+  }
+
+  /**
+   * Builds the URL invoked by the request.
+   */
+  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound){
+    if(nullToNotFound.useUrlMapping()) {
+      return UriComponentsBuilder.newInstance().path(getResourceUrl(jp)).path(getMethodResourceUrl(jp)).build(jp.getArgs());
+    } else {
+      return UriComponentsBuilder.newInstance().path(nullToNotFound.value()).build(jp.getArgs());
+    }
+  }
+
+  /**
+   * Ensures the url is surrounded by '/'.
+   */
+  private static String addSurroundingSlashes(String url) {
+    String resultUrl = url.endsWith("/")? url : url + '/';
+    return resultUrl.startsWith("/")? resultUrl : '/' + resultUrl;
+  }
+
+  /**
+   * Gets the Resource URL from the RequestMapping annotation if it exists.
+   */
+  private static String getResourceUrl(JoinPoint jp) {
+    return Optional.ofNullable(jp.getTarget().getClass().getAnnotation(RequestMapping.class))
+            .map(rm -> rm.value()[0])
+            .map(NullToNotFoundAspect::addSurroundingSlashes)
+            .orElse("");
+  }
+
+  /**
+   * Gets the value of the GetMapping annotation.
+   */
+  private static String getMethodResourceUrl(JoinPoint jp) {
+    return Optional.ofNullable( ((MethodSignature)jp.getSignature()).getMethod().getAnnotation(GetMapping.class))
+            .map(gm -> gm.value()[0])
+            .orElse("");
   }
 }
