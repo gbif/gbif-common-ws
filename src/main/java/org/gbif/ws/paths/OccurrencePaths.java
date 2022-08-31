@@ -22,6 +22,10 @@ public final class OccurrencePaths {
 
   public static final String OCC_SEARCH_PATH = OCCURRENCE_PATH + "/search";
 
+  public static final String EVENT_PATH = "event";
+
+  public static final String EVENT_SEARCH_PATH = EVENT_PATH + "/search";
+
   public static final String RECORDED_BY_PATH = "recordedBy";
 
   public static final String IDENTIFIED_BY_PATH = "identifiedBy";
