@@ -13,12 +13,6 @@
  */
 package org.gbif.ws.server.provider;
 
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.common.search.SearchRequest;
-import org.gbif.api.util.SearchTypeValidator;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.ws.CommonRuntimeException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,12 +20,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.gbif.api.model.checklistbank.search.NameUsageSearchRequest.NameUsageQueryField;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.common.search.SearchRequest;
+import org.gbif.api.model.common.search.SearchRequest.QueryField;
+import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.ws.CommonRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.WebRequest;
 
 import static org.gbif.ws.util.CommonWsUtils.getFirst;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_HIGHLIGHT;
+import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_FIELD;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_QUERY_STRING;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK;
 import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
@@ -70,9 +75,9 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
       RT req = requestType.getDeclaredConstructor().newInstance();
       return getSearchRequest(webRequest, req);
     } catch (InstantiationException
-        | IllegalAccessException
-        | NoSuchMethodException
-        | InvocationTargetException e) {
+             | IllegalAccessException
+             | NoSuchMethodException
+             | InvocationTargetException e) {
       // should never happen
       throw new CommonRuntimeException(e);
     }
@@ -125,6 +130,14 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
       searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);
     }
 
+    if (params.get(PARAM_QUERY_FIELD) != null) {
+      searchRequest.setQFields(
+          Arrays.stream(params.get(PARAM_QUERY_FIELD))
+              .map(this::parseQField)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toSet()));
+    }
+
     // find search parameter enum based filters
     setSearchParams(searchRequest, params);
   }
@@ -162,5 +175,14 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
         }
       }
     }
+  }
+
+  private QueryField parseQField(String qField) {
+    try {
+      return NameUsageQueryField.valueOf(qField);
+    } catch (Exception ex) {
+      // do nothing
+    }
+    return null;
   }
 }
