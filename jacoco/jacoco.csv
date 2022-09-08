@@ -61,7 +61,7 @@ GBIF Common Web service,org.gbif.ws.server,DelegatingServletInputStream,49,9,4,0
 GBIF Common Web service,org.gbif.ws.server,GbifHttpServletRequestWrapper,66,102,5,13,14,29,9,12,5,7
 GBIF Common Web service,org.gbif.ws.server.processor,ParamNameProcessor,205,0,28,0,38,0,22,0,8,0
 GBIF Common Web service,org.gbif.ws.server.processor,ParamNameDataBinder,113,0,8,0,27,0,7,0,3,0
-GBIF Common Web service,org.gbif.ws.server.provider,SearchRequestProvider,202,0,20,0,53,0,18,0,8,0
+GBIF Common Web service,org.gbif.ws.server.provider,SearchRequestProvider,227,0,22,0,62,0,20,0,9,0
 GBIF Common Web service,org.gbif.ws.server.provider,LocaleHandlerMethodArgumentResolver,12,0,0,0,3,0,3,0,3,0
 GBIF Common Web service,org.gbif.ws.server.provider,DatasetSuggestRequestHandlerMethodArgumentResolver,20,0,0,0,6,0,4,0,4,0
 GBIF Common Web service,org.gbif.ws.server.provider,PartialDateHandlerMethodArgumentResolver,142,0,18,0,24,0,15,0,6,0
