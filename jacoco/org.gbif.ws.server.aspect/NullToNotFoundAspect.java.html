@@ -17,6 +17,7 @@ import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.ws.NotFoundException;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -25,43 +26,78 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * This aspect throws a {@link NotFoundException} for every {@code null} return value of a method.
  */
 @Component
 @Aspect
-<span class="nc" id="L34">public class NullToNotFoundAspect {</span>
+<span class="nc" id="L38">public class NullToNotFoundAspect {</span>
 
-<span class="nc" id="L36">  private static final Logger LOG = LoggerFactory.getLogger(NullToNotFoundAspect.class);</span>
+<span class="nc" id="L40">  private static final Logger LOG = LoggerFactory.getLogger(NullToNotFoundAspect.class);</span>
 
   @AfterReturning(
       pointcut = &quot;@annotation(org.gbif.api.annotation.NullToNotFound)&quot;,
       returning = &quot;retVal&quot;)
   public void afterReturningAdvice(JoinPoint jp, Object retVal) {
-<span class="nc bnc" id="L42" title="All 2 branches missed.">    if (retVal == null) {</span>
-<span class="nc" id="L43">      String uri =</span>
-<span class="nc" id="L44">          ((MethodSignature) jp.getSignature())</span>
-<span class="nc" id="L45">              .getMethod()</span>
-<span class="nc" id="L46">              .getAnnotation(NullToNotFound.class)</span>
-<span class="nc" id="L47">              .value();</span>
-
-<span class="nc" id="L49">      String[] parameterNames = ((MethodSignature) jp.getSignature()).getParameterNames();</span>
-<span class="nc" id="L50">      Object[] parameterValues = jp.getArgs();</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">    if (retVal == null) {</span>
+<span class="nc" id="L47">      NullToNotFound nullToNotFound = getAnnotation(jp);</span>
 
       // replace pat variables in URI with values
-<span class="nc bnc" id="L53" title="All 2 branches missed.">      for (int i = 0; i &lt; parameterNames.length; i++) {</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (uri.contains('{' + parameterNames[i] + '}')) {</span>
-<span class="nc" id="L55">          uri = uri.replace('{' + parameterNames[i] + '}', parameterValues[i].toString());</span>
-        }
-      }
+<span class="nc" id="L50">      URI uri = getTargetUrl(jp, nullToNotFound);</span>
 
-<span class="nc bnc" id="L59" title="All 4 branches missed.">      if (uri.contains(&quot;{&quot;) || uri.contains(&quot;}&quot;)) {</span>
-<span class="nc" id="L60">        LOG.warn(&quot;URI was not processed properly and contains special characters {}&quot;, uri);</span>
-      }
-
-<span class="nc" id="L63">      throw new NotFoundException(&quot;Entity not found&quot;, URI.create(uri));</span>
+<span class="nc" id="L52">      throw new NotFoundException(&quot;Entity not found&quot;, uri);</span>
     }
-<span class="nc" id="L65">  }</span>
+<span class="nc" id="L54">  }</span>
+
+  /**
+   * Gets the NullToNotFound annotation.
+   */
+  private static NullToNotFound getAnnotation(JoinPoint jp) {
+<span class="nc" id="L60">    return ((MethodSignature) jp.getSignature())</span>
+<span class="nc" id="L61">      .getMethod()</span>
+<span class="nc" id="L62">      .getAnnotation(NullToNotFound.class);</span>
+  }
+
+  /**
+   * Builds the URL invoked by the request.
+   */
+  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound){
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    if(nullToNotFound.useUrlMapping()) {</span>
+<span class="nc" id="L70">      return UriComponentsBuilder.newInstance().path(getResourceUrl(jp)).path(getMethodResourceUrl(jp)).build(jp.getArgs());</span>
+    } else {
+<span class="nc" id="L72">      return UriComponentsBuilder.newInstance().path(nullToNotFound.value()).build(jp.getArgs());</span>
+    }
+  }
+
+  /**
+   * Ensures the url is surrounded by '/'.
+   */
+  private static String addSurroundingSlashes(String url) {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    String resultUrl = url.endsWith(&quot;/&quot;)? url : url + '/';</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    return resultUrl.startsWith(&quot;/&quot;)? resultUrl : '/' + resultUrl;</span>
+  }
+
+  /**
+   * Gets the Resource URL from the RequestMapping annotation if it exists.
+   */
+  private static String getResourceUrl(JoinPoint jp) {
+<span class="nc" id="L88">    return Optional.ofNullable(jp.getTarget().getClass().getAnnotation(RequestMapping.class))</span>
+<span class="nc" id="L89">            .map(rm -&gt; rm.value()[0])</span>
+<span class="nc" id="L90">            .map(NullToNotFoundAspect::addSurroundingSlashes)</span>
+<span class="nc" id="L91">            .orElse(&quot;&quot;);</span>
+  }
+
+  /**
+   * Gets the value of the GetMapping annotation.
+   */
+  private static String getMethodResourceUrl(JoinPoint jp) {
+<span class="nc" id="L98">    return Optional.ofNullable( ((MethodSignature)jp.getSignature()).getMethod().getAnnotation(GetMapping.class))</span>
+<span class="nc" id="L99">            .map(gm -&gt; gm.value()[0])</span>
+<span class="nc" id="L100">            .orElse(&quot;&quot;);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

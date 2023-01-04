@@ -133,7 +133,7 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
 <span class="nc bnc" id="L133" title="All 2 branches missed.">    if (params.get(PARAM_QUERY_FIELD) != null) {</span>
 <span class="nc" id="L134">      searchRequest.setQFields(</span>
 <span class="nc" id="L135">          Arrays.stream(params.get(PARAM_QUERY_FIELD))</span>
-<span class="nc" id="L136">              .map(this::parseQField)</span>
+<span class="nc" id="L136">              .map(SearchRequestProvider::parseQField)</span>
 <span class="nc" id="L137">              .filter(Objects::nonNull)</span>
 <span class="nc" id="L138">              .collect(Collectors.toSet()));</span>
     }
@@ -177,7 +177,7 @@ public class SearchRequestProvider&lt;RT extends SearchRequest&lt;P&gt;, P exten
 <span class="nc" id="L177">    }</span>
 <span class="nc" id="L178">  }</span>
 
-  private QueryField parseQField(String qField) {
+  private static QueryField parseQField(String qField) {
     try {
 <span class="nc" id="L182">      return NameUsageQueryField.valueOf(qField);</span>
 <span class="nc" id="L183">    } catch (Exception ex) {</span>

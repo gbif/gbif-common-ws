@@ -61,7 +61,7 @@ GBIF Common Web service,org.gbif.ws.server,DelegatingServletInputStream,49,9,4,0
 GBIF Common Web service,org.gbif.ws.server,GbifHttpServletRequestWrapper,66,102,5,13,14,29,9,12,5,7
 GBIF Common Web service,org.gbif.ws.server.processor,ParamNameProcessor,205,0,28,0,38,0,22,0,8,0
 GBIF Common Web service,org.gbif.ws.server.processor,ParamNameDataBinder,113,0,8,0,27,0,7,0,3,0
-GBIF Common Web service,org.gbif.ws.server.provider,SearchRequestProvider,227,0,22,0,62,0,20,0,9,0
+GBIF Common Web service,org.gbif.ws.server.provider,SearchRequestProvider,226,0,22,0,62,0,20,0,9,0
 GBIF Common Web service,org.gbif.ws.server.provider,LocaleHandlerMethodArgumentResolver,12,0,0,0,3,0,3,0,3,0
 GBIF Common Web service,org.gbif.ws.server.provider,DatasetSuggestRequestHandlerMethodArgumentResolver,20,0,0,0,6,0,4,0,4,0
 GBIF Common Web service,org.gbif.ws.server.provider,PartialDateHandlerMethodArgumentResolver,142,0,18,0,24,0,15,0,6,0
@@ -74,7 +74,7 @@ GBIF Common Web service,org.gbif.ws.server.provider,PageableHandlerMethodArgumen
 GBIF Common Web service,org.gbif.ws.server.provider,PageableProvider,103,0,10,0,37,0,10,0,5,0
 GBIF Common Web service,org.gbif.ws.server.provider,FacetedSearchRequestProvider,189,0,28,0,47,0,18,0,4,0
 GBIF Common Web service,org.gbif.ws.server.provider,CountryHandlerMethodArgumentResolver,31,0,4,0,8,0,5,0,3,0
-GBIF Common Web service,org.gbif.ws.server.aspect,NullToNotFoundAspect,88,0,10,0,17,0,8,0,3,0
+GBIF Common Web service,org.gbif.ws.server.aspect,NullToNotFoundAspect,122,0,8,0,22,0,14,0,10,0
 GBIF Common Web service,org.gbif.ws,WebApplicationException,25,15,0,0,9,5,3,2,3,2
 GBIF Common Web service,org.gbif.ws,NotFoundException,20,0,0,0,4,0,2,0,2,0
 GBIF Common Web service,org.gbif.ws,CommonRuntimeException,4,0,0,0,2,0,1,0,1,0

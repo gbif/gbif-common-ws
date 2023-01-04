@@ -141,7 +141,7 @@
 <span class="sourceLineNo">133</span>    if (params.get(PARAM_QUERY_FIELD) != null) {<a name="line.133"></a>
 <span class="sourceLineNo">134</span>      searchRequest.setQFields(<a name="line.134"></a>
 <span class="sourceLineNo">135</span>          Arrays.stream(params.get(PARAM_QUERY_FIELD))<a name="line.135"></a>
-<span class="sourceLineNo">136</span>              .map(this::parseQField)<a name="line.136"></a>
+<span class="sourceLineNo">136</span>              .map(SearchRequestProvider::parseQField)<a name="line.136"></a>
 <span class="sourceLineNo">137</span>              .filter(Objects::nonNull)<a name="line.137"></a>
 <span class="sourceLineNo">138</span>              .collect(Collectors.toSet()));<a name="line.138"></a>
 <span class="sourceLineNo">139</span>    }<a name="line.139"></a>
@@ -185,7 +185,7 @@
 <span class="sourceLineNo">177</span>    }<a name="line.177"></a>
 <span class="sourceLineNo">178</span>  }<a name="line.178"></a>
 <span class="sourceLineNo">179</span><a name="line.179"></a>
-<span class="sourceLineNo">180</span>  private QueryField parseQField(String qField) {<a name="line.180"></a>
+<span class="sourceLineNo">180</span>  private static QueryField parseQField(String qField) {<a name="line.180"></a>
 <span class="sourceLineNo">181</span>    try {<a name="line.181"></a>
 <span class="sourceLineNo">182</span>      return NameUsageQueryField.valueOf(qField);<a name="line.182"></a>
 <span class="sourceLineNo">183</span>    } catch (Exception ex) {<a name="line.183"></a>

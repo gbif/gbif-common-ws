@@ -141,7 +141,7 @@
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>     <strong class="jxr_keyword">if</strong> (params.get(PARAM_QUERY_FIELD) != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>       searchRequest.setQFields(
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>           Arrays.stream(params.get(PARAM_QUERY_FIELD))
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>               .map(<strong class="jxr_keyword">this</strong>::parseQField)
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>               .map(SearchRequestProvider::parseQField)
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>               .filter(Objects::nonNull)
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>               .collect(Collectors.toSet()));
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>     }
@@ -185,7 +185,7 @@
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>     }
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>   }
 <a class="jxr_linenumber" name="L179" href="#L179">179</a> 
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>   <strong class="jxr_keyword">private</strong> QueryField parseQField(String qField) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> QueryField parseQField(String qField) {
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>       <strong class="jxr_keyword">return</strong> NameUsageQueryField.valueOf(qField);
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>     } <strong class="jxr_keyword">catch</strong> (Exception ex) {
@@ -196,6 +196,6 @@
 <a class="jxr_linenumber" name="L188" href="#L188">188</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2022 <a href="https://www.gbif.org">Global Biodiversity Information Facility (GBIF)</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2023 <a href="https://www.gbif.org">Global Biodiversity Information Facility (GBIF)</a>. All rights reserved.</div>
 </body>
 </html>
