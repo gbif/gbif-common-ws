@@ -13,10 +13,10 @@
  */
 package org.gbif.ws.server.provider;
 
+import java.util.Optional;
+
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-
-import java.util.Optional;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -30,6 +30,8 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
     implements HandlerMethodArgumentResolver {
 
   private static final String MATCH_CASE_PARAM = "matchCase";
+  private static final String SHUFFLE_PARAM = "shuffle";
+  private static final String SHUFFLE_SEED_PARAM = "shuffleSeed";
 
   public OccurrenceSearchRequestHandlerMethodArgumentResolver() {
     super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);
@@ -58,6 +60,27 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
         .ifPresent(
             matchVerbatim ->
                 occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
+
+    String shuffleParam = webRequest.getParameter(SHUFFLE_PARAM);
+    if (shuffleParam != null && !shuffleParam.isEmpty()) {
+      Boolean shuffle = Boolean.parseBoolean(shuffleParam);
+      occurrenceSearchRequest.setShuffle(shuffle);
+
+      if (Boolean.TRUE.equals(shuffle)) {
+        String shuffleSeedParam = webRequest.getParameter(SHUFFLE_SEED_PARAM);
+        if (shuffleSeedParam != null
+            && shuffleSeedParam.length() < 6) {
+          throw new IllegalArgumentException("Shuffle seed must have at least 6 characters");
+        }
+
+        if (occurrenceSearchRequest.getOffset() > 0 && shuffleSeedParam == null) {
+          throw new IllegalArgumentException("Shuffle requests with paging must specify a shuffle seed");
+        }
+
+        occurrenceSearchRequest.setShuffleSeed(shuffleSeedParam);
+      }
+    }
+
     return occurrenceSearchRequest;
   }
 }
