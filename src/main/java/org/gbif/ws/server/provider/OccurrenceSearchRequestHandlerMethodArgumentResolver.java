@@ -31,7 +31,6 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
 
   private static final String MATCH_CASE_PARAM = "matchCase";
   private static final String SHUFFLE_PARAM = "shuffle";
-  private static final String SHUFFLE_SEED_PARAM = "shuffleSeed";
 
   public OccurrenceSearchRequestHandlerMethodArgumentResolver() {
     super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);
@@ -61,25 +60,9 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
             matchVerbatim ->
                 occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
 
-    String shuffleParam = webRequest.getParameter(SHUFFLE_PARAM);
-    if (shuffleParam != null && !shuffleParam.isEmpty()) {
-      Boolean shuffle = Boolean.parseBoolean(shuffleParam);
-      occurrenceSearchRequest.setShuffle(shuffle);
-
-      if (Boolean.TRUE.equals(shuffle)) {
-        String shuffleSeedParam = webRequest.getParameter(SHUFFLE_SEED_PARAM);
-        if (shuffleSeedParam != null
-            && shuffleSeedParam.length() < 6) {
-          throw new IllegalArgumentException("Shuffle seed must have at least 6 characters");
-        }
-
-        if (occurrenceSearchRequest.getOffset() > 0 && shuffleSeedParam == null) {
-          throw new IllegalArgumentException("Shuffle requests with paging must specify a shuffle seed");
-        }
-
-        occurrenceSearchRequest.setShuffleSeed(shuffleSeedParam);
-      }
-    }
+    Optional.ofNullable(webRequest.getParameter(SHUFFLE_PARAM))
+        .ifPresent(
+            occurrenceSearchRequest::setShuffle);
 
     return occurrenceSearchRequest;
   }
