@@ -13,10 +13,10 @@
  */
 package org.gbif.ws.server.provider;
 
-import java.util.Optional;
-
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+
+import java.util.Optional;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -61,8 +61,7 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
                 occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
 
     Optional.ofNullable(webRequest.getParameter(SHUFFLE_PARAM))
-        .ifPresent(
-            occurrenceSearchRequest::setShuffle);
+        .ifPresent(occurrenceSearchRequest::setShuffle);
 
     return occurrenceSearchRequest;
   }
