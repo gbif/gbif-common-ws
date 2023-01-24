@@ -57,17 +57,18 @@ public class NullToNotFoundAspect {
    * Gets the NullToNotFound annotation.
    */
   private static NullToNotFound getAnnotation(JoinPoint jp) {
-    return ((MethodSignature) jp.getSignature())
-      .getMethod()
-      .getAnnotation(NullToNotFound.class);
+    return ((MethodSignature) jp.getSignature()).getMethod().getAnnotation(NullToNotFound.class);
   }
 
   /**
    * Builds the URL invoked by the request.
    */
-  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound){
-    if(nullToNotFound.useUrlMapping()) {
-      return UriComponentsBuilder.newInstance().path(getResourceUrl(jp)).path(getMethodResourceUrl(jp)).build(jp.getArgs());
+  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound) {
+    if (nullToNotFound.useUrlMapping()) {
+      return UriComponentsBuilder.newInstance()
+          .path(getResourceUrl(jp))
+          .path(getMethodResourceUrl(jp))
+          .build(jp.getArgs());
     } else {
       return UriComponentsBuilder.newInstance().path(nullToNotFound.value()).build(jp.getArgs());
     }
@@ -77,8 +78,8 @@ public class NullToNotFoundAspect {
    * Ensures the url is surrounded by '/'.
    */
   private static String addSurroundingSlashes(String url) {
-    String resultUrl = url.endsWith("/")? url : url + '/';
-    return resultUrl.startsWith("/")? resultUrl : '/' + resultUrl;
+    String resultUrl = url.endsWith("/") ? url : url + '/';
+    return resultUrl.startsWith("/") ? resultUrl : '/' + resultUrl;
   }
 
   /**
@@ -86,17 +87,18 @@ public class NullToNotFoundAspect {
    */
   private static String getResourceUrl(JoinPoint jp) {
     return Optional.ofNullable(jp.getTarget().getClass().getAnnotation(RequestMapping.class))
-            .map(rm -> rm.value()[0])
-            .map(NullToNotFoundAspect::addSurroundingSlashes)
-            .orElse("");
+        .map(rm -> rm.value()[0])
+        .map(NullToNotFoundAspect::addSurroundingSlashes)
+        .orElse("");
   }
 
   /**
    * Gets the value of the GetMapping annotation.
    */
   private static String getMethodResourceUrl(JoinPoint jp) {
-    return Optional.ofNullable( ((MethodSignature)jp.getSignature()).getMethod().getAnnotation(GetMapping.class))
-            .map(gm -> gm.value()[0])
-            .orElse("");
+    return Optional.ofNullable(
+            ((MethodSignature) jp.getSignature()).getMethod().getAnnotation(GetMapping.class))
+        .map(gm -> gm.value()[0])
+        .orElse("");
   }
 }
