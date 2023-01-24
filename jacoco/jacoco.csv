@@ -69,12 +69,12 @@ GBIF Common Web service,org.gbif.ws.server.provider,NameUsageSuggestRequestProvi
 GBIF Common Web service,org.gbif.ws.server.provider,NameUsageSearchRequestProvider,3,0,0,0,1,0,1,0,1,0
 GBIF Common Web service,org.gbif.ws.server.provider,DatasetSearchRequestHandlerMethodArgumentResolver,14,0,0,0,4,0,3,0,3,0
 GBIF Common Web service,org.gbif.ws.server.provider,LocaleProvider,69,0,16,0,19,0,11,0,3,0
-GBIF Common Web service,org.gbif.ws.server.provider,OccurrenceSearchRequestHandlerMethodArgumentResolver,35,0,0,0,10,0,5,0,5,0
+GBIF Common Web service,org.gbif.ws.server.provider,OccurrenceSearchRequestHandlerMethodArgumentResolver,45,0,0,0,12,0,5,0,5,0
 GBIF Common Web service,org.gbif.ws.server.provider,PageableHandlerMethodArgumentResolver,16,0,0,0,5,0,4,0,4,0
 GBIF Common Web service,org.gbif.ws.server.provider,PageableProvider,103,0,10,0,37,0,10,0,5,0
 GBIF Common Web service,org.gbif.ws.server.provider,FacetedSearchRequestProvider,189,0,28,0,47,0,18,0,4,0
 GBIF Common Web service,org.gbif.ws.server.provider,CountryHandlerMethodArgumentResolver,31,0,4,0,8,0,5,0,3,0
-GBIF Common Web service,org.gbif.ws.server.aspect,NullToNotFoundAspect,122,0,8,0,22,0,14,0,10,0
+GBIF Common Web service,org.gbif.ws.server.aspect,NullToNotFoundAspect,122,0,8,0,24,0,14,0,10,0
 GBIF Common Web service,org.gbif.ws,WebApplicationException,25,15,0,0,9,5,3,2,3,2
 GBIF Common Web service,org.gbif.ws,NotFoundException,20,0,0,0,4,0,2,0,2,0
 GBIF Common Web service,org.gbif.ws,CommonRuntimeException,4,0,0,0,2,0,1,0,1,0

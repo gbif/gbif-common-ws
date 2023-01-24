@@ -30,14 +30,15 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
     implements HandlerMethodArgumentResolver {
 
   private static final String MATCH_CASE_PARAM = &quot;matchCase&quot;;
+  private static final String SHUFFLE_PARAM = &quot;shuffle&quot;;
 
   public OccurrenceSearchRequestHandlerMethodArgumentResolver() {
-<span class="nc" id="L35">    super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);</span>
-<span class="nc" id="L36">  }</span>
+<span class="nc" id="L36">    super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);</span>
+<span class="nc" id="L37">  }</span>
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-<span class="nc" id="L40">    return OccurrenceSearchRequest.class.equals(parameter.getParameterType());</span>
+<span class="nc" id="L41">    return OccurrenceSearchRequest.class.equals(parameter.getParameterType());</span>
   }
 
   @Override
@@ -46,19 +47,23 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
       ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory) {
-<span class="nc" id="L49">    return getValue(webRequest);</span>
+<span class="nc" id="L50">    return getValue(webRequest);</span>
   }
 
   @Override
   protected OccurrenceSearchRequest getSearchRequest(
       WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
-<span class="nc" id="L55">    OccurrenceSearchRequest occurrenceSearchRequest =</span>
-<span class="nc" id="L56">        super.getSearchRequest(webRequest, searchRequest);</span>
-<span class="nc" id="L57">    Optional.ofNullable(webRequest.getParameter(MATCH_CASE_PARAM))</span>
-<span class="nc" id="L58">        .ifPresent(</span>
+<span class="nc" id="L56">    OccurrenceSearchRequest occurrenceSearchRequest =</span>
+<span class="nc" id="L57">        super.getSearchRequest(webRequest, searchRequest);</span>
+<span class="nc" id="L58">    Optional.ofNullable(webRequest.getParameter(MATCH_CASE_PARAM))</span>
+<span class="nc" id="L59">        .ifPresent(</span>
             matchVerbatim -&gt;
-<span class="nc" id="L60">                occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));</span>
-<span class="nc" id="L61">    return occurrenceSearchRequest;</span>
+<span class="nc" id="L61">                occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));</span>
+
+<span class="nc" id="L63">    Optional.ofNullable(webRequest.getParameter(SHUFFLE_PARAM))</span>
+<span class="nc" id="L64">        .ifPresent(occurrenceSearchRequest::setShuffle);</span>
+
+<span class="nc" id="L66">    return occurrenceSearchRequest;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>

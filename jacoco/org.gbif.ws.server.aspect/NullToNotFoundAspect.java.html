@@ -57,19 +57,20 @@ import org.springframework.web.util.UriComponentsBuilder;
    * Gets the NullToNotFound annotation.
    */
   private static NullToNotFound getAnnotation(JoinPoint jp) {
-<span class="nc" id="L60">    return ((MethodSignature) jp.getSignature())</span>
-<span class="nc" id="L61">      .getMethod()</span>
-<span class="nc" id="L62">      .getAnnotation(NullToNotFound.class);</span>
+<span class="nc" id="L60">    return ((MethodSignature) jp.getSignature()).getMethod().getAnnotation(NullToNotFound.class);</span>
   }
 
   /**
    * Builds the URL invoked by the request.
    */
-  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound){
-<span class="nc bnc" id="L69" title="All 2 branches missed.">    if(nullToNotFound.useUrlMapping()) {</span>
-<span class="nc" id="L70">      return UriComponentsBuilder.newInstance().path(getResourceUrl(jp)).path(getMethodResourceUrl(jp)).build(jp.getArgs());</span>
+  private static URI getTargetUrl(JoinPoint jp, NullToNotFound nullToNotFound) {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (nullToNotFound.useUrlMapping()) {</span>
+<span class="nc" id="L68">      return UriComponentsBuilder.newInstance()</span>
+<span class="nc" id="L69">          .path(getResourceUrl(jp))</span>
+<span class="nc" id="L70">          .path(getMethodResourceUrl(jp))</span>
+<span class="nc" id="L71">          .build(jp.getArgs());</span>
     } else {
-<span class="nc" id="L72">      return UriComponentsBuilder.newInstance().path(nullToNotFound.value()).build(jp.getArgs());</span>
+<span class="nc" id="L73">      return UriComponentsBuilder.newInstance().path(nullToNotFound.value()).build(jp.getArgs());</span>
     }
   }
 
@@ -77,27 +78,28 @@ import org.springframework.web.util.UriComponentsBuilder;
    * Ensures the url is surrounded by '/'.
    */
   private static String addSurroundingSlashes(String url) {
-<span class="nc bnc" id="L80" title="All 2 branches missed.">    String resultUrl = url.endsWith(&quot;/&quot;)? url : url + '/';</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">    return resultUrl.startsWith(&quot;/&quot;)? resultUrl : '/' + resultUrl;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    String resultUrl = url.endsWith(&quot;/&quot;) ? url : url + '/';</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    return resultUrl.startsWith(&quot;/&quot;) ? resultUrl : '/' + resultUrl;</span>
   }
 
   /**
    * Gets the Resource URL from the RequestMapping annotation if it exists.
    */
   private static String getResourceUrl(JoinPoint jp) {
-<span class="nc" id="L88">    return Optional.ofNullable(jp.getTarget().getClass().getAnnotation(RequestMapping.class))</span>
-<span class="nc" id="L89">            .map(rm -&gt; rm.value()[0])</span>
-<span class="nc" id="L90">            .map(NullToNotFoundAspect::addSurroundingSlashes)</span>
-<span class="nc" id="L91">            .orElse(&quot;&quot;);</span>
+<span class="nc" id="L89">    return Optional.ofNullable(jp.getTarget().getClass().getAnnotation(RequestMapping.class))</span>
+<span class="nc" id="L90">        .map(rm -&gt; rm.value()[0])</span>
+<span class="nc" id="L91">        .map(NullToNotFoundAspect::addSurroundingSlashes)</span>
+<span class="nc" id="L92">        .orElse(&quot;&quot;);</span>
   }
 
   /**
    * Gets the value of the GetMapping annotation.
    */
   private static String getMethodResourceUrl(JoinPoint jp) {
-<span class="nc" id="L98">    return Optional.ofNullable( ((MethodSignature)jp.getSignature()).getMethod().getAnnotation(GetMapping.class))</span>
-<span class="nc" id="L99">            .map(gm -&gt; gm.value()[0])</span>
-<span class="nc" id="L100">            .orElse(&quot;&quot;);</span>
+<span class="nc" id="L99">    return Optional.ofNullable(</span>
+<span class="nc" id="L100">            ((MethodSignature) jp.getSignature()).getMethod().getAnnotation(GetMapping.class))</span>
+<span class="nc" id="L101">        .map(gm -&gt; gm.value()[0])</span>
+<span class="nc" id="L102">        .orElse(&quot;&quot;);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
