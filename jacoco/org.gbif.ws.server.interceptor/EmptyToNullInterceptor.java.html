@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmptyToNullInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">GBIF Common Web service</a> &gt; <a href="index.source.html" class="el_package">org.gbif.ws.server.interceptor</a> &gt; <span class="el_source">EmptyToNullInterceptor.java</span></div><h1>EmptyToNullInterceptor.java</h1><pre class="source lang-java linenums">/*
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.ws.server.interceptor;
+
+import org.gbif.api.annotation.EmptyToNull;
+import org.gbif.api.model.collections.Collection;
+import org.gbif.api.model.registry.Dataset;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+
+import org.apache.commons.beanutils.DynaClass;
+import org.apache.commons.beanutils.DynaProperty;
+import org.apache.commons.beanutils.WrapDynaBean;
+import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
+
+/**
+ * An interceptor that will convert all possible empty strings to null. All top level string
+ * properties are handled, as are those of nested objects that are in the GBIF registry model
+ * package. This will recurse only 5 levels deep, to guard against potential circular looping.
+ */
+@SuppressWarnings(&quot;NullableProblems&quot;)
+@ControllerAdvice
+<span class="nc" id="L42">public class EmptyToNullInterceptor implements RequestBodyAdvice {</span>
+
+<span class="nc" id="L44">  private static final Logger LOG = LoggerFactory.getLogger(EmptyToNullInterceptor.class);</span>
+
+  // only goes 5 levels deep to stop potential circular loops
+  private static final int MAX_RECURSION = 5;
+
+  @Override
+  public boolean supports(
+      MethodParameter methodParameter, Type type, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; aClass) {
+<span class="nc bnc" id="L52" title="All 2 branches missed.">    return methodParameter.getMethodAnnotation(EmptyToNull.class) != null</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        || methodParameter.getParameterAnnotation(EmptyToNull.class) != null;</span>
+  }
+
+  @Override
+  public HttpInputMessage beforeBodyRead(
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; aClass)
+      throws IOException {
+<span class="nc" id="L63">    return httpInputMessage;</span>
+  }
+
+  @Override
+  public Object afterBodyRead(
+      Object o,
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; aClass) {
+<span class="nc" id="L73">    trimStringsOf(o);</span>
+<span class="nc" id="L74">    return o;</span>
+  }
+
+  @Override
+  public Object handleEmptyBody(
+      Object o,
+      HttpInputMessage httpInputMessage,
+      MethodParameter methodParameter,
+      Type type,
+      Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; aClass) {
+<span class="nc" id="L84">    return o;</span>
+  }
+
+  void trimStringsOf(Object target) {
+<span class="nc" id="L88">    trimStringsOf(target, 0);</span>
+<span class="nc" id="L89">  }</span>
+
+  private void trimStringsOf(Object target, int level) {
+<span class="nc bnc" id="L92" title="All 4 branches missed.">    if (target != null &amp;&amp; level &lt;= MAX_RECURSION) {</span>
+<span class="nc" id="L93">      LOG.debug(&quot;Trimming class: {}&quot;, target.getClass());</span>
+
+<span class="nc" id="L95">      WrapDynaBean wrapped = new WrapDynaBean(target);</span>
+<span class="nc" id="L96">      DynaClass dynaClass = wrapped.getDynaClass();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">      for (DynaProperty dynaProp : dynaClass.getDynaProperties()) {</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (String.class.isAssignableFrom(dynaProp.getType())) {</span>
+<span class="nc" id="L99">          String prop = dynaProp.getName();</span>
+<span class="nc" id="L100">          String orig = (String) wrapped.get(prop);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">          if (orig != null) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            String trimmed = orig.trim().isEmpty() ? null : orig;</span>
+
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (ObjectUtils.notEqual(orig, trimmed)) {</span>
+<span class="nc" id="L105">              LOG.debug(&quot;Overriding value of [{}] from [{}] to [{}]&quot;, prop, orig, trimmed);</span>
+<span class="nc" id="L106">              wrapped.set(prop, trimmed);</span>
+            }
+          }
+<span class="nc" id="L109">        } else {</span>
+          try {
+            // trim everything in the registry model package (assume that Dataset resides in the
+            // correct package here)
+<span class="nc" id="L113">            Object property = wrapped.get(dynaProp.getName());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (property != null</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                &amp;&amp; (Dataset.class.getPackage() == property.getClass().getPackage()</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                    || Collection.class.getPackage() == property.getClass().getPackage())) {</span>
+<span class="nc" id="L117">              trimStringsOf(property, level + 1);</span>
+            }
+
+<span class="nc" id="L120">          } catch (IllegalArgumentException e) {</span>
+            // expected for non accessible properties
+<span class="nc" id="L122">          }</span>
+        }
+      }
+    }
+<span class="nc" id="L126">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.3.201901230119</span></div></body></html>
