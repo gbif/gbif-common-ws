@@ -20,17 +20,17 @@ import org.gbif.ws.security.GbifAuthenticationManager;
 import java.io.IOException;
 import java.util.Objects;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Override a built-in spring filter because of legacy behaviour.
@@ -50,16 +50,14 @@ public class IdentityFilter extends OncePerRequestFilter {
 
   private static final Logger LOG = LoggerFactory.getLogger(IdentityFilter.class);
 
-  private GbifAuthenticationManager authenticationManager;
+  private final GbifAuthenticationManager authenticationManager;
 
   public IdentityFilter(GbifAuthenticationManager authenticationManager) {
     this.authenticationManager = authenticationManager;
   }
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
     Objects.requireNonNull(request, "Can't filter null request");
     Objects.requireNonNull(response, "Can't filter null response");
 

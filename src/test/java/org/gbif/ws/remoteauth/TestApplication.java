@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +33,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -87,17 +87,24 @@ public class TestApplication {
         .build();
   }
 
+  /**
+   * https://github.com/spring-projects/spring-security/issues/8369#issuecomment-614862388
+   */
   @Bean
   public RemoteAuthClient remoteAuthClient(RestTemplate restTemplate) {
     return new RestTemplateRemoteAuthClient(restTemplate);
   }
 
+  @Bean
+  public UserDetailsService userDetailsService() {
+    return username -> {
+      throw new UnsupportedOperationException("unsupported");
+    };
+  }
+
   @Configuration
   static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {
 
-    public SecurityConfigurer(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
   }
 
   @RestController
