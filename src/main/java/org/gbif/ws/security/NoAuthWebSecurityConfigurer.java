@@ -26,6 +26,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,30 +70,21 @@ public class NoAuthWebSecurityConfigurer {
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.httpBasic()
-        .disable()
-        .addFilterAfter(
-            http.getSharedObject(HttpServletRequestWrapperFilter.class),
-            CsrfFilter.class)
-        .addFilterAfter(
-                http.getSharedObject(RequestHeaderParamUpdateFilter.class),
-            HttpServletRequestWrapperFilter.class)
-        .addFilterAfter(
-                http.getSharedObject(IdentityFilter.class),
-            RequestHeaderParamUpdateFilter.class)
-        .addFilterAfter(
-                http.getSharedObject(AppIdentityFilter.class), IdentityFilter.class)
-        .csrf()
-        .disable()
-        .cors()
-        .and()
-        .authorizeRequests()
-        .anyRequest()
-        .authenticated();
-
-    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    return http.build();
+  public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                 HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
+                                                 RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter,
+                                                 IdentityFilter identityFilter,
+                                                 AppIdentityFilter appIdentityFilter) throws Exception {
+    return http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .addFilterAfter(httpServletRequestWrapperFilter, CsrfFilter.class)
+            .addFilterAfter(requestHeaderParamUpdateFilter, HttpServletRequestWrapperFilter.class)
+            .addFilterAfter(identityFilter,RequestHeaderParamUpdateFilter.class)
+            .addFilterAfter(appIdentityFilter, IdentityFilter.class)
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(c -> c.configurationSource(corsConfigurationSource()))
+            .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .build();
   }
 
   @Bean
