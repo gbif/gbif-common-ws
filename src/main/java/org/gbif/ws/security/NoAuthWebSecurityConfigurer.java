@@ -18,23 +18,15 @@ import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Security Adapter that disables the authentication redirect and use GBIF identity filters for secure endpoints.
@@ -56,17 +48,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class NoAuthWebSecurityConfigurer {
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationManagerBuilder auth, DaoAuthenticationProvider daoAuthenticationProvider) throws Exception {
-    auth.authenticationProvider(daoAuthenticationProvider);
-    return auth.build();
-  }
-
-  @Bean
-  public DaoAuthenticationProvider dbAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
-    final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    authProvider.setUserDetailsService(userDetailsService);
-    authProvider.setPasswordEncoder(passwordEncoder);
-    return authProvider;
+  public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+    provider.setPasswordEncoder(passwordEncoder);
+    provider.setUserDetailsService(userDetailsService);
+    return new ProviderManager(provider);
   }
 
   @Bean
@@ -75,33 +61,18 @@ public class NoAuthWebSecurityConfigurer {
                                                  RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter,
                                                  IdentityFilter identityFilter,
                                                  AppIdentityFilter appIdentityFilter) throws Exception {
-    return http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .addFilterAfter(httpServletRequestWrapperFilter, CsrfFilter.class)
-            .addFilterAfter(requestHeaderParamUpdateFilter, HttpServletRequestWrapperFilter.class)
+    return SecurityUtils.gbifFilterChain(http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .addFilterAfter(identityFilter,RequestHeaderParamUpdateFilter.class)
             .addFilterAfter(appIdentityFilter, IdentityFilter.class)
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(c -> c.configurationSource(corsConfigurationSource()))
-            .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .build();
   }
 
+  /**
+   * Cors configuration, allows all methods and origins.
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    // CorsFilter only applies this if the origin header is present in the request
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
-    configuration.setAllowedOrigins(Collections.singletonList("*"));
-    configuration.setAllowedMethods(
-        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
-    configuration.setExposedHeaders(
-        Arrays.asList(
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Methods",
-            "Access-Control-Allow-Headers"));
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
+    return SecurityUtils.corsAllOriginsAndMethodsConfiguration();
   }
 }
