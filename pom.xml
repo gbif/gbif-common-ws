@@ -43,12 +43,10 @@
     <aopalliance.version>1.0</aopalliance.version>
     <jackson.version>2.17.1</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
-    <jsr250.version>1.0</jsr250.version>
     <junit.version>5.10.2</junit.version>
     <logback.version>1.4.14</logback.version>
     <mockito.version>3.12.4</mockito.version>
     <slf4j.version>2.0.7</slf4j.version>
-    <validation-api.version>2.0.1.Final</validation-api.version>
     <feign.version>13.2.1</feign.version>
     <feign-form.version>3.8.0</feign-form.version>
     <commons-codec.version>1.13</commons-codec.version>
@@ -57,6 +55,8 @@
     <commons-lang3.version>3.10</commons-lang3.version>
     <lombok.version>1.18.32</lombok.version>
     <wiremock.version>2.21.0</wiremock.version>
+    <validation-api.version>3.1.0</validation-api.version>
+    <annotation-api.version>3.0.0</annotation-api.version>
 
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
@@ -193,11 +193,9 @@
       <version>${jsr305.version}</version>
     </dependency>
     <dependency>
-      <!-- dependency:analyze reports a false positive: RolesAllowedResourceFilterFactory needs jsr250 -->
-      <groupId>javax.annotation</groupId>
-      <artifactId>jsr250-api</artifactId>
-      <version>${jsr250.version}</version>
-      <scope>runtime</scope>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>${annotation-api.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -215,8 +213,8 @@
       <version>${commons-lang3.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
       <version>${validation-api.version}</version>
     </dependency>
     <dependency>
