@@ -15,6 +15,7 @@ package org.gbif.ws.server.processor;
 
 import org.gbif.api.annotation.ParamName;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,15 +33,14 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Process {@link ParamName}. */
 public class ParamNameProcessor extends ServletModelAttributeMethodProcessor {
 
-  private final RequestMappingHandlerAdapter requestMappingHandlerAdapter;
+  @Autowired private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
   private static final Map<Class<?>, Map<String, String>> PARAM_MAPPINGS_CACHE =
       new ConcurrentHashMap<>(256);
   private static final Map<Class<?>, Map<String, String>> METHODS_MAPPINGS_CACHE =
       new ConcurrentHashMap<>(256);
 
-  public ParamNameProcessor(RequestMappingHandlerAdapter requestMappingHandlerAdapter) {
+  public ParamNameProcessor() {
     super(false);
-    this.requestMappingHandlerAdapter = requestMappingHandlerAdapter;
   }
 
   @Override
