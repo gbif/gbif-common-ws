@@ -19,48 +19,91 @@ import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
 import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
-import org.gbif.ws.security.SecurityUtils;
 import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Security Adapter that disables the authentication redirect and use GBIF remote services.
  * Supports Basic and JWT authentication through JwtRemoteBasicAuthenticationProvider and
  * JwtRemoteBasicAuthenticationProvider.
  */
-public class RemoteAuthWebSecurityConfigurer {
+public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
-  @Bean
-  public AuthenticationManager authenticationManager(RemoteAuthClient remoteAuthClient) throws Exception {
-    return new ProviderManager(new BasicRemoteAuthenticationProvider(remoteAuthClient),
-                                             new JwtRemoteBasicAuthenticationProvider(remoteAuthClient),
-                                             new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
+  private final RemoteAuthClient remoteAuthClient;
+
+  public RemoteAuthWebSecurityConfigurer(
+          ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+
+    setApplicationContext(context);
+    this.remoteAuthClient = remoteAuthClient;
   }
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager,
-                                         HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
-                                         RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter) throws Exception {
-    return  SecurityUtils.gbifFilterChain(http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
-                         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                         .addFilterAfter(new BasicAuthRequestFilter(authenticationManager), RequestHeaderParamUpdateFilter.class)
-                         .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
-                         .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
-                         .build();
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth) {
+    auth.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
+    auth.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
+    auth.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
+  }
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    http.authorizeRequests()
+            .anyRequest()
+            .permitAll()
+            .and()
+            .httpBasic()
+            .disable()
+            .addFilterAfter(
+                    getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
+                    CsrfFilter.class)
+            .addFilterAfter(
+                    getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
+                    HttpServletRequestWrapperFilter.class)
+            .addFilterAfter(
+                    new BasicAuthRequestFilter(authenticationManager()),
+                    RequestHeaderParamUpdateFilter.class)
+            .addFilterAfter(new JwtRequestFilter(authenticationManager()), BasicAuthRequestFilter.class)
+            .addFilterAfter(new GbifAppRequestFilter(authenticationManager()), JwtRequestFilter.class)
+            .csrf()
+            .disable()
+            .cors()
+            .and()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
   }
 
   /**
    * Cors configuration, allows all methods and origins.
    */
   @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    return SecurityUtils.corsAllOriginsAndMethodsConfiguration();
+  CorsConfigurationSource corsConfigurationSource() {
+    // CorsFilter only applies this if the origin header is present in the request
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
+    configuration.setAllowedOrigins(Collections.singletonList("*"));
+    configuration.setAllowedMethods(
+            Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
+    configuration.setExposedHeaders(
+            Arrays.asList(
+                    "Access-Control-Allow-Origin",
+                    "Access-Control-Allow-Methods",
+                    "Access-Control-Allow-Headers"));
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 }

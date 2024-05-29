@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -105,6 +106,9 @@ public class TestApplication {
   @Configuration
   static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {
 
+    public SecurityConfigurer(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      super(context, remoteAuthClient);
+    }
   }
 
   @RestController

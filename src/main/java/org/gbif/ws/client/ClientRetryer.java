@@ -58,7 +58,7 @@ public class ClientRetryer implements Retryer {
 
     long interval;
     if (e.retryAfter() != null) {
-      interval = e.retryAfter() - currentTimeMillis();
+      interval = e.retryAfter().getTime() - currentTimeMillis();
       if (interval < 0) {
         return;
       }

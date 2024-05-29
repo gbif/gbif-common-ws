@@ -15,8 +15,8 @@ package org.gbif.ws.util;
 
 import java.util.Map;
 
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;

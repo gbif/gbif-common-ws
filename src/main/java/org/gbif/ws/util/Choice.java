@@ -13,7 +13,7 @@
  */
 package org.gbif.ws.util;
 
-import jakarta.annotation.Nullable;
+import javax.annotation.Nullable;
 
 public class Choice {
 

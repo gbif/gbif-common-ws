@@ -22,7 +22,7 @@ import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-import jakarta.validation.ValidationException;
+import javax.validation.ValidationException;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;

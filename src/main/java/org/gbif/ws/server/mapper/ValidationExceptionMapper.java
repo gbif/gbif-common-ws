@@ -18,8 +18,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Path;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
