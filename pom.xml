@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
-  <version>1.28-SNAPSHOT</version>
+  <version>1.29-multitaxonomy-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GBIF Common Web service</name>
@@ -31,7 +31,7 @@
   </distributionManagement>
 
   <properties>
-    <java.version>11</java.version>
+    <java.version>17</java.version>
     <spring-boot.version>3.2.5</spring-boot.version>
     <spring.version>6.1.6</spring.version>
     <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>

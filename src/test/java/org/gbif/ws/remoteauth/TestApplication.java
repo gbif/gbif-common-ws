@@ -103,9 +103,7 @@ public class TestApplication {
   }
 
   @Configuration
-  static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {
-
-  }
+  static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {}
 
   @RestController
   static class TestController {
