@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>59-SNAPSHOT</version>
+    <version>58-SNAPSHOT</version>
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
-  <version>1.29-multitaxonomy-SNAPSHOT</version>
+  <version>1.28-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GBIF Common Web service</name>
@@ -31,30 +31,32 @@
   </distributionManagement>
 
   <properties>
-    <java.version>17</java.version>
-    <spring-boot.version>3.3.4</spring-boot.version>
-    <spring-cloud-openfeign.version>4.1.3</spring-cloud-openfeign.version>
-    <spring.version>6.1.13</spring.version>
-    <spring-retry.version>1.3.4</spring-retry.version>
+    <java.version>11</java.version>
+    <spring-boot.version>3.2.5</spring-boot.version>
+    <spring.version>6.1.6</spring.version>
+    <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>
+    <spring-retry.version>2.0.6</spring-retry.version>
 
-    <gbif-api.version>1.18.0-multitaxonomy-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.14.2</gbif-api.version>
     <gbif-common.version>0.52</gbif-common.version>
 
     <aopalliance.version>1.0</aopalliance.version>
     <jackson.version>2.17.1</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
     <junit.version>5.10.2</junit.version>
-    <logback.version>1.5.6</logback.version>
+    <logback.version>1.4.14</logback.version>
     <mockito.version>3.12.4</mockito.version>
-<!--    <slf4j.version>1.7.30</slf4j.version>-->
-    <feign.version>10.12</feign.version>
+    <slf4j.version>2.0.7</slf4j.version>
+    <feign.version>13.2.1</feign.version>
     <feign-form.version>3.8.0</feign-form.version>
     <commons-codec.version>1.13</commons-codec.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-io.version>2.7</commons-io.version>
     <commons-lang3.version>3.10</commons-lang3.version>
     <lombok.version>1.18.32</lombok.version>
-    <wiremock.version>3.0.1</wiremock.version>
+    <wiremock.version>2.21.0</wiremock.version>
+    <validation-api.version>3.1.0</validation-api.version>
+    <annotation-api.version>3.0.0</annotation-api.version>
 
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
@@ -83,23 +85,11 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
       <version>${gbif-api.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
       <version>${gbif-common.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Spring dependencies -->
@@ -107,12 +97,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
       <version>${spring-boot.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -133,12 +117,6 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-openfeign-core</artifactId>
       <version>${spring-cloud-openfeign.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.retry</groupId>
@@ -183,16 +161,6 @@
       <groupId>io.github.openfeign</groupId>
       <artifactId>feign-hystrix</artifactId>
       <version>${feign.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.github.openfeign</groupId>
@@ -208,23 +176,11 @@
       <groupId>io.github.openfeign.form</groupId>
       <artifactId>feign-form</artifactId>
       <version>${feign-form.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.github.openfeign.form</groupId>
       <artifactId>feign-form-spring</artifactId>
       <version>${feign-form.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>aopalliance</groupId>
@@ -235,6 +191,11 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>${jsr305.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>${annotation-api.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -251,11 +212,16 @@
       <artifactId>commons-lang3</artifactId>
       <version>${commons-lang3.version}</version>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.slf4j</groupId>-->
-<!--      <artifactId>slf4j-api</artifactId>-->
-<!--      <version>${slf4j.version}</version>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+      <version>${validation-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
@@ -269,18 +235,18 @@
     </dependency>
 
     <!-- Test dependencies -->
-<!--    <dependency>-->
-<!--      <groupId>ch.qos.logback</groupId>-->
-<!--      <artifactId>logback-classic</artifactId>-->
-<!--      <version>${logback.version}</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>ch.qos.logback</groupId>-->
-<!--      <artifactId>logback-core</artifactId>-->
-<!--      <version>${logback.version}</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -316,10 +282,6 @@
           <groupId>org.elasticsearch.client</groupId>
           <artifactId>elasticsearch-rest-client</artifactId>
         </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -327,12 +289,6 @@
       <artifactId>wiremock</artifactId>
       <version>${wiremock.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 

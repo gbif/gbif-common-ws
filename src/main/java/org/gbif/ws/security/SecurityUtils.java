@@ -78,7 +78,7 @@ public class SecurityUtils {
         return http.httpBasic(AbstractHttpConfigurer::disable)
                    .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
                    .csrf(AbstractHttpConfigurer::disable)
-                   .authorizeRequests(auth -> auth.anyRequest().permitAll())
+                   .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                    .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                    .build();
     }
