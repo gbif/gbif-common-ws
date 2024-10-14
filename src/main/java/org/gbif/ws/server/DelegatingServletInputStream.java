@@ -16,8 +16,8 @@ package org.gbif.ws.server;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jakarta.servlet.ReadListener;
-import jakarta.servlet.ServletInputStream;
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 
 public class DelegatingServletInputStream extends ServletInputStream {
 

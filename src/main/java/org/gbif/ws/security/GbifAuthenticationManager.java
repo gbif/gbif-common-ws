@@ -13,7 +13,7 @@
  */
 package org.gbif.ws.security;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Performs an authentication from an HTTP request.

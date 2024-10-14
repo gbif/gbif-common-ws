@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.web.servlet.mvc.method.annotation.ExtendedServletRequestDataBinder;
 
-import jakarta.servlet.ServletRequest;
+import javax.servlet.ServletRequest;
 
 /** ServletRequestDataBinder which supports fields renaming using {@link ParamName} */
 @SuppressWarnings("NullableProblems")

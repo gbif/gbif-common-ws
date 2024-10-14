@@ -13,12 +13,6 @@
  */
 package org.gbif.ws.remoteauth;
 
-import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;
-import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;
-import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
-import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
-import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
-import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
 import org.gbif.ws.security.RoleMethodSecurityConfiguration;
 import org.gbif.ws.security.UserRoles;
 import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
@@ -40,14 +34,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -117,43 +104,10 @@ public class TestApplication {
   }
 
   @Configuration
-  static class SecurityConfiguration  {
+  static class SecurityConfigurer extends RemoteAuthWebSecurityConfigurer {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-      ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
-      RemoteAuthClient remoteAuthClient = http.getSharedObject(RemoteAuthClient.class);
-
-      AuthenticationManagerBuilder authenticationManagerBuilder =
-              http.getSharedObject(AuthenticationManagerBuilder.class);
-      authenticationManagerBuilder.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
-      authenticationManagerBuilder.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
-      authenticationManagerBuilder.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
-      AuthenticationManager authenticationManager = authenticationManagerBuilder.getOrBuild();
-
-      http.authorizeRequests()
-              .anyRequest()
-              .permitAll()
-              .and()
-              .httpBasic(AbstractHttpConfigurer::disable)
-              .addFilterAfter(
-                      applicationContext.getBean(HttpServletRequestWrapperFilter.class),
-                      CsrfFilter.class)
-              .addFilterAfter(
-                      applicationContext.getBean(RequestHeaderParamUpdateFilter.class),
-                      HttpServletRequestWrapperFilter.class)
-              .addFilterAfter(
-                      new BasicAuthRequestFilter(authenticationManager),
-                      RequestHeaderParamUpdateFilter.class)
-              .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
-              .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
-              .csrf(AbstractHttpConfigurer::disable)
-              .cors(AbstractHttpConfigurer::disable)
-              .sessionManagement(httpSecuritySessionManagementConfigurer ->
-                      httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-              );
-      return http.build();
+    public SecurityConfigurer(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      super(context, remoteAuthClient);
     }
   }
 

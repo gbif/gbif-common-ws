@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.http.HttpHeaders;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
