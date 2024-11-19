@@ -18,12 +18,12 @@ import org.gbif.api.annotation.ParamName;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import javax.servlet.ServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.web.servlet.mvc.method.annotation.ExtendedServletRequestDataBinder;
-
-import javax.servlet.ServletRequest;
 
 /** ServletRequestDataBinder which supports fields renaming using {@link ParamName} */
 @SuppressWarnings("NullableProblems")

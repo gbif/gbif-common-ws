@@ -24,13 +24,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpHeaders;
-
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
 
 public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
