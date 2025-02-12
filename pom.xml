@@ -37,7 +37,7 @@
     <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>
     <spring-retry.version>2.0.6</spring-retry.version>
 
-    <gbif-api.version>1.14.2</gbif-api.version>
+    <gbif-api.version>2.0.3-multitaxonomy-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.52</gbif-common.version>
 
     <aopalliance.version>1.0</aopalliance.version>
