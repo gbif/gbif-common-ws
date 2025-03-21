@@ -46,7 +46,7 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
   private final RemoteAuthClient remoteAuthClient;
 
   public RemoteAuthWebSecurityConfigurer(
-          ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      ApplicationContext context, RemoteAuthClient remoteAuthClient) {
 
     setApplicationContext(context);
     this.remoteAuthClient = remoteAuthClient;
@@ -62,28 +62,28 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests()
-            .anyRequest()
-            .permitAll()
-            .and()
-            .httpBasic()
-            .disable()
-            .addFilterAfter(
-                    getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
-                    CsrfFilter.class)
-            .addFilterAfter(
-                    getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
-                    HttpServletRequestWrapperFilter.class)
-            .addFilterAfter(
-                    new BasicAuthRequestFilter(authenticationManager()),
-                    RequestHeaderParamUpdateFilter.class)
-            .addFilterAfter(new JwtRequestFilter(authenticationManager()), BasicAuthRequestFilter.class)
-            .addFilterAfter(new GbifAppRequestFilter(authenticationManager()), JwtRequestFilter.class)
-            .csrf()
-            .disable()
-            .cors()
-            .and()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        .anyRequest()
+        .permitAll()
+        .and()
+        .httpBasic()
+        .disable()
+        .addFilterAfter(
+            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
+            CsrfFilter.class)
+        .addFilterAfter(
+            getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
+            HttpServletRequestWrapperFilter.class)
+        .addFilterAfter(
+            new BasicAuthRequestFilter(authenticationManager()),
+            RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(new JwtRequestFilter(authenticationManager()), BasicAuthRequestFilter.class)
+        .addFilterAfter(new GbifAppRequestFilter(authenticationManager()), JwtRequestFilter.class)
+        .csrf()
+        .disable()
+        .cors()
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
   }
 
   /**
@@ -96,12 +96,12 @@ public class RemoteAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapte
     configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
     configuration.setAllowedOrigins(Collections.singletonList("*"));
     configuration.setAllowedMethods(
-            Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
+        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
     configuration.setExposedHeaders(
-            Arrays.asList(
-                    "Access-Control-Allow-Origin",
-                    "Access-Control-Allow-Methods",
-                    "Access-Control-Allow-Headers"));
+        Arrays.asList(
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Methods",
+            "Access-Control-Allow-Headers"));
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;

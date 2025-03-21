@@ -59,9 +59,9 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
   private final PasswordEncoder passwordEncoder;
 
   public NoAuthWebSecurityConfigurer(
-          UserDetailsService userDetailsService,
-          ApplicationContext context,
-          PasswordEncoder passwordEncoder) {
+      UserDetailsService userDetailsService,
+      ApplicationContext context,
+      PasswordEncoder passwordEncoder) {
     this.userDetailsService = userDetailsService;
     setApplicationContext(context);
     this.passwordEncoder = passwordEncoder;
@@ -82,25 +82,25 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.httpBasic()
-            .disable()
-            .addFilterAfter(
-                    getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
-                    CsrfFilter.class)
-            .addFilterAfter(
-                    getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
-                    HttpServletRequestWrapperFilter.class)
-            .addFilterAfter(
-                    getApplicationContext().getBean(IdentityFilter.class),
-                    RequestHeaderParamUpdateFilter.class)
-            .addFilterAfter(
-                    getApplicationContext().getBean(AppIdentityFilter.class), IdentityFilter.class)
-            .csrf()
-            .disable()
-            .cors()
-            .and()
-            .authorizeRequests()
-            .anyRequest()
-            .authenticated();
+        .disable()
+        .addFilterAfter(
+            getApplicationContext().getBean(HttpServletRequestWrapperFilter.class),
+            CsrfFilter.class)
+        .addFilterAfter(
+            getApplicationContext().getBean(RequestHeaderParamUpdateFilter.class),
+            HttpServletRequestWrapperFilter.class)
+        .addFilterAfter(
+            getApplicationContext().getBean(IdentityFilter.class),
+            RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(
+            getApplicationContext().getBean(AppIdentityFilter.class), IdentityFilter.class)
+        .csrf()
+        .disable()
+        .cors()
+        .and()
+        .authorizeRequests()
+        .anyRequest()
+        .authenticated();
 
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
   }
@@ -112,12 +112,12 @@ public class NoAuthWebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
     configuration.setAllowedOrigins(Collections.singletonList("*"));
     configuration.setAllowedMethods(
-            Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
+        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
     configuration.setExposedHeaders(
-            Arrays.asList(
-                    "Access-Control-Allow-Origin",
-                    "Access-Control-Allow-Methods",
-                    "Access-Control-Allow-Headers"));
+        Arrays.asList(
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Methods",
+            "Access-Control-Allow-Headers"));
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
