@@ -59,7 +59,7 @@ public class FacetedSearchRequestProvider<
 
     final String facetMultiSelectValue = getFirstIgnoringCase(PARAM_FACET_MULTISELECT, params);
     if (facetMultiSelectValue != null) {
-      searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));
+      searchRequest.setFacetMultiSelect(Boolean.parseBoolean(facetMultiSelectValue));
     }
 
     final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);
