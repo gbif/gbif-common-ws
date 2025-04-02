@@ -13,7 +13,7 @@
  */
 package org.gbif.ws.security;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class RequestDataToSign {
 
