@@ -25,6 +25,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import static org.gbif.ws.util.ParamUtils.convertDnaSequenceParam;
+
 public class OccurrenceSearchRequestHandlerMethodArgumentResolver
     extends FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
     implements HandlerMethodArgumentResolver {
@@ -62,6 +64,8 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
 
     Optional.ofNullable(webRequest.getParameter(SHUFFLE_PARAM))
         .ifPresent(occurrenceSearchRequest::setShuffle);
+
+    convertDnaSequenceParam(webRequest.getParameterMap(), searchRequest);
 
     return occurrenceSearchRequest;
   }

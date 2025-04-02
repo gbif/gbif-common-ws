@@ -33,7 +33,6 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class SecurityUtils {
 
-
     /**
      * Cors configuration, allows all methods and origins.
      */
