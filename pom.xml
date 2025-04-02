@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif</groupId>
     <artifactId>motherpom</artifactId>
-    <version>58</version>
+    <version>59</version>
   </parent>
 
   <artifactId>gbif-common-ws</artifactId>
@@ -37,7 +37,7 @@
     <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>
     <spring-retry.version>2.0.6</spring-retry.version>
 
-    <gbif-api.version>2.0.3-multitaxonomy-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.1.0-multitaxonomy-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.52</gbif-common.version>
 
     <aopalliance.version>1.0</aopalliance.version>
