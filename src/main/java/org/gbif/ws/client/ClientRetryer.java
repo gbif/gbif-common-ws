@@ -27,6 +27,7 @@ public class ClientRetryer implements Retryer {
   private final int maxAttempts;
   private final long period;
   private final double multiplier;
+  private final double maxInterval;
   int attempt;
   long sleptForMillis;
 
@@ -35,9 +36,14 @@ public class ClientRetryer implements Retryer {
   }
 
   public ClientRetryer(long period, int maxAttempts, double multiplier) {
+    this(period, maxAttempts, multiplier, 60_000);
+  }
+
+  public ClientRetryer(long period, int maxAttempts, double multiplier, double maxInterval) {
     this.period = period;
     this.maxAttempts = maxAttempts;
     this.multiplier = multiplier;
+    this.maxInterval = maxInterval;
     this.attempt = 1;
   }
 
@@ -79,14 +85,14 @@ public class ClientRetryer implements Retryer {
    * The interval increases exponentially with each attempt, at a rate of nextInterval *= multiplier
    * (where multiplier is the backoff factor), to the maximum interval.
    *
-   * @return time in nanoseconds from now until the next attempt.
+   * @return time in milliseconds from now until the next attempt.
    */
   long nextMaxInterval() {
-    return (long) (period * Math.pow(multiplier, attempt - 1));
+    return (long) Math.min(maxInterval, (period * Math.pow(multiplier, attempt - 1)));
   }
 
   @Override
   public Retryer clone() {
-    return new ClientRetryer(period, maxAttempts, multiplier);
+    return new ClientRetryer(period, maxAttempts, multiplier, maxInterval);
   }
 }
