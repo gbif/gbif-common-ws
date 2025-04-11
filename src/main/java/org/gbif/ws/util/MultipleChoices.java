@@ -16,7 +16,7 @@ package org.gbif.ws.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * A simple bean for a http 300 MultipleChoices response listing the available options.
