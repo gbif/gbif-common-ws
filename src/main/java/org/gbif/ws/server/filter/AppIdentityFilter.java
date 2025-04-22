@@ -88,12 +88,15 @@ public class AppIdentityFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+    LOG.debug("AppIdentityFilter in action for request {}", request.getRequestURI());
     // Only try if no user principal is already there
     if (authentication == null
         || authentication.getPrincipal() == null
         || authentication.getPrincipal() instanceof AnonymousUserPrincipal) {
       String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+
       if (StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+        LOG.debug("AppIdentityFilter GBIF scheme found for request {}", request.getRequestURI());
         if (authService.isValidRequest(
             request instanceof GbifHttpServletRequestWrapper
                 ? (GbifHttpServletRequestWrapper) request
@@ -111,6 +114,7 @@ public class AppIdentityFilter extends OncePerRequestFilter {
                 new GbifAuthenticationToken(principal, SecurityConstants.GBIF_SCHEME, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+            LOG.debug("GBIF authenticated app request");
           }
         } else {
           LOG.warn("Invalid GBIF authenticated request");
