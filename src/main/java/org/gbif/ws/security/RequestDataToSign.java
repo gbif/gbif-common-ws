@@ -88,11 +88,15 @@ public class RequestDataToSign {
     sb.append(method);
     sb.append('\n');
     sb.append(url);
-    if (contentType != null) {
-      sb.append('\n');
-      sb.append(contentType.toLowerCase());
-    }
+
+    // this is replicating the logic in portal16
+    // https://github.com/gbif/portal16/blob/master/app/controllers/auth/gbifAuthRequest.js#L57
+    // so content type is only used in the signature if content type md5 is present
     if (contentTypeMd5 != null) {
+      if (contentType != null) {
+        sb.append('\n');
+        sb.append(contentType.toLowerCase());
+      }
       sb.append('\n');
       sb.append(contentTypeMd5);
     }
