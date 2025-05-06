@@ -109,7 +109,7 @@ public class FacetedSearchRequestProvider<
    * Get the first parameter value, the parameter is searched in a case-insensitive manner.
    * First tries with the exact match, then the lowercase and finally the uppercase value of the parameter.
    */
-  private static String getFirstIgnoringCase(String parameter, Map<String, String[]> params) {
+  protected static String getFirstIgnoringCase(String parameter, Map<String, String[]> params) {
     String value = getFirst(params, parameter);
     if (StringUtils.isNotEmpty(value)) {
       return value;
