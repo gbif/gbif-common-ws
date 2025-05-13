@@ -140,9 +140,16 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     } else {
       dataToSign.setUrl(getCanonicalizedPath(request.getRequestURI()));
     }
-    dataToSign.setContentType(headers.getFirst(HttpHeaders.CONTENT_TYPE));
-    dataToSign.setContentTypeMd5(headers.getFirst(HEADER_CONTENT_MD5));
-    dataToSign.setUser(headers.getFirst(HEADER_GBIF_USER));
+
+    String contentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+    String contentMd5 = headers.getFirst(HEADER_CONTENT_MD5);
+    String user = headers.getFirst(HEADER_GBIF_USER);
+
+    dataToSign.setContentType(contentType);
+    dataToSign.setContentTypeMd5(contentMd5);
+    dataToSign.setUser(user);
+
+    LOG.debug("Content type {}, MD5 {}", contentType, contentMd5);
 
     return dataToSign;
   }
@@ -187,7 +194,9 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
     // build the unique request data object to sign
     final RequestDataToSign requestDataToSign = buildRequestDataToSign(request);
-
+    LOG.debug(
+        "Request data to sign: {}",
+        requestDataToSign.stringToSign());
     // sign
     final String signature;
     try {
