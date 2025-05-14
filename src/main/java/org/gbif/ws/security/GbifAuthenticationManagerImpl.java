@@ -44,6 +44,7 @@ import static org.gbif.ws.util.SecurityConstants.BASIC_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.gbif.ws.util.SecurityConstants.IPT_SCHEME_PREFIX;
 
 @Component
 public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager {
@@ -105,6 +106,11 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
       LOG.warn("Missing basic authentication username or password: {}", authentication);
       throw new WebApplicationException(
           "Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
+    }
+
+    // ignore username that starts with 'IPT__' - handled by a special security filter
+    if (username.startsWith(IPT_SCHEME_PREFIX)) {
+      return getAnonymous();
     }
 
     // it's not a good approach to check UUID
