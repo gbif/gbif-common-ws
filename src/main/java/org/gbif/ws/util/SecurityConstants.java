@@ -19,6 +19,7 @@ public final class SecurityConstants {
 
   public static final String GBIF_SCHEME = "GBIF";
   public static final String GBIF_SCHEME_PREFIX = GBIF_SCHEME + " ";
+  public static final String IPT_SCHEME_PREFIX = "IPT__";
   public static final String BASIC_SCHEME_PREFIX = "Basic ";
   public static final String BEARER_SCHEME_PREFIX = "Bearer ";
   public static final String BASIC_AUTH = "BASIC";
