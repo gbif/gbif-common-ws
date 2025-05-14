@@ -44,6 +44,7 @@ import static org.gbif.ws.util.SecurityConstants.BASIC_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.gbif.ws.util.SecurityConstants.IPT_SCHEME_PREFIX;
 
 @Component
 public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager {
@@ -107,6 +108,16 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
           "Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
     }
 
+    // ignore usernames like 'IPT__<UUID>' - handled by a special security filter
+    try {
+      if (username.startsWith(IPT_SCHEME_PREFIX)) {
+        UUID.fromString(username.substring(IPT_SCHEME_PREFIX.length()));
+        return getAnonymous();
+      }
+    } catch (IllegalArgumentException e) {
+      // no UUID, continue with regular authentication
+    }
+
     // it's not a good approach to check UUID
     // ignore usernames which are UUIDs - these are registry legacy IPT calls and handled by a
     // special security filter
@@ -114,7 +125,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
       UUID.fromString(username);
       return getAnonymous();
     } catch (IllegalArgumentException e) {
-      // no UUID, continue with regular drupal authentication
+      // no UUID, continue with regular authentication
     }
 
     GbifUser user = identityAccessService.authenticate(username, password);
