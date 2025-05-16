@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import javax.validation.ValidationException;
+
+import jakarta.validation.ValidationException;
+
 import org.apache.commons.io.IOUtils;
 import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;

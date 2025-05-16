@@ -29,11 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,6 +41,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * A filter that allows an application to identify itself as an application (as opposed to an
@@ -87,12 +88,15 @@ public class AppIdentityFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+    LOG.debug("AppIdentityFilter in action for request {}", request.getRequestURI());
     // Only try if no user principal is already there
     if (authentication == null
         || authentication.getPrincipal() == null
         || authentication.getPrincipal() instanceof AnonymousUserPrincipal) {
       String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+
       if (StringUtils.startsWith(authorization, SecurityConstants.GBIF_SCHEME_PREFIX)) {
+        LOG.debug("AppIdentityFilter GBIF scheme found for request {}", request.getRequestURI());
         if (authService.isValidRequest(
             request instanceof GbifHttpServletRequestWrapper
                 ? (GbifHttpServletRequestWrapper) request
@@ -110,6 +114,7 @@ public class AppIdentityFilter extends OncePerRequestFilter {
                 new GbifAuthenticationToken(principal, SecurityConstants.GBIF_SCHEME, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+            LOG.debug("GBIF authenticated app request");
           }
         } else {
           LOG.warn("Invalid GBIF authenticated request");

@@ -71,6 +71,15 @@ public class ClientBuilder {
   private InvocationHandlerFactory invocationHandlerFactory;
 
   /**
+   * Exponential backoff retryer with a default maximum wait between attempts.
+   */
+  public ClientBuilder withExponentialBackoffRetry(
+      Duration initialInterval, double multiplier, int maxAttempts, Duration maxInterval) {
+    retryer = new ClientRetryer(initialInterval.toMillis(), maxAttempts, multiplier, maxInterval.toMillis());
+    return this;
+  }
+
+  /**
    * Exponential backoff retryer.
    */
   public ClientBuilder withExponentialBackoffRetry(

@@ -14,6 +14,12 @@
 package org.gbif.ws.server.processor;
 
 import org.gbif.api.annotation.ParamName;
+import org.springframework.beans.BeanUtils;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -22,19 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.MethodParameter;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-import org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor;
-
 /** Process {@link ParamName}. */
 public class ParamNameProcessor extends ServletModelAttributeMethodProcessor {
 
-  @Autowired private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
   private static final Map<Class<?>, Map<String, String>> PARAM_MAPPINGS_CACHE =
       new ConcurrentHashMap<>(256);
   private static final Map<Class<?>, Map<String, String>> METHODS_MAPPINGS_CACHE =
@@ -61,7 +57,11 @@ public class ParamNameProcessor extends ServletModelAttributeMethodProcessor {
     Map<String, String> methodMappings = this.getMethodMappings(target.getClass());
     ParamNameDataBinder paramNameDataBinder =
         new ParamNameDataBinder(target, binder.getObjectName(), paramMappings, methodMappings);
-    requestMappingHandlerAdapter.getWebBindingInitializer().initBinder(paramNameDataBinder);
+
+    //FIXME - these lines where causing a circular dependeny issue in spring boot 3 - are they necessary?
+//    initBinder(paramNameDataBinder, nativeWebRequest);
+//    requestMappingHandlerAdapter.getWebBindingInitializer().initBinder(paramNameDataBinder);
+
     super.bindRequestParameters(paramNameDataBinder, nativeWebRequest);
   }
 
