@@ -16,13 +16,11 @@ package org.gbif.ws.client;
 import feign.Response;
 import feign.RetryableException;
 import feign.codec.ErrorDecoder;
+import jakarta.validation.ValidationException;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
-import jakarta.validation.ValidationException;
-
 import org.apache.commons.io.IOUtils;
 import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;
