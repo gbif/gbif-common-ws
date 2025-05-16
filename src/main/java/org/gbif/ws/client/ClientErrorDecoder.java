@@ -13,7 +13,8 @@
  */
 package org.gbif.ws.client;
 
-import org.gbif.api.exception.ServiceUnavailableException;
+import feign.RetryableException;
+
 import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;
 
@@ -65,9 +66,20 @@ public class ClientErrorDecoder implements ErrorDecoder {
         return message != null
             ? new ValidationException(extractValidationErrorMessage(message))
             : new ValidationException();
+      case 429:
+        return new RetryableException(
+          response.status(),
+          "Too many requests, please try again later",
+          response.request().httpMethod(),
+          null,
+          response.request());
       case 500:
-        return new ServiceUnavailableException(
-            "An internal server error occurred, please try again later");
+        return new RetryableException(
+          response.status(),
+          "An internal server error occurred, please try again later",
+          response.request().httpMethod(),
+          null,
+          response.request());
       case 501:
         return new UnsupportedOperationException(
             message != null ? message : "Method not implement yet");
