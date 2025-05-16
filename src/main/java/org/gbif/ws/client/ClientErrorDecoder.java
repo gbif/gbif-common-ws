@@ -66,14 +66,14 @@ public class ClientErrorDecoder implements ErrorDecoder {
             response.status(),
             "Too many requests, please try again later",
             response.request().httpMethod(),
-            null,
+            (Long) null,
             response.request());
       case 500:
         return new RetryableException(
             response.status(),
             "An internal server error occurred, please try again later",
             response.request().httpMethod(),
-            null,
+            (Long) null,
             response.request());
       case 501:
         return new UnsupportedOperationException(
