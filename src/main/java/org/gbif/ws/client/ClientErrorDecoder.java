@@ -13,8 +13,6 @@
  */
 package org.gbif.ws.client;
 
-import feign.RetryableException;
-
 import org.gbif.ws.MethodNotAllowedException;
 import org.gbif.ws.NotFoundException;
 
@@ -31,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 
 import feign.Response;
+import feign.RetryableException;
 import feign.codec.ErrorDecoder;
 
 public class ClientErrorDecoder implements ErrorDecoder {
