@@ -13,25 +13,21 @@
  */
 package org.gbif.ws.client;
 
+import feign.Response;
 import feign.RetryableException;
-
-import org.gbif.ws.MethodNotAllowedException;
-import org.gbif.ws.NotFoundException;
-
+import feign.codec.ErrorDecoder;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
+import java.util.Date;
 import javax.validation.ValidationException;
-
 import org.apache.commons.io.IOUtils;
+import org.gbif.ws.MethodNotAllowedException;
+import org.gbif.ws.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
-
-import feign.Response;
-import feign.codec.ErrorDecoder;
 
 public class ClientErrorDecoder implements ErrorDecoder {
 
@@ -71,14 +67,14 @@ public class ClientErrorDecoder implements ErrorDecoder {
             response.status(),
             "Too many requests, please try again later",
             response.request().httpMethod(),
-            (Long) null,
+            (Date) null,
             response.request());
       case 500:
         return new RetryableException(
             response.status(),
             "An internal server error occurred, please try again later",
             response.request().httpMethod(),
-            (Long) null,
+            (Date) null,
             response.request());
       case 501:
         return new UnsupportedOperationException(
