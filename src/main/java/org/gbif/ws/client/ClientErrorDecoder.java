@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import javax.validation.ValidationException;
 import org.apache.commons.io.IOUtils;
 import org.gbif.ws.MethodNotAllowedException;
@@ -67,14 +66,14 @@ public class ClientErrorDecoder implements ErrorDecoder {
             response.status(),
             "Too many requests, please try again later",
             response.request().httpMethod(),
-            (Date) null,
+            null,
             response.request());
       case 500:
         return new RetryableException(
             response.status(),
             "An internal server error occurred, please try again later",
             response.request().httpMethod(),
-            (Date) null,
+            null,
             response.request());
       case 501:
         return new UnsupportedOperationException(
