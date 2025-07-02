@@ -48,7 +48,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class NoAuthWebSecurityConfigurer {
 
   @Bean
-  public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+  public AuthenticationManager authenticationManager(
+      UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
     DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
     provider.setPasswordEncoder(passwordEncoder);
     provider.setUserDetailsService(userDetailsService);
@@ -56,16 +57,19 @@ public class NoAuthWebSecurityConfigurer {
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                 HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
-                                                 RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter,
-                                                 IdentityFilter identityFilter,
-                                                 AppIdentityFilter appIdentityFilter) throws Exception {
-    return SecurityUtils.gbifFilterChain(http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .addFilterAfter(identityFilter,RequestHeaderParamUpdateFilter.class)
-            .addFilterAfter(appIdentityFilter, IdentityFilter.class)
-            .build();
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
+      RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter,
+      IdentityFilter identityFilter,
+      AppIdentityFilter appIdentityFilter)
+      throws Exception {
+    return SecurityUtils.gbifFilterChain(
+            http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .addFilterAfter(identityFilter, RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(appIdentityFilter, IdentityFilter.class)
+        .build();
   }
 
   /**

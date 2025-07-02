@@ -89,7 +89,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Search
     } else {
       String normedType = name.toUpperCase().replaceAll("[. _-]", "");
       java.lang.reflect.Field[] values = searchParameterClass.getFields();
-      for (Field field: values) {
+      for (Field field : values) {
 
         String fieldName = field.getName();
         String normedVal = fieldName.replaceAll("[. _-]", "");

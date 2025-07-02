@@ -33,52 +33,51 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class SecurityUtils {
 
-    /**
-     * Cors configuration, allows all methods and origins.
-     */
-    public static CorsConfigurationSource corsAllOriginsAndMethodsConfiguration() {
-        // CorsFilter only applies this if the origin header is present in the request
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
-        configuration.setAllowedOrigins(Collections.singletonList("*"));
-        configuration.setAllowedMethods(
-                Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
-        configuration.setExposedHeaders(
-                Arrays.asList(
-                        "Access-Control-Allow-Origin",
-                        "Access-Control-Allow-Methods",
-                        "Access-Control-Allow-Headers"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+  /**
+   * Cors configuration, allows all methods and origins.
+   */
+  public static CorsConfigurationSource corsAllOriginsAndMethodsConfiguration() {
+    // CorsFilter only applies this if the origin header is present in the request
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type"));
+    configuration.setAllowedOrigins(Collections.singletonList("*"));
+    configuration.setAllowedMethods(
+        Arrays.asList("HEAD", "GET", "POST", "DELETE", "PUT", "OPTIONS"));
+    configuration.setExposedHeaders(
+        Arrays.asList(
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Methods",
+            "Access-Control-Allow-Headers"));
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+  }
 
+  /**
+   * Configures the basic settings of the HttpSecurity.
+   */
+  public static HttpSecurity gbifFilterChain(
+      HttpSecurity http,
+      HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
+      RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter)
+      throws Exception {
+    return http.httpBasic(AbstractHttpConfigurer::disable)
+        .addFilterAfter(httpServletRequestWrapperFilter, CsrfFilter.class)
+        .addFilterAfter(requestHeaderParamUpdateFilter, HttpServletRequestWrapperFilter.class)
+        .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+  }
 
-    /**
-     * Configures the basic settings of the HttpSecurity.
-     */
-    public static HttpSecurity gbifFilterChain(HttpSecurity http,
-                                               HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
-                                               RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter) throws Exception {
-        return http.httpBasic(AbstractHttpConfigurer::disable)
-                    .addFilterAfter(httpServletRequestWrapperFilter, CsrfFilter.class)
-                    .addFilterAfter(requestHeaderParamUpdateFilter, HttpServletRequestWrapperFilter.class)
-                    .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
-                    .csrf(AbstractHttpConfigurer::disable)
-                    .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-    }
-
-
-    /**
-     * Creates a filters with authentication disabled.
-     */
-    public static SecurityFilterChain noAuthFilter(HttpSecurity http) throws Exception {
-        return http.httpBasic(AbstractHttpConfigurer::disable)
-                   .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
-                   .csrf(AbstractHttpConfigurer::disable)
-                   .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                   .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                   .build();
-    }
+  /**
+   * Creates a filters with authentication disabled.
+   */
+  public static SecurityFilterChain noAuthFilter(HttpSecurity http) throws Exception {
+    return http.httpBasic(AbstractHttpConfigurer::disable)
+        .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .build();
+  }
 }
