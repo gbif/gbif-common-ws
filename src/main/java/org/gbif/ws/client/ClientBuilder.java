@@ -75,7 +75,9 @@ public class ClientBuilder {
    */
   public ClientBuilder withExponentialBackoffRetry(
       Duration initialInterval, double multiplier, int maxAttempts, Duration maxInterval) {
-    retryer = new ClientRetryer(initialInterval.toMillis(), maxAttempts, multiplier, maxInterval.toMillis());
+    retryer =
+        new ClientRetryer(
+            initialInterval.toMillis(), maxAttempts, multiplier, maxInterval.toMillis());
     return this;
   }
 

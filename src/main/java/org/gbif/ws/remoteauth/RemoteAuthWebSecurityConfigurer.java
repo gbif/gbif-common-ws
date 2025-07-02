@@ -38,22 +38,29 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class RemoteAuthWebSecurityConfigurer {
 
   @Bean
-  public AuthenticationManager authenticationManager(RemoteAuthClient remoteAuthClient) throws Exception {
-    return new ProviderManager(new BasicRemoteAuthenticationProvider(remoteAuthClient),
-                                             new JwtRemoteBasicAuthenticationProvider(remoteAuthClient),
-                                             new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
+  public AuthenticationManager authenticationManager(RemoteAuthClient remoteAuthClient)
+      throws Exception {
+    return new ProviderManager(
+        new BasicRemoteAuthenticationProvider(remoteAuthClient),
+        new JwtRemoteBasicAuthenticationProvider(remoteAuthClient),
+        new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager,
-                                         HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
-                                         RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter) throws Exception {
-    return  SecurityUtils.gbifFilterChain(http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
-                         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                         .addFilterAfter(new BasicAuthRequestFilter(authenticationManager), RequestHeaderParamUpdateFilter.class)
-                         .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
-                         .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
-                         .build();
+  public SecurityFilterChain filterChain(
+      HttpSecurity http,
+      AuthenticationManager authenticationManager,
+      HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
+      RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter)
+      throws Exception {
+    return SecurityUtils.gbifFilterChain(
+            http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .addFilterAfter(
+            new BasicAuthRequestFilter(authenticationManager), RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
+        .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
+        .build();
   }
 
   /**

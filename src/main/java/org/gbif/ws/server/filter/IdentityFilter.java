@@ -57,7 +57,9 @@ public class IdentityFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
     Objects.requireNonNull(request, "Can't filter null request");
     Objects.requireNonNull(response, "Can't filter null response");
 

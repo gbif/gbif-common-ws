@@ -15,11 +15,11 @@ package org.gbif.ws.util;
 
 import java.util.Map;
 
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Class with util methods for WS.
