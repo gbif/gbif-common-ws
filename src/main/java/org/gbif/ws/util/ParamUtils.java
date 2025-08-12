@@ -71,7 +71,7 @@ public class ParamUtils {
       String eventDurationValue = eventDurationValueParams[0];
       DurationUnit eventDurationUnit =
           DurationUnit.parseDurationUnit(eventDurationUnitParams[0]).orElse(null);
-      if (eventDurationUnit != null && eventDurationUnit != DurationUnit.minutes) {
+      if (eventDurationUnit != null) {
         try {
           // convert values to minutes
           if (SearchTypeValidator.isNumericRange(eventDurationValue)) {
@@ -84,7 +84,7 @@ public class ParamUtils {
             searchRequest
                 .getParameters()
                 .put(
-                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE,
+                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
                     Set.of(minutesRange.toString()));
           } else {
             double durationInMinutes =
@@ -93,15 +93,12 @@ public class ParamUtils {
             searchRequest
                 .getParameters()
                 .put(
-                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE,
+                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
                     Set.of(String.valueOf(durationInMinutes)));
           }
 
-          searchRequest
-              .getParameters()
-              .put(
-                  OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT,
-                  Set.of(DurationUnit.minutes.name()));
+          searchRequest.getParameters().remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE);
+          searchRequest.getParameters().remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT);
         } catch (Exception ex) {
           log.info("Couldn't convert humboldt event duration value", ex);
         }
