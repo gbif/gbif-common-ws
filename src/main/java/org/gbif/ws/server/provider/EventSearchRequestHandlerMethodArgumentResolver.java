@@ -17,6 +17,9 @@ import static org.gbif.ws.util.ParamUtils.convertDnaSequenceParam;
 import static org.gbif.ws.util.ParamUtils.convertHumboldtUnitsParam;
 
 import java.util.Optional;
+
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.springframework.core.MethodParameter;
@@ -26,20 +29,20 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-public class OccurrenceSearchRequestHandlerMethodArgumentResolver
-    extends FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
+public class EventSearchRequestHandlerMethodArgumentResolver
+    extends FacetedSearchRequestProvider<EventSearchRequest, EventSearchParameter>
     implements HandlerMethodArgumentResolver {
 
   private static final String MATCH_CASE_PARAM = "matchCase";
   private static final String SHUFFLE_PARAM = "shuffle";
 
-  public OccurrenceSearchRequestHandlerMethodArgumentResolver() {
-    super(OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);
+  public EventSearchRequestHandlerMethodArgumentResolver() {
+    super(EventSearchRequest.class, EventSearchParameter.class);
   }
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-    return OccurrenceSearchRequest.class.equals(parameter.getParameterType());
+    return EventSearchRequest.class.equals(parameter.getParameterType());
   }
 
   @Override
@@ -52,20 +55,20 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
   }
 
   @Override
-  protected OccurrenceSearchRequest getSearchRequest(
-      WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
-    OccurrenceSearchRequest occurrenceSearchRequest =
+  protected EventSearchRequest getSearchRequest(
+      WebRequest webRequest, EventSearchRequest searchRequest) {
+    EventSearchRequest eventSearchRequest =
         super.getSearchRequest(webRequest, searchRequest);
     Optional.ofNullable(webRequest.getParameter(MATCH_CASE_PARAM))
         .ifPresent(
             matchVerbatim ->
-                occurrenceSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
+              eventSearchRequest.setMatchCase(Boolean.parseBoolean(matchVerbatim)));
 
     Optional.ofNullable(webRequest.getParameter(SHUFFLE_PARAM))
-        .ifPresent(occurrenceSearchRequest::setShuffle);
+        .ifPresent(eventSearchRequest::setShuffle);
 
-    convertDnaSequenceParam(webRequest.getParameterMap(), searchRequest);
+    convertHumboldtUnitsParam(webRequest.getParameterMap(), searchRequest);
 
-    return occurrenceSearchRequest;
+    return eventSearchRequest;
   }
 }
