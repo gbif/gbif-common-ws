@@ -94,7 +94,7 @@ public class ParamUtils {
             searchRequest
                 .getParameters()
                 .put(
-                  EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
+                    EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
                     Set.of(String.valueOf(durationInMinutes)));
           }
 
