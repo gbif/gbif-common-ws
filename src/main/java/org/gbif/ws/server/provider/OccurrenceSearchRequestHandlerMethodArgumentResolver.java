@@ -65,7 +65,6 @@ public class OccurrenceSearchRequestHandlerMethodArgumentResolver
         .ifPresent(occurrenceSearchRequest::setShuffle);
 
     convertDnaSequenceParam(webRequest.getParameterMap(), searchRequest);
-    convertHumboldtUnitsParam(webRequest.getParameterMap(), searchRequest);
 
     return occurrenceSearchRequest;
   }

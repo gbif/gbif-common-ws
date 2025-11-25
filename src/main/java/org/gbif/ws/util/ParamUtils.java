@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.DnaUtils;
@@ -47,7 +50,7 @@ public class ParamUtils {
   }
 
   public static void convertHumboldtUnitsParam(
-      Map<String, String[]> parametersMap, OccurrenceSearchRequest searchRequest) {
+      Map<String, String[]> parametersMap, EventSearchRequest searchRequest) {
     String[] eventDurationValueParams = null;
     String[] eventDurationUnitParams = null;
     for (Map.Entry<String, String[]> entry : parametersMap.entrySet()) {
@@ -84,7 +87,7 @@ public class ParamUtils {
             searchRequest
                 .getParameters()
                 .put(
-                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
+                    EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
                     Set.of(minutesRange.toString()));
           } else {
             double durationInMinutes =
@@ -93,12 +96,12 @@ public class ParamUtils {
             searchRequest
                 .getParameters()
                 .put(
-                    OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
+                  EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
                     Set.of(String.valueOf(durationInMinutes)));
           }
 
-          searchRequest.getParameters().remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE);
-          searchRequest.getParameters().remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT);
+          searchRequest.getParameters().remove(EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE);
+          searchRequest.getParameters().remove(EventSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT);
         } catch (Exception ex) {
           log.info("Couldn't convert humboldt event duration value", ex);
         }

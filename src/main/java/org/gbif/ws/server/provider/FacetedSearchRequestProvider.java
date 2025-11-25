@@ -37,7 +37,7 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_FACET_OFFSET;
  * 'page_size', 'offset', 'facet', 'q' and any of the search parameter enum member names case insensitively.
  */
 public class FacetedSearchRequestProvider<
-        RT extends FacetedSearchRequest<P>, P extends Enum<?> & SearchParameter>
+        RT extends FacetedSearchRequest<P>, P extends SearchParameter>
     extends SearchRequestProvider<RT, P> {
 
   private static final int DEFAULT_FACET_LIMIT = 10;

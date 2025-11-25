@@ -21,6 +21,7 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.ws.CommonRuntimeException;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +47,7 @@ import static org.gbif.ws.util.WebserviceParameter.PARAM_SPELLCHECK_COUNT;
  * This assumes the existence of the following parameters in the HTTP request:
  * 'page_size', 'offset', 'q' and any of the search parameter enum member names case insensitively.
  */
-public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?> & SearchParameter>
+public class SearchRequestProvider<RT extends SearchRequest<P>, P extends SearchParameter>
     implements ContextProvider<RT> {
 
   private static final int MAX_PAGE_SIZE = 1000;
@@ -84,10 +85,23 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Enum<?
   }
 
   protected P findSearchParam(String name) {
-    try {
-      return VocabularyUtils.lookupEnum(name, searchParameterClass);
-    } catch (IllegalArgumentException e) {
-      // we have all params here, not only the enum ones, so this is ok to end up here a few times
+    if (StringUtils.isEmpty(name)) {
+      return null;
+    } else {
+      String normedType = name.toUpperCase().replaceAll("[. _-]", "");
+      java.lang.reflect.Field[] values = searchParameterClass.getFields();
+      for (Field field : values) {
+
+        String fieldName = field.getName();
+        String normedVal = fieldName.replaceAll("[. _-]", "");
+        if (normedType.equals(normedVal)) {
+          try {
+            return (P) field.get(searchParameterClass);
+          } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
     }
     return null;
   }
