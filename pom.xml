@@ -40,34 +40,34 @@
 
   <properties>
     <java.version>17</java.version>
-    <spring-boot.version>3.2.5</spring-boot.version>
-    <spring.version>6.1.6</spring.version>
-    <spring-cloud-openfeign.version>4.1.1</spring-cloud-openfeign.version>
-    <spring-retry.version>2.0.6</spring-retry.version>
+    <spring-boot.version>3.5.8</spring-boot.version>
+    <spring.version>6.2.14</spring.version>
+    <spring-cloud-openfeign.version>4.3.0</spring-cloud-openfeign.version>
+    <spring-retry.version>2.0.12</spring-retry.version>
 
-    <gbif-api.version>2.2.0-SNAPSHOT</gbif-api.version>
-    <gbif-common.version>0.52</gbif-common.version>
+    <gbif-api.version>2.2.1-SNAPSHOT</gbif-api.version>
+    <gbif-common.version>0.60</gbif-common.version>
 
     <aopalliance.version>1.0</aopalliance.version>
-    <jackson.version>2.17.1</jackson.version>
+    <jackson.version>2.19.4</jackson.version>
     <jsr305.version>3.0.1</jsr305.version>
-    <junit.version>5.10.2</junit.version>
-    <logback.version>1.4.14</logback.version>
-    <mockito.version>3.12.4</mockito.version>
-    <slf4j.version>2.0.7</slf4j.version>
-    <feign.version>13.5</feign.version>
+    <junit.version>5.12.2</junit.version>
+    <logback.version>1.5.21</logback.version>
+    <mockito.version>5.20.0</mockito.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <feign.version>13.6</feign.version>
     <feign-form.version>3.8.0</feign-form.version>
-    <commons-codec.version>1.13</commons-codec.version>
+    <commons-codec.version>1.20.0</commons-codec.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
-    <commons-io.version>2.7</commons-io.version>
-    <commons-lang3.version>3.10</commons-lang3.version>
-    <lombok.version>1.18.32</lombok.version>
-    <wiremock.version>2.21.0</wiremock.version>
-    <validation-api.version>3.1.0</validation-api.version>
+    <commons-io.version>2.21.0</commons-io.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <lombok.version>1.18.42</lombok.version>
+    <wiremock.version>3.13.2</wiremock.version>
+    <validation-api.version>3.1.1</validation-api.version>
     <annotation-api.version>3.0.0</annotation-api.version>
 
-    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-    <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
+    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -292,12 +292,12 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock</artifactId>
-      <version>${wiremock.version}</version>
-      <scope>test</scope>
-    </dependency>
+      <dependency>
+          <groupId>org.wiremock</groupId>
+          <artifactId>wiremock</artifactId>
+          <version>${wiremock.version}</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <build>
