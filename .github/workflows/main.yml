@@ -16,6 +16,7 @@ jobs:
       - name: Java 17 setup
         uses: actions/setup-java@v4
         with:
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Spotless
