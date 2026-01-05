@@ -13,14 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Java 17 setup
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+
       - name: Spotless
         run: mvn spotless:apply
-
-      # Java 11 is required for google-java-format v1.8
-      - name: Java 11 setup
-        uses: actions/setup-java@v1
-        with:
-          java-version: '11'
 
       - name: Google Java Format
         uses: axel-op/googlejavaformat-action@v3.1.0
