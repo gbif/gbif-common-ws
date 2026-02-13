@@ -14,7 +14,6 @@
 package org.gbif.ws.server.provider;
 
 import static org.gbif.ws.util.ParamUtils.convertDnaSequenceParam;
-import static org.gbif.ws.util.ParamUtils.convertHumboldtUnitsParam;
 
 import java.util.Optional;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
