@@ -16,10 +16,8 @@ package org.gbif.ws.server.provider;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.WebRequest;
@@ -122,6 +120,22 @@ public class FacetedSearchRequestProvider<
     if (StringUtils.isNotEmpty(value)) {
       return value;
     }
+    if (!params.isEmpty()) {
+      // try with proper case insensitive search
+      Map<String, String> loweredParams = params.keySet().stream()
+          .collect(Collectors.toMap(
+              String::toLowerCase,
+              k -> k,
+              (existing, replacement) -> existing // keep first
+          ));
+      if (loweredParams.containsKey(parameter.toLowerCase())) {
+        value = getFirst(params, loweredParams.get(parameter.toLowerCase()));
+        if (StringUtils.isNotEmpty(value)) {
+          return value;
+        }
+      }
+    }
+
     return null;
   }
 }

@@ -48,7 +48,7 @@ public final class WebserviceParameter {
   /**
    * Parameter min count of facets, facets with less than this valued sholdn't be included in the response.
    */
-  public static final String PARAM_FACET_MINCOUNT = "facetMincount";
+  public static final String PARAM_FACET_MINCOUNT = "facetMinCount";
 
   public static final String PARAM_HIGHLIGHT = "hl";
 
