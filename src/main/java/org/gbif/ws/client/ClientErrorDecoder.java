@@ -81,6 +81,13 @@ public class ClientErrorDecoder implements ErrorDecoder {
       case 501:
         return new UnsupportedOperationException(
             message != null ? message : "Method not implement yet");
+      case 503:
+        return new RetryableException(
+            response.status(),
+            "The service is temporarily unavailable, please try again later",
+            response.request().httpMethod(),
+            (Long) null,
+            response.request());
       default:
         return new RuntimeException(message != null ? message : "Unexpected exception");
     }
