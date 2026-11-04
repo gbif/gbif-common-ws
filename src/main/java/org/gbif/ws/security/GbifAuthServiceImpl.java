@@ -16,6 +16,8 @@ package org.gbif.ws.security;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -111,8 +113,8 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       LOG.debug("Private key was not found for app key {}", appKey);
       return false;
     }
-    // compare signatures
-    if (signatureFound.equals(signature)) {
+    // compare signatures; use MessageDigest.isEquals to avoid timing attacks
+    if (MessageDigest.isEqual(signatureFound.getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8))) {
       LOG.debug("Trusted application with matching signatures");
       return true;
     }
