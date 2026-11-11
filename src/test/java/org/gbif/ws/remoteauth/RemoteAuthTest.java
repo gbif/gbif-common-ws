@@ -34,10 +34,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.gbif.ws.remoteauth.LoginServerExtension.ADMIN_USER;
 import static org.gbif.ws.remoteauth.LoginServerExtension.INVALID_USER;
 import static org.gbif.ws.remoteauth.LoginServerExtension.USER;
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
+import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_DATE;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 
 /**
@@ -53,6 +58,8 @@ import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 public class RemoteAuthTest {
 
   @RegisterExtension static LoginServerExtension loginServer = new LoginServerExtension();
+
+  private static final String DATE = "Thu, 5 Nov 2026 10:00:00 GMT";
 
   @Autowired MockMvc mockMvc;
 
@@ -143,7 +150,7 @@ public class RemoteAuthTest {
             MockMvcRequestBuilders.get("/admin")
                 .header(HttpHeaders.AUTHORIZATION, USER.getGbifSchemeHeader())
                 .header(HEADER_GBIF_USER, USER.getLoggedUser().getUserName())
-                .header(HEADER_CONTENT_MD5, "foo"))
+                .header(HEADER_GBIF_DATE, DATE))
         .andExpect(MockMvcResultMatchers.status().isForbidden());
 
     // user with permissions
@@ -152,7 +159,7 @@ public class RemoteAuthTest {
             MockMvcRequestBuilders.get("/admin")
                 .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
                 .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
-                .header(HEADER_CONTENT_MD5, "foo"))
+                .header(HEADER_GBIF_DATE, DATE))
         .andExpect(MockMvcResultMatchers.status().isOk());
 
     // invalid user
@@ -161,8 +168,69 @@ public class RemoteAuthTest {
             MockMvcRequestBuilders.get("/admin")
                 .header(HttpHeaders.AUTHORIZATION, INVALID_USER.getGbifSchemeHeader())
                 .header(HEADER_GBIF_USER, INVALID_USER.getLoggedUser().getUserName())
-                .header(HEADER_CONTENT_MD5, "foo"))
+                .header(HEADER_GBIF_DATE, DATE))
         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+  }
+
+  @Test
+  public void gbifAppSpoofedOriginalUrlTest() throws Exception {
+    // a signature for another path can't be replayed by setting x-url
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/admin")
+                .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
+                .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
+                .header(HEADER_GBIF_DATE, DATE)
+                .header(HEADER_ORIGINAL_REQUEST_URL, "/other"))
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+
+    // x-url matching the real path is accepted
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/admin")
+                .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
+                .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
+                .header(HEADER_GBIF_DATE, DATE)
+                .header(HEADER_ORIGINAL_REQUEST_URL, "/admin"))
+        .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+
+  @Test
+  public void gbifAppForwardsQueryStringTest() throws Exception {
+    // the real query string is forwarded in x-url so the registry verifies it is signed
+    try {
+      mockMvc.perform(
+          MockMvcRequestBuilders.get("/admin?limit=1")
+              .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
+              .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
+              .header(HEADER_GBIF_DATE, DATE)
+              .header(HEADER_ORIGINAL_REQUEST_URL, "https://api.gbif.org/v1/admin?limit=1000"));
+    } catch (Exception e) {
+      // no stub matches this x-url, only the forwarded headers are verified
+    }
+    loginServer
+        .getWireMockServer()
+        .verify(
+            postRequestedFor(urlEqualTo("/user/auth/app"))
+                .withHeader(HEADER_ORIGINAL_REQUEST_URL, equalTo("/v1/admin?limit=1")));
+  }
+
+  @Test
+  public void gbifAppSwappedBodyTest() throws Exception {
+    // Content-MD5 doesn't match the body, rejected before the remote auth call
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/admin")
+                .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
+                .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
+                .header(HEADER_GBIF_DATE, DATE)
+                .header(HEADER_CONTENT_MD5, "foo")
+                .contentType("application/json")
+                .content("{\"evil\":true}"))
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    loginServer
+        .getWireMockServer()
+        .verify(0, postRequestedFor(urlEqualTo("/user/auth/app")).withHeader(HEADER_CONTENT_MD5, equalTo("foo")));
   }
 
   static class ContextInitializer

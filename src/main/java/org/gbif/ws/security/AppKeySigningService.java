@@ -31,7 +31,7 @@ public class AppKeySigningService extends BaseSigningService {
   }
 
   /**
-   * Generates a Base64 encoded HMAC-SHA1 signature of the passed request data with the secret key
+   * Generates a Base64 encoded HMAC-SHA256 signature of the passed request data with the secret key
    * associated with the given application key. See Message Authentication Code specs
    * http://tools.ietf.org/html/rfc2104
    *

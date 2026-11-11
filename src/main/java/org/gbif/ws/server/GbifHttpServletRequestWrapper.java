@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -105,6 +106,18 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
   public String getContent() {
     return content;
+  }
+
+  /**
+   * @return the buffered request body encoded with the request charset, or null if the content was
+   * not wrapped
+   */
+  public byte[] getContentBytes() {
+    if (content == null) {
+      return null;
+    }
+    String encoding = getCharacterEncoding();
+    return content.getBytes(encoding != null ? Charset.forName(encoding) : Charset.defaultCharset());
   }
 
   public HttpHeaders getHttpHeaders() {

@@ -1,5 +1,21 @@
 # Change Log
 
+## 2.1.4 (unreleased)
+
+**Breaking:** GBIF request signatures made by earlier versions are rejected. All signers, Java or not,
+must be updated before servers are deployed with this version. See
+[GBIF request signing](README.md#gbif-request-signing).
+
+ * Signatures use HMAC-SHA256 instead of HMAC-SHA1.
+ * New signed `x-gbif-date` header; requests outside `gbif.ws.security.gbifAuth.maxClockSkewSeconds`
+   (default 15 minutes) are rejected to limit replays ([informatics#52](https://github.com/gbif/informatics/issues/52)).
+ * The canonical query string is now part of the signed URL.
+ * `Content-MD5` is verified against the request body.
+ * `x-url` and `x-method` must match the real request, except on `gbif.ws.security.gbifAuth.forwardedAuthPaths`
+   (default `/user/auth/app`).
+ * Signatures are compared in constant time ([informatics#56](https://github.com/gbif/informatics/issues/56)).
+ * `commons-beanutils` upgraded to 1.11.0 for CVE-2025-48734 ([informatics#60](https://github.com/gbif/informatics/issues/60)).
+
 ## 0.40 (2017-08-07)
 
  * The class `org.gbif.ws.server.filter.AuthFilter` is now replaced by `IdentityFilter`.
