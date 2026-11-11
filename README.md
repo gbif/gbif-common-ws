@@ -18,8 +18,11 @@ Applications authenticate to GBIF web services by signing each request with thei
 Java clients get this from `GbifAuthRequestInterceptor` (Feign) or `GbifAuthService#signRequest`; other
 clients must implement the steps below. The server side is `GbifAuthServiceImpl`.
 
-Since 2.1.4 the scheme binds the date, query string and body to the signature. It is **not compatible**
-with signatures made by older versions, see the [Change Log](CHANGELOG.md).
+Since 2.1.4 the scheme binds the date, query string and body to the signature. Signatures made by older
+versions (HMAC-SHA1, path only, no `x-gbif-date`) are still accepted while
+`gbif.ws.security.gbifAuth.acceptLegacySignatures` is `true` (the default). They have no replay protection:
+each one is logged at WARN with its app key, and the flag should be set to `false` once all signers are
+upgraded. A request with an `x-gbif-date` header is always checked against the new format.
 
 ### Headers
 

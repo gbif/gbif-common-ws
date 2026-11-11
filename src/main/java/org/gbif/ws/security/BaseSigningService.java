@@ -24,6 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
 public abstract class BaseSigningService implements SigningService {
 
   private static final String ALGORITHM = "HmacSHA256";
+  private static final String LEGACY_ALGORITHM = "HmacSHA1";
 
   /**
    * Generates a Base64 encoded HMAC-SHA256 signature of the passed request data with the secret key.
@@ -34,17 +35,32 @@ public abstract class BaseSigningService implements SigningService {
    */
   @Override
   public String buildSignature(RequestDataToSign requestDataToSign, String secretKey) {
+    return hmac(ALGORITHM, requestDataToSign.stringToSign(), secretKey);
+  }
+
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 signature of the legacy string to sign, as clients older
+   * than 2.1.4 do.
+   *
+   * @param requestDataToSign the request data to be signed
+   * @param secretKey         the secret key
+   */
+  @Override
+  public String buildLegacySignature(RequestDataToSign requestDataToSign, String secretKey) {
+    return hmac(LEGACY_ALGORITHM, requestDataToSign.legacyStringToSign(), secretKey);
+  }
+
+  private static String hmac(String algorithm, String stringToSign, String secretKey) {
     try {
-      Mac mac = Mac.getInstance(ALGORITHM);
+      Mac mac = Mac.getInstance(algorithm);
       SecretKeySpec secret =
-          new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);
+          new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), algorithm);
       mac.init(secret);
-      byte[] digest =
-          mac.doFinal(requestDataToSign.stringToSign().getBytes(StandardCharsets.UTF_8));
+      byte[] digest = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
 
       return new String(Base64.getEncoder().encode(digest), StandardCharsets.US_ASCII);
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);
+      throw new RuntimeException("Cant find " + algorithm + " message digester", e);
     } catch (InvalidKeyException e) {
       throw new RuntimeException("Invalid secret key " + secretKey, e);
     }

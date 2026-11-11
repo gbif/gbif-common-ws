@@ -89,13 +89,36 @@ public class GbifAuthServiceTest {
   }
 
   private GbifAuthServiceImpl serviceAt(Instant instant) {
+    return serviceAt(instant, false);
+  }
+
+  private GbifAuthServiceImpl serviceAt(Instant instant, boolean acceptLegacySignatures) {
     return new GbifAuthServiceImpl(
         signingService,
         md5EncodeService,
         () -> APPKEY,
         Duration.ofMinutes(15),
         Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
+        acceptLegacySignatures,
         Clock.fixed(instant, ZoneOffset.UTC));
+  }
+
+  /** Signs the request the same way clients older than 2.1.4 do: no date, path only, HMAC-SHA1. */
+  private Map<String, String> legacySign(String method, String path, String body, String user) {
+    RequestDataToSign data = new RequestDataToSign();
+    data.setMethod(method);
+    data.setUrl(path);
+    data.setUser(user);
+    HttpHeaders headers = new HttpHeaders();
+    if (body != null) {
+      String md5 = md5EncodeService.encode(body.getBytes(StandardCharsets.UTF_8));
+      data.setContentType("application/json");
+      data.setContentTypeMd5(md5);
+      headers.set(HEADER_CONTENT_MD5, md5);
+    }
+    headers.set(HEADER_GBIF_USER, user);
+    headers.set(AUTHORIZATION, "GBIF " + APPKEY + ":" + signingService.buildLegacySignature(data, APPKEY));
+    return headers.toSingleValueMap();
   }
 
   private static GbifHttpServletRequestWrapper wrap(
@@ -208,6 +231,47 @@ public class GbifAuthServiceTest {
     // a date within the window but not the signed one
     headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW.plusSeconds(60), ZoneOffset.UTC)));
     assertFalse(service.isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testLegacySignatureIsAcceptedWhenEnabled() {
+    GbifAuthServiceImpl legacyService = serviceAt(NOW, true);
+
+    assertTrue(legacyService.isValidRequest(wrap("GET", "/dataset", null, legacySign("GET", "/dataset", null, USER))));
+    assertTrue(legacyService.isValidRequest(wrap("POST", "/dataset", BODY, legacySign("POST", "/dataset", BODY, USER))));
+    // legacy signatures don't cover the query string
+    assertTrue(legacyService.isValidRequest(wrap("GET", "/dataset?limit=1", null, legacySign("GET", "/dataset", null, USER))));
+    // new signatures are still accepted
+    assertTrue(legacyService.isValidRequest(wrap("GET", "/dataset", null, sign("GET", "/dataset", null, NOW, USER))));
+  }
+
+  @Test
+  public void testLegacySignatureIsRejectedWhenDisabled() {
+    assertFalse(service.isValidRequest(wrap("GET", "/dataset", null, legacySign("GET", "/dataset", null, USER))));
+  }
+
+  @Test
+  public void testLegacySignatureWithDateIsRejected() {
+    // a request with a date is only checked as new format, a captured legacy signature can't be
+    // combined with one
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(legacySign("GET", "/dataset", null, USER));
+    headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW, ZoneOffset.UTC)));
+
+    assertFalse(serviceAt(NOW, true).isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testLegacySignatureStillChecksBodyAndOriginalRequest() {
+    GbifAuthServiceImpl legacyService = serviceAt(NOW, true);
+
+    Map<String, String> postHeaders = legacySign("POST", "/dataset", BODY, USER);
+    assertFalse(legacyService.isValidRequest(wrap("POST", "/dataset", "{\"title\":\"evil\"}", postHeaders)));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(legacySign("GET", "/dataset", null, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "GET");
+    assertFalse(legacyService.isValidRequest(wrap("DELETE", "/dataset", null, headers.toSingleValueMap())));
   }
 
   @Test

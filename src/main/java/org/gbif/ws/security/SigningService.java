@@ -16,4 +16,7 @@ package org.gbif.ws.security;
 public interface SigningService {
 
   String buildSignature(RequestDataToSign requestDataToSign, String key);
+
+  /** Signature in the format of clients older than 2.1.4, see {@link RequestDataToSign#legacyStringToSign()}. */
+  String buildLegacySignature(RequestDataToSign requestDataToSign, String key);
 }

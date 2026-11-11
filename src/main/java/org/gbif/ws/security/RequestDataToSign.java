@@ -94,6 +94,15 @@ public class RequestDataToSign {
    * Docs</a>
    */
   public String stringToSign() {
+    return legacyStringToSign() + '\n' + date;
+  }
+
+  /**
+   * The string signed by clients older than 2.1.4: no date, and the url is the path only.
+   *
+   * @see #stringToSign()
+   */
+  public String legacyStringToSign() {
     StringBuilder sb = new StringBuilder();
 
     sb.append(method);
@@ -109,8 +118,6 @@ public class RequestDataToSign {
     }
     sb.append('\n');
     sb.append(user);
-    sb.append('\n');
-    sb.append(date);
 
     return sb.toString();
   }

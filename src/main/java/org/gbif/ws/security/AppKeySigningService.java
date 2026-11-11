@@ -40,14 +40,26 @@ public class AppKeySigningService extends BaseSigningService {
    */
   @Override
   public String buildSignature(RequestDataToSign requestDataToSign, String appKey) {
+    return super.buildSignature(requestDataToSign, getSecretKey(appKey));
+  }
+
+  /**
+   * Generates a Base64 encoded HMAC-SHA1 legacy signature, see {@link
+   * BaseSigningService#buildLegacySignature}, with the secret key associated with the given
+   * application key.
+   */
+  @Override
+  public String buildLegacySignature(RequestDataToSign requestDataToSign, String appKey) {
+    return super.buildLegacySignature(requestDataToSign, getSecretKey(appKey));
+  }
+
+  private String getSecretKey(String appKey) {
     // find private key for this app
     final String secretKey = keyStore.getPrivateKey(appKey);
     if (secretKey == null) {
       LOG.error("Unknown application key: {}", appKey);
       throw new PrivateKeyNotFoundException();
     }
-
-    // sign
-    return super.buildSignature(requestDataToSign, secretKey);
+    return secretKey;
   }
 }
