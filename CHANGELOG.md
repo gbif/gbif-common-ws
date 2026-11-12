@@ -30,6 +30,7 @@ must be updated before servers are deployed with this version. See
  * `IdentityFilter` answers failed authentication as `text/plain; charset=UTF-8` without echoing the user name, and no longer catches exceptions thrown further down the filter chain ([informatics#62](https://github.com/gbif/informatics/issues/62)).
  * Removed the `@Retryable` from `AbstractRemoteAuthenticationProvider#tryLogin`; it had no effect and would have retried rejected credentials ([informatics#64](https://github.com/gbif/informatics/issues/64)).
  * JWTs are only read from an `Authorization` header using the `Bearer` scheme, instead of any header containing the word "bearer" (security review L5, [infrastructure#66](https://github.com/gbif/infrastructure/issues/66)).
+ * Search parameters are bounded ([informatics#58](https://github.com/gbif/informatics/issues/58)): `facetLimit` and `<facet>.facetLimit` are lowered to 1000 and `spellCheckCount` to 100; `facetOffset` and `<facet>.facetOffset` above 10000, negative values and non-numeric values are rejected with 400. The facet maxima can be changed with a new `FacetedSearchRequestProvider` constructor.
 
 ## 0.40 (2017-08-07)
 

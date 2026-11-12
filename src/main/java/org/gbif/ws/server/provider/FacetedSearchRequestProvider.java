@@ -39,14 +39,41 @@ public class FacetedSearchRequestProvider<
     extends SearchRequestProvider<RT, P> {
 
   private static final int DEFAULT_FACET_LIMIT = 10;
+  public static final int DEFAULT_MAX_FACET_LIMIT = 1000;
+  public static final int DEFAULT_MAX_FACET_OFFSET = 10000;
+
+  private final int maxFacetLimit;
+  private final int maxFacetOffset;
 
   public FacetedSearchRequestProvider(Class<RT> requestType, Class<P> searchParameterClass) {
     super(requestType, searchParameterClass);
+    this.maxFacetLimit = DEFAULT_MAX_FACET_LIMIT;
+    this.maxFacetOffset = DEFAULT_MAX_FACET_OFFSET;
   }
 
   public FacetedSearchRequestProvider(
       Class<RT> requestType, Class<P> searchParameterClass, Integer maxPageSize) {
+    this(
+        requestType,
+        searchParameterClass,
+        maxPageSize,
+        DEFAULT_MAX_FACET_LIMIT,
+        DEFAULT_MAX_FACET_OFFSET);
+  }
+
+  /**
+   * @param maxFacetLimit  facet limits above it are lowered to it, as limit is for page sizes
+   * @param maxFacetOffset facet offsets above it are rejected (400)
+   */
+  public FacetedSearchRequestProvider(
+      Class<RT> requestType,
+      Class<P> searchParameterClass,
+      Integer maxPageSize,
+      int maxFacetLimit,
+      int maxFacetOffset) {
     super(requestType, searchParameterClass, maxPageSize);
+    this.maxFacetLimit = maxFacetLimit;
+    this.maxFacetOffset = maxFacetOffset;
   }
 
   @Override
@@ -62,17 +89,18 @@ public class FacetedSearchRequestProvider<
 
     final String facetMinCountValue = getFirstIgnoringCase(PARAM_FACET_MINCOUNT, params);
     if (facetMinCountValue != null) {
-      searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));
+      searchRequest.setFacetMinCount(
+          parseNonNegativeInt(PARAM_FACET_MINCOUNT, facetMinCountValue));
     }
 
     final String facetLimit = getFirstIgnoringCase(PARAM_FACET_LIMIT, params);
     if (facetLimit != null) {
-      searchRequest.setFacetLimit(Integer.parseInt(facetLimit));
+      searchRequest.setFacetLimit(parseFacetLimit(PARAM_FACET_LIMIT, facetLimit));
     }
 
     final String facetOffset = getFirstIgnoringCase(PARAM_FACET_OFFSET, params);
     if (facetOffset != null) {
-      searchRequest.setFacetOffset(Integer.parseInt(facetOffset));
+      searchRequest.setFacetOffset(parseFacetOffset(PARAM_FACET_OFFSET, facetOffset));
     }
 
     final List<String> facets =
@@ -84,23 +112,36 @@ public class FacetedSearchRequestProvider<
         P p = findSearchParam(f);
         if (p != null) {
           searchRequest.addFacets(p);
-          String pFacetOffset = getFirstIgnoringCase(f + '.' + PARAM_FACET_OFFSET, params);
-          String pFacetLimit = getFirstIgnoringCase(f + '.' + PARAM_FACET_LIMIT, params);
-          if (pFacetLimit != null) {
-            if (pFacetOffset != null) {
-              searchRequest.addFacetPage(
-                  p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
-            } else {
-              searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));
-            }
-          } else if (pFacetOffset != null) {
-            searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), DEFAULT_FACET_LIMIT);
+          String pFacetOffsetParam = f + '.' + PARAM_FACET_OFFSET;
+          String pFacetLimitParam = f + '.' + PARAM_FACET_LIMIT;
+          String pFacetOffset = getFirstIgnoringCase(pFacetOffsetParam, params);
+          String pFacetLimit = getFirstIgnoringCase(pFacetLimitParam, params);
+          if (pFacetLimit != null || pFacetOffset != null) {
+            searchRequest.addFacetPage(
+                p,
+                pFacetOffset != null ? parseFacetOffset(pFacetOffsetParam, pFacetOffset) : 0,
+                pFacetLimit != null
+                    ? parseFacetLimit(pFacetLimitParam, pFacetLimit)
+                    : DEFAULT_FACET_LIMIT);
           }
         }
       }
     }
 
     return request;
+  }
+
+  private int parseFacetLimit(String parameter, String value) {
+    return Math.min(parseNonNegativeInt(parameter, value), maxFacetLimit);
+  }
+
+  private int parseFacetOffset(String parameter, String value) {
+    int offset = parseNonNegativeInt(parameter, value);
+    if (offset > maxFacetOffset) {
+      throw new IllegalArgumentException(
+          "Parameter " + parameter + " must not be greater than " + maxFacetOffset);
+    }
+    return offset;
   }
 
   /**
