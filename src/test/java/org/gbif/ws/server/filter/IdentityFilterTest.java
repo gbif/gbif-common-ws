@@ -22,6 +22,8 @@ import org.gbif.ws.security.GbifAuthServiceTest;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -47,9 +49,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -169,15 +172,20 @@ public class IdentityFilterTest {
   }
 
   @Test
-  public void testFilterWithBasicAuthWrongPassword() {
-    doThrow(WebApplicationException.class).when(mockResponse).setStatus(anyInt());
-    assertThrows(
-        WebApplicationException.class,
-        () ->
-            assertPrincipalName(
-                null,
-                getMockRequestAuthorization(
-                    "Basic " + toAuthorizationString(heinz.getUserName(), "wrong"))));
+  public void testFilterWithBasicAuthWrongPassword() throws Exception {
+    StringWriter body = new StringWriter();
+    when(mockResponse.getWriter()).thenReturn(new PrintWriter(body));
+
+    identityFilter.doFilter(
+        getMockRequestAuthorization("Basic " + toAuthorizationString(heinz.getUserName(), "wrong")),
+        mockResponse,
+        mockFilterChain);
+
+    verify(mockResponse).setStatus(401);
+    verify(mockResponse).setContentType("text/plain");
+    verify(mockFilterChain, never()).doFilter(any(), any());
+    // the response does not echo the user name
+    assertEquals("Failed to authenticate user", body.toString().trim());
   }
 
   private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request)

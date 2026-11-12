@@ -138,7 +138,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     GbifUser user = identityAccessService.authenticate(username, password);
     if (user == null) {
       throw new WebApplicationException(
-          "Failed to authenticate user " + username, HttpStatus.UNAUTHORIZED);
+          "Failed to authenticate user", HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, BASIC_AUTH);
