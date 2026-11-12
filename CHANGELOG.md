@@ -25,6 +25,7 @@ must be updated before servers are deployed with this version. See
   `NoAuthWebSecurityConfigurer` now uses `permitAll()` at the URL level, as `.authenticated()`
   used to let anonymous requests through; endpoints stay secured by method security. Consumers that
   relied on anonymous passing method-security `isAuthenticated()` checks were open and must be reviewed.
+ * `AppIdentityFilter` stops the filter chain after answering 401 to an invalid GBIF signature ([informatics#57](https://github.com/gbif/informatics/issues/57)).
 
 ## 0.40 (2017-08-07)
 

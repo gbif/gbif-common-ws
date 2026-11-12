@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -133,6 +135,34 @@ public class AppIdentityFilterTest {
     verify(mockRequest).getHeader(SecurityConstants.HEADER_GBIF_USER);
     verify(mockRequest, atLeastOnce()).getInputStream();
     verify(authServiceMock).isValidRequest(any(GbifHttpServletRequestWrapper.class));
+  }
+
+  /**
+   * An invalid GBIF signature is answered with 401 and the request does not continue down the
+   * filter chain.
+   */
+  @Test
+  public void testInvalidSignatureStopsChain() throws Exception {
+    // GIVEN
+    HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+    HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    when(mockRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("GBIF appkey:blabla");
+    when(mockRequest.getInputStream())
+        .thenReturn(
+            new DelegatingServletInputStream(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+    when(authServiceMock.isValidRequest(any(GbifHttpServletRequestWrapper.class)))
+        .thenReturn(false);
+
+    // WHEN
+    appIdentityFilter.doFilter(mockRequest, mockResponse, chain);
+
+    // THEN
+    assertNull(context.getAuthentication());
+    verify(mockResponse).setStatus(HttpStatus.UNAUTHORIZED.value());
+    verify(chain, never()).doFilter(any(), any());
   }
 
   /**
