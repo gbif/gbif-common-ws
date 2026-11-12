@@ -66,7 +66,8 @@ public class NoAuthWebSecurityConfigurer {
       throws Exception {
     return SecurityUtils.gbifFilterChain(
             http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
-        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        // anonymous requests reach the controllers; endpoints are secured with method security
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
         .addFilterAfter(identityFilter, RequestHeaderParamUpdateFilter.class)
         .addFilterAfter(appIdentityFilter, IdentityFilter.class)
         .build();
