@@ -60,6 +60,7 @@
     <commons-codec.version>1.20.0</commons-codec.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <commons-io.version>2.21.0</commons-io.version>
+    <owasp-java-html-sanitizer.version>20240325.1</owasp-java-html-sanitizer.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
     <lombok.version>1.18.42</lombok.version>
     <wiremock.version>3.13.2</wiremock.version>
@@ -214,6 +215,11 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+      <artifactId>owasp-java-html-sanitizer</artifactId>
+      <version>${owasp-java-html-sanitizer.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
