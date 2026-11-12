@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -74,8 +72,10 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
     return authClass.isAssignableFrom(authentication);
   }
 
-  /** Performs the remote call to the login service. */
-  @Retryable(value = RuntimeException.class, maxAttempts = 5, backoff = @Backoff(delay = 300))
+  /**
+   * Performs the remote call to the login service. Not retried: a retry would repeat rejected
+   * credentials against the login service.
+   */
   protected ResponseEntity<String> tryLogin(T authentication) {
     return remoteAuthClient.remoteAuth(authWsPath, createHttpHeaders(authentication));
   }
