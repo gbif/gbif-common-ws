@@ -14,8 +14,8 @@
 package org.gbif.ws.remoteauth.jwt;
 
 import java.util.Optional;
-import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,28 +25,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class JwtUtils {
 
-  // Patterns that catches case-insensitive versions of word 'bearer'
-  private static final Pattern BEARER_PATTERN = Pattern.compile("(?i)bearer");
+  private static final String BEARER_PREFIX = "Bearer ";
 
   /** Tries to find the token in the {@link HttpHeaders#AUTHORIZATION} header. */
   static Optional<String> findTokenInRequest(HttpServletRequest request) {
     // check header first
     return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
-        .filter(JwtUtils::containsBearer)
-        .map(JwtUtils::removeBearer);
+        .filter(JwtUtils::isBearer)
+        .map(JwtUtils::removeBearer)
+        .filter(StringUtils::isNotEmpty);
   }
 
   /**
-   * Removes 'bearer' token, leading an trailing whitespaces.
+   * Removes the "Bearer " scheme prefix and surrounding whitespace.
    *
-   * @param token to be clean
-   * @return a token without whitespaces and the word 'bearer'
+   * @param header Authorization header starting with the Bearer scheme
+   * @return the token
    */
-  private static String removeBearer(String token) {
-    return BEARER_PATTERN.matcher(token).replaceAll("").trim();
+  private static String removeBearer(String header) {
+    return header.substring(BEARER_PREFIX.length()).trim();
   }
 
-  private static boolean containsBearer(String header) {
-    return BEARER_PATTERN.matcher(header).find();
+  /** The scheme name is case-insensitive (RFC 7235), only the Bearer scheme carries a JWT. */
+  private static boolean isBearer(String header) {
+    return StringUtils.startsWithIgnoreCase(header, BEARER_PREFIX);
   }
 }

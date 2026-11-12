@@ -29,6 +29,7 @@ must be updated before servers are deployed with this version. See
  * Authorization headers, Basic credentials and app secrets are no longer written to logs or exception messages; an invalid Base64 Basic header is answered with 400 instead of 500 ([informatics#61](https://github.com/gbif/informatics/issues/61)).
  * `IdentityFilter` answers failed authentication as `text/plain; charset=UTF-8` without echoing the user name, and no longer catches exceptions thrown further down the filter chain ([informatics#62](https://github.com/gbif/informatics/issues/62)).
  * Removed the `@Retryable` from `AbstractRemoteAuthenticationProvider#tryLogin`; it had no effect and would have retried rejected credentials ([informatics#64](https://github.com/gbif/informatics/issues/64)).
+ * JWTs are only read from an `Authorization` header using the `Bearer` scheme, instead of any header containing the word "bearer" (security review L5, [infrastructure#66](https://github.com/gbif/infrastructure/issues/66)).
 
 ## 0.40 (2017-08-07)
 
