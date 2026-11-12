@@ -97,6 +97,22 @@ A request is rejected with 401 when:
   remote authentication;
 - the signature does not match.
 
+### Acting as admin users
+
+A signed request acts as the user in `x-gbif-user`. When that user has an admin role (any `*_ADMIN` role, e.g.
+`REGISTRY_ADMIN`), the app key must be allowed to act as that user:
+
+```yaml
+appkeys:
+  adminImpersonation:
+    gbif.occurrence.ws: [download.gbif.org]
+  # false (default): pairs not listed are only logged at WARN; true: they are rejected with 403
+  enforceAdminImpersonation: false
+```
+
+Every app acting as an admin is logged at WARN with the app key and user. Run with enforcement off, check the
+logs for pairs to add, then set `enforceAdminImpersonation: true`.
+
 ## Change Log
 [Change Log](CHANGELOG.md)
 
