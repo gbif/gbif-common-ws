@@ -13,9 +13,12 @@
  */
 package org.gbif.ws.server;
 
+import org.gbif.ws.WebApplicationException;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 
@@ -35,59 +39,105 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 
 public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-  private String content;
+  /** No limit on the size of a buffered body. */
+  public static final long UNLIMITED = -1;
+
+  private static final int PAYLOAD_TOO_LARGE = 413;
+
+  /** The buffered request body, null when the content is not wrapped. */
+  private byte[] content;
 
   private HttpHeaders httpHeaders;
-
-  private HttpServletRequest wrappedRequest;
 
   public GbifHttpServletRequestWrapper(HttpServletRequest request) {
     this(request, false);
   }
 
   /**
-   *
+   * @param wrapContent buffer the request body, so it can be read more than once
    */
   public GbifHttpServletRequestWrapper(HttpServletRequest request, boolean wrapContent) {
-    this(request, null, wrapContent);
-    if (!wrapContent) {
-      this.wrappedRequest = request;
+    this(request, wrapContent, UNLIMITED);
+  }
+
+  /**
+   * @param wrapContent     buffer the request body, so it can be read more than once
+   * @param maxContentBytes maximum size of the buffered body, or {@link #UNLIMITED}
+   * @throws WebApplicationException with status 413 if the body is larger than maxContentBytes
+   */
+  public GbifHttpServletRequestWrapper(
+      HttpServletRequest request, boolean wrapContent, long maxContentBytes) {
+    super(request);
+    if (wrapContent) {
+      content = readContent(request, maxContentBytes);
     }
+    httpHeaders = getHttpHeaders(request);
   }
 
   public GbifHttpServletRequestWrapper(
       HttpServletRequest request, String contentAsString, boolean wrapContent) {
     super(request);
+    if (StringUtils.isNotEmpty(contentAsString)) {
+      content = contentAsString.getBytes(getCharset(request));
+    } else if (wrapContent) {
+      content = readContent(request, UNLIMITED);
+    }
+    httpHeaders = getHttpHeaders(request);
+  }
 
+  private static byte[] readContent(HttpServletRequest request, long maxContentBytes) {
+    if (maxContentBytes >= 0 && request.getContentLengthLong() > maxContentBytes) {
+      throw tooLarge(maxContentBytes);
+    }
     try {
-      if (StringUtils.isNotEmpty(contentAsString)) {
-        content = contentAsString;
-      } else if (request.getInputStream() != null && wrapContent) {
-        content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
-      } else {
-        content = null;
+      InputStream in = request.getInputStream();
+      if (in == null) {
+        return null;
       }
+      if (maxContentBytes < 0) {
+        return IOUtils.toByteArray(in);
+      }
+      // Content-Length can be missing (chunked encoding): read at most one byte over the limit
+      byte[] bytes =
+          IOUtils.toByteArray(
+              BoundedInputStream.builder()
+                  .setInputStream(in)
+                  .setMaxCount(maxContentBytes + 1)
+                  .get());
+      if (bytes.length > maxContentBytes) {
+        throw tooLarge(maxContentBytes);
+      }
+      return bytes;
     } catch (IOException e) {
       throw new RuntimeException("Stream can't be read", e);
     }
+  }
 
-    httpHeaders = getHttpHeaders(request);
+  private static WebApplicationException tooLarge(long maxContentBytes) {
+    return new WebApplicationException(
+        "Request body larger than " + maxContentBytes + " bytes", PAYLOAD_TOO_LARGE);
+  }
+
+  /** The request charset, UTF-8 if none is given. */
+  private static Charset getCharset(HttpServletRequest request) {
+    String encoding = request.getCharacterEncoding();
+    return encoding != null ? Charset.forName(encoding) : StandardCharsets.UTF_8;
   }
 
   @Override
   public ServletInputStream getInputStream() throws IOException {
-    if (wrappedRequest != null) {
-      return wrappedRequest.getInputStream();
-    } else {
-      final ByteArrayInputStream byteArrayInputStream =
-          new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-      return new DelegatingServletInputStream(byteArrayInputStream);
+    if (content == null) {
+      return super.getInputStream();
     }
+    return new DelegatingServletInputStream(new ByteArrayInputStream(content));
   }
 
   @Override
   public BufferedReader getReader() throws IOException {
-    return new BufferedReader(new InputStreamReader(this.getInputStream(), StandardCharsets.UTF_8));
+    if (content == null) {
+      return super.getReader();
+    }
+    return new BufferedReader(new InputStreamReader(getInputStream(), getCharset(this)));
   }
 
   private HttpHeaders getHttpHeaders(HttpServletRequest request) {
@@ -104,20 +154,19 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     return requestHeaders;
   }
 
+  /**
+   * @return the buffered request body decoded with the request charset (UTF-8 if none is given),
+   * or null if the content was not wrapped
+   */
   public String getContent() {
-    return content;
+    return content != null ? new String(content, getCharset(this)) : null;
   }
 
   /**
-   * @return the buffered request body encoded with the request charset, or null if the content was
-   * not wrapped
+   * @return the buffered request body exactly as received, or null if the content was not wrapped
    */
   public byte[] getContentBytes() {
-    if (content == null) {
-      return null;
-    }
-    String encoding = getCharacterEncoding();
-    return content.getBytes(encoding != null ? Charset.forName(encoding) : Charset.defaultCharset());
+    return content;
   }
 
   public HttpHeaders getHttpHeaders() {

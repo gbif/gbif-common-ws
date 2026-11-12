@@ -31,6 +31,7 @@ must be updated before servers are deployed with this version. See
  * Removed the `@Retryable` from `AbstractRemoteAuthenticationProvider#tryLogin`; it had no effect and would have retried rejected credentials ([informatics#64](https://github.com/gbif/informatics/issues/64)).
  * JWTs are only read from an `Authorization` header using the `Bearer` scheme, instead of any header containing the word "bearer" (security review L5, [infrastructure#66](https://github.com/gbif/infrastructure/issues/66)).
  * Search parameters are bounded ([informatics#58](https://github.com/gbif/informatics/issues/58)): `facetLimit` and `<facet>.facetLimit` are lowered to 1000 and `spellCheckCount` to 100; `facetOffset` and `<facet>.facetOffset` above 10000, negative values and non-numeric values are rejected with 400. The facet maxima can be changed with a new `FacetedSearchRequestProvider` constructor.
+ * Request bodies are only buffered for GBIF-signed requests, up to `gbif.ws.security.maxBufferedBodyBytes` (default 10 MB); larger bodies get 413 ([informatics#54](https://github.com/gbif/informatics/issues/54)). The buffered body is kept as bytes, so `getContentBytes()` and `getInputStream()` return it exactly as received, and a missing charset means UTF-8 instead of the platform default.
 
 ## 0.40 (2017-08-07)
 
