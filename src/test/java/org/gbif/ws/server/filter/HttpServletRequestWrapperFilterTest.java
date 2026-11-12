@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Tests that request bodies are only buffered for GBIF-signed requests and within a size limit
- * (gbif/informatics#54).
+ * Tests that request bodies are buffered when wrapContent is true, kept byte for byte, and only
+ * within a size limit (gbif/informatics#54).
  */
 public class HttpServletRequestWrapperFilterTest {
 
@@ -43,16 +43,6 @@ public class HttpServletRequestWrapperFilterTest {
       new HttpServletRequestWrapperFilter(true, MAX);
 
   @Test
-  public void testUnsignedRequestIsNotBuffered() throws Exception {
-    MockHttpServletRequest request = post(BODY, null);
-
-    GbifHttpServletRequestWrapper wrapped = doFilter(request, new MockHttpServletResponse());
-
-    assertNull(wrapped.getContentBytes());
-    assertArrayEquals(BODY, IOUtils.toByteArray(wrapped.getInputStream()));
-  }
-
-  @Test
   public void testGbifSignedRequestIsBuffered() throws Exception {
     MockHttpServletRequest request = post(BODY, "GBIF app:signature");
 
@@ -62,6 +52,29 @@ public class HttpServletRequestWrapperFilterTest {
     // the buffered body can be read more than once
     assertArrayEquals(BODY, IOUtils.toByteArray(wrapped.getInputStream()));
     assertArrayEquals(BODY, IOUtils.toByteArray(wrapped.getInputStream()));
+  }
+
+  /** The registry's editor authorization filters read the body of Basic and JWT requests too. */
+  @Test
+  public void testOtherRequestsAreBuffered() throws Exception {
+    for (String authorization : new String[] {null, "Basic dXNlcjpwYXNzd29yZA==", "Bearer a.b.c"}) {
+      GbifHttpServletRequestWrapper wrapped =
+          doFilter(post(BODY, authorization), new MockHttpServletResponse());
+
+      assertArrayEquals(BODY, wrapped.getContentBytes(), authorization);
+    }
+  }
+
+  @Test
+  public void testNoLimit() throws Exception {
+    MockHttpServletRequest request = post(new byte[MAX * 4], "Basic dXNlcjpwYXNzd29yZA==");
+    MockFilterChain chain = new MockFilterChain();
+
+    new HttpServletRequestWrapperFilter(true, GbifHttpServletRequestWrapper.UNLIMITED)
+        .doFilter(request, new MockHttpServletResponse(), chain);
+
+    assertEquals(
+        MAX * 4, ((GbifHttpServletRequestWrapper) chain.getRequest()).getContentBytes().length);
   }
 
   @Test
