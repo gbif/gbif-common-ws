@@ -18,10 +18,13 @@ must be updated before servers are deployed with this version. See
  * **Breaking:** requests without credentials are no longer treated as authenticated
    ([informatics#53](https://github.com/gbif/informatics/issues/53)). `GbifAuthenticationToken.anonymous()`
    now returns a `GbifAnonymousAuthenticationToken` (a Spring `AnonymousAuthenticationToken` with
-   `ROLE_ANONYMOUS`), so `.authenticated()`, `isAuthenticated()` and `isFullyAuthenticated()` reject anonymous
-   callers. `NoAuthWebSecurityConfigurer` now uses `permitAll()` at the URL level, as `.authenticated()`
-   used to let anonymous requests through; endpoints stay secured by method security. Consumers that
-   relied on anonymous passing `isAuthenticated()` checks were open and must be reviewed.
+  `ROLE_ANONYMOUS`), so the authorization DSL's `.authenticated()` and method-security expressions
+  `isAuthenticated()` / `isFullyAuthenticated()` reject anonymous callers. Direct calls to
+  `Authentication.isAuthenticated()` still return `true` for anonymous tokens; consumers using that
+  API must use `AuthenticationTrustResolver` or check for `AnonymousUserPrincipal` instead.
+  `NoAuthWebSecurityConfigurer` now uses `permitAll()` at the URL level, as `.authenticated()`
+  used to let anonymous requests through; endpoints stay secured by method security. Consumers that
+  relied on anonymous passing method-security `isAuthenticated()` checks were open and must be reviewed.
 
 ## 0.40 (2017-08-07)
 
