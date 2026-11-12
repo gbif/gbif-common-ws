@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class with utility methods for XSS filtering.
+ *
+ * <p>This is a pattern blacklist: it catches common payloads but cannot be complete. It is not a
+ * replacement for encoding output in the UI; if HTML must be sanitised server side, use a
+ * whitelist sanitiser such as the OWASP Java HTML Sanitizer.
  */
 public class XSSUtil {
   private static final Logger LOG = LoggerFactory.getLogger(XSSUtil.class);
@@ -65,7 +69,15 @@ public class XSSUtil {
         // Avoid onload= expressions
         Pattern.compile(
             "on(load|error|mouseover|submit|reset|focus|click)(.*?)=",
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL),
+        // Remove other tags that can run script or load content, e.g. <svg onload=...>
+        Pattern.compile(
+            "</?(iframe|object|embed|svg|math|link|meta|style|base|form)\\b[^>]*>?",
+            Pattern.CASE_INSENSITIVE),
+        // Avoid any on...= event handler inside a tag, e.g. <div onanimationstart=...>
+        Pattern.compile("<[a-z][^>]*?[\\s/\"'`]on[a-z]+\\s*=", Pattern.CASE_INSENSITIVE),
+        // Avoid data:text/html URLs
+        Pattern.compile("data:\\s*text/html", Pattern.CASE_INSENSITIVE)
       };
 
   /**
@@ -111,11 +123,16 @@ public class XSSUtil {
       return cleanValue;
     }
 
-    // Remove all sections that match a pattern
-    for (Pattern scriptPattern : PATTERNS) {
-      Matcher matcher = scriptPattern.matcher(cleanValue);
-      cleanValue = matcher.replaceAll("");
-    }
+    // Remove all sections that match a pattern, until nothing changes: a single pass would turn
+    // <scr<script>ipt> into <script>
+    String previous;
+    do {
+      previous = cleanValue;
+      for (Pattern scriptPattern : PATTERNS) {
+        Matcher matcher = scriptPattern.matcher(cleanValue);
+        cleanValue = matcher.replaceAll("");
+      }
+    } while (!cleanValue.equals(previous));
     return cleanValue;
   }
 }
