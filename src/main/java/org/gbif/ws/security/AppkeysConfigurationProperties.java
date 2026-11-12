@@ -13,7 +13,9 @@
  */
 package org.gbif.ws.security;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,15 @@ public class AppkeysConfigurationProperties {
   private String file;
 
   private List<String> whitelist;
+
+  /**
+   * Admin users each app key may act as through x-gbif-user, e.g. {@code gbif.occurrence.ws:
+   * [download.gbif.org]}. Users with any *_ADMIN role count as admins.
+   */
+  private Map<String, List<String>> adminImpersonation = Collections.emptyMap();
+
+  /** When false, an app acting as an admin not in {@link #adminImpersonation} is only logged. */
+  private boolean enforceAdminImpersonation;
 
   public String getFile() {
     return file;
@@ -40,5 +51,22 @@ public class AppkeysConfigurationProperties {
 
   public void setWhitelist(List<String> whitelist) {
     this.whitelist = whitelist;
+  }
+
+  public Map<String, List<String>> getAdminImpersonation() {
+    return adminImpersonation;
+  }
+
+  public void setAdminImpersonation(Map<String, List<String>> adminImpersonation) {
+    this.adminImpersonation =
+        adminImpersonation != null ? adminImpersonation : Collections.emptyMap();
+  }
+
+  public boolean isEnforceAdminImpersonation() {
+    return enforceAdminImpersonation;
+  }
+
+  public void setEnforceAdminImpersonation(boolean enforceAdminImpersonation) {
+    this.enforceAdminImpersonation = enforceAdminImpersonation;
   }
 }
