@@ -96,6 +96,10 @@ public class FacetedSearchRequestProvider<
     final String facetLimit = getFirstIgnoringCase(PARAM_FACET_LIMIT, params);
     if (facetLimit != null) {
       searchRequest.setFacetLimit(parseFacetLimit(PARAM_FACET_LIMIT, facetLimit));
+    } else if (searchRequest.getFacetLimit() != null
+        && searchRequest.getFacetLimit() > maxFacetLimit) {
+      // the request's own default limit must not exceed a lower maximum either
+      searchRequest.setFacetLimit(maxFacetLimit);
     }
 
     final String facetOffset = getFirstIgnoringCase(PARAM_FACET_OFFSET, params);
@@ -122,7 +126,7 @@ public class FacetedSearchRequestProvider<
                 pFacetOffset != null ? parseFacetOffset(pFacetOffsetParam, pFacetOffset) : 0,
                 pFacetLimit != null
                     ? parseFacetLimit(pFacetLimitParam, pFacetLimit)
-                    : DEFAULT_FACET_LIMIT);
+                    : Math.min(DEFAULT_FACET_LIMIT, maxFacetLimit));
           }
         }
       }
