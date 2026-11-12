@@ -90,8 +90,8 @@ A request is rejected with 401 when:
 - `x-gbif-date` is missing, unparseable or more than `gbif.ws.security.gbifAuth.maxClockSkewSeconds`
   (default 900) away from the server clock;
 - `Content-MD5` does not match the body (checked when the request content is wrapped, `gbif.ws.security.wrapContent`,
-  default true). Only GBIF-signed bodies are buffered, up to `gbif.ws.security.maxBufferedBodyBytes` (default 10 MB);
-  larger ones are rejected with 413;
+  default true). Buffered bodies larger than `gbif.ws.security.maxBufferedBodyBytes` (default 10 MB, -1 for no limit)
+  are rejected with 413;
 - `x-method` differs from the request method, or `x-url` does not refer to the request path. These headers are
   only taken as-is on `gbif.ws.security.gbifAuth.forwardedAuthPaths` (default `/user/auth/app`), used by
   remote authentication;

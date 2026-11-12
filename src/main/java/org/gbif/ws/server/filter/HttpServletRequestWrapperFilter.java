@@ -15,17 +15,14 @@ package org.gbif.ws.server.filter;
 
 import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
-import org.gbif.ws.util.SecurityConstants;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -38,10 +35,13 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Wraps the request in a {@link GbifHttpServletRequestWrapper}.
  *
- * <p>The body is buffered only for requests signed with the GBIF scheme, the only ones whose body
- * is verified (Content-MD5) or signed again, and only when gbif.ws.security.wrapContent is true
- * (the default). Buffered bodies larger than gbif.ws.security.maxBufferedBodyBytes (default 10 MB)
- * are rejected with 413.
+ * <p>When gbif.ws.security.wrapContent is true (the default) the body is buffered, so it can be
+ * read more than once: by the GBIF signature check (Content-MD5) and by services that inspect it
+ * before the controller, e.g. the registry's editor authorization filters. Services receiving large
+ * bodies, such as uploads, set it to false.
+ *
+ * <p>Buffered bodies larger than gbif.ws.security.maxBufferedBodyBytes (default 10 MB, -1 for no
+ * limit) are rejected with 413.
  */
 @Component
 public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
@@ -76,8 +76,7 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
     } else {
       try {
         requestWrapper =
-            new GbifHttpServletRequestWrapper(
-                request, wrapContent && isGbifSigned(request), maxBufferedBodyBytes);
+            new GbifHttpServletRequestWrapper(request, wrapContent, maxBufferedBodyBytes);
       } catch (WebApplicationException e) {
         LOG.info("Rejected request to {}: {}", request.getRequestURI(), e.getMessage());
         response.setStatus(e.getStatus());
@@ -89,10 +88,5 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(requestWrapper, response);
-  }
-
-  private static boolean isGbifSigned(HttpServletRequest request) {
-    return StringUtils.startsWith(
-        request.getHeader(HttpHeaders.AUTHORIZATION), SecurityConstants.GBIF_SCHEME_PREFIX);
   }
 }
