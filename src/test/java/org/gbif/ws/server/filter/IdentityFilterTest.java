@@ -64,6 +64,7 @@ public class IdentityFilterTest {
 
   // initialize in setUp()
   private IdentityFilter identityFilter;
+  private GbifAuthenticationManagerImpl authenticationManager;
   private GbifAuthService authService;
 
   private static String heinzAuthBasic;
@@ -104,26 +105,35 @@ public class IdentityFilterTest {
   @BeforeEach
   public void setUp() throws Exception {
     authService = GbifAuthServiceTest.prepareGbifAuthService();
-    identityFilter =
-        new IdentityFilter(
-            new GbifAuthenticationManagerImpl(
-                new IdentityAccessService() {
+    authenticationManager =
+        new GbifAuthenticationManagerImpl(
+            new IdentityAccessService() {
 
-                  @Nullable
-                  @Override
-                  public GbifUser get(String username) {
-                    return TEST_USERS.get(username);
-                  }
+              @Nullable
+              @Override
+              public GbifUser get(String username) {
+                return TEST_USERS.get(username);
+              }
 
-                  @Nullable
-                  @Override
-                  public GbifUser authenticate(String username, String password) {
-                    return Optional.ofNullable(get(username))
-                        .filter(u -> u.getPasswordHash().equals(password))
-                        .orElse(null);
-                  }
-                },
-                authService));
+              @Nullable
+              @Override
+              public GbifUser authenticate(String username, String password) {
+                return Optional.ofNullable(get(username))
+                    .filter(u -> u.getPasswordHash().equals(password))
+                    .orElse(null);
+              }
+            },
+            authService);
+    identityFilter = new IdentityFilter(authenticationManager);
+  }
+
+  @Test
+  public void testInvalidBase64IsBadRequest() {
+    WebApplicationException e =
+        assertThrows(
+            WebApplicationException.class,
+            () -> authenticationManager.authenticate(getMockRequestAuthorization("Basic !!!")));
+    assertEquals(400, e.getStatus());
   }
 
   private static String toAuthorizationString(GbifUser user) {

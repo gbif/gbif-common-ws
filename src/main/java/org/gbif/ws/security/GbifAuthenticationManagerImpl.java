@@ -91,11 +91,18 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    */
   private GbifAuthentication basicAuthentication(final String authentication) {
     // As specified in RFC 7617, the auth header (if not ASCII) is in UTF-8.
-    byte[] decodedAuthentication = Base64.getDecoder().decode(authentication);
+    byte[] decodedAuthentication;
+    try {
+      decodedAuthentication = Base64.getDecoder().decode(authentication);
+    } catch (IllegalArgumentException e) {
+      LOG.warn("Invalid Base64 in basic authentication header");
+      throw new WebApplicationException(
+          "Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
+    }
     String[] values =
         COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
     if (values.length < 2) {
-      LOG.warn("Invalid syntax for username and password: {}", authentication);
+      LOG.warn("Invalid syntax for username and password");
       throw new WebApplicationException(
           "Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
     }
@@ -103,7 +110,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     String username = values[0];
     String password = values[1];
     if (username == null || password == null) {
-      LOG.warn("Missing basic authentication username or password: {}", authentication);
+      LOG.warn("Missing basic authentication username or password");
       throw new WebApplicationException(
           "Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
     }
