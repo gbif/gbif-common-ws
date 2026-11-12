@@ -88,8 +88,12 @@ public class GbifAuthenticationToken implements GbifAuthentication {
     this.jwtToken = jwtToken;
   }
 
+  /**
+   * Authentication for requests without credentials. It is recognised as anonymous by Spring
+   * Security, see {@link GbifAnonymousAuthenticationToken}.
+   */
   public static GbifAuthentication anonymous() {
-    return new GbifAuthenticationToken(new AnonymousUserPrincipal());
+    return new GbifAnonymousAuthenticationToken();
   }
 
   @Override

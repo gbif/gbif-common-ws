@@ -15,6 +15,13 @@ must be updated before servers are deployed with this version. See
    (default `/user/auth/app`).
  * Signatures are compared in constant time ([informatics#56](https://github.com/gbif/informatics/issues/56)).
  * `commons-beanutils` upgraded to 1.11.0 for CVE-2025-48734 ([informatics#60](https://github.com/gbif/informatics/issues/60)).
+ * **Breaking:** requests without credentials are no longer treated as authenticated
+   ([informatics#53](https://github.com/gbif/informatics/issues/53)). `GbifAuthenticationToken.anonymous()`
+   now returns a `GbifAnonymousAuthenticationToken` (a Spring `AnonymousAuthenticationToken` with
+   `ROLE_ANONYMOUS`), so `.authenticated()`, `isAuthenticated()` and `isFullyAuthenticated()` reject anonymous
+   callers. `NoAuthWebSecurityConfigurer` now uses `permitAll()` at the URL level, as `.authenticated()`
+   used to let anonymous requests through; endpoints stay secured by method security. Consumers that
+   relied on anonymous passing `isAuthenticated()` checks were open and must be reviewed.
 
 ## 0.40 (2017-08-07)
 
