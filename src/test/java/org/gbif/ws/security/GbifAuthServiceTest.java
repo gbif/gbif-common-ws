@@ -29,6 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -208,6 +211,86 @@ public class GbifAuthServiceTest {
     // a date within the window but not the signed one
     headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW.plusSeconds(60), ZoneOffset.UTC)));
     assertFalse(service.isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+  }
+
+  /**
+   * The worked example in the README is the reference for non-Java signers, so it must stay correct.
+   */
+  @Test
+  public void testReadmeExample() {
+    String body = "{\"title\":\"Example dataset\"}";
+    String md5 = "BW6JIbyk1iXd2gEjg2Lo9Q==";
+    String date = "Wed, 11 Nov 2026 15:04:05 GMT";
+    String signature = "dxGpb0dP4c87l4xhXGLRZFB3Rs+MZXYKAsPYWAkJyAE=";
+    SigningService exampleSigningService =
+        new AppKeySigningService(appKey -> "example.app".equals(appKey) ? "example-secret" : null);
+
+    assertEquals(md5, rawMd5(body));
+
+    RequestDataToSign data = new RequestDataToSign();
+    data.setMethod("POST");
+    data.setUrl("/v1/dataset?tag=a%20b&tag=b%2A&validate=true");
+    data.setContentType("application/json");
+    data.setContentTypeMd5(md5);
+    data.setUser("exampleuser");
+    data.setDate(date);
+    assertEquals(
+        "POST\n/v1/dataset?tag=a%20b&tag=b%2A&validate=true\napplication/json\n" + md5
+            + "\nexampleuser\n" + date,
+        data.stringToSign());
+    assertEquals(signature, exampleSigningService.buildSignature(data, "example.app"));
+
+    // the request as sent, with the raw query string, is accepted by the server
+    GbifAuthServiceImpl exampleService =
+        new GbifAuthServiceImpl(
+            exampleSigningService,
+            md5EncodeService,
+            () -> "example.app",
+            Duration.ofMinutes(15),
+            Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
+            Clock.fixed(Instant.parse("2026-11-11T15:04:05Z"), ZoneOffset.UTC));
+    Map<String, String> headers =
+        Map.of(
+            HEADER_GBIF_USER, "exampleuser",
+            HEADER_GBIF_DATE, date,
+            HEADER_CONTENT_MD5, md5,
+            AUTHORIZATION, "GBIF example.app:" + signature);
+    assertTrue(
+        exampleService.isValidRequest(
+            wrap("POST", "/v1/dataset?validate=true&tag=b*&tag=a+b", body, headers)));
+  }
+
+  /**
+   * Signatures made by clients older than 2.1.4 (HMAC-SHA1 of method, path, content type, MD5 and
+   * user, without x-gbif-date) are no longer accepted.
+   */
+  @Test
+  public void testLegacySignatureIsRejected() throws Exception {
+    String md5 = rawMd5(BODY);
+    String stringToSign = "POST\n/dataset\napplication/json\n" + md5 + "\n" + USER;
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset");
+    headers.set(HEADER_GBIF_USER, USER);
+    headers.set(HEADER_CONTENT_MD5, md5);
+    headers.set(AUTHORIZATION, "GBIF " + APPKEY + ":" + hmacSha1(stringToSign, SECRET));
+
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", BODY, headers.toSingleValueMap())));
+
+    // adding a current, unsigned x-gbif-date does not make it valid
+    headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW, ZoneOffset.UTC)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", BODY, headers.toSingleValueMap())));
+  }
+
+  /** Base64 of the MD5 of the exact body bytes, as non-Java signers compute it. */
+  private static String rawMd5(String body) {
+    return Base64.getEncoder().encodeToString(DigestUtils.md5(body.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  private static String hmacSha1(String stringToSign, String secret) throws Exception {
+    Mac mac = Mac.getInstance("HmacSHA1");
+    mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA1"));
+    return Base64.getEncoder()
+        .encodeToString(mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8)));
   }
 
   @Test
