@@ -72,11 +72,6 @@ import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
  * <p>The x-url and x-method headers are only honoured as-is on the forwarded authentication paths
  * (e.g. the registry's /user/auth/app used by remote authentication). On any other path x-method
  * must match the real method and x-url must refer to the real path.
- *
- * <p>While clients are upgraded, requests without x-gbif-date are checked against the format of
- * clients older than 2.1.4 (HMAC-SHA1, path only, no date) when
- * gbif.ws.security.gbifAuth.acceptLegacySignatures is true (the default). These signatures have
- * no replay protection; disable the flag once all signers are upgraded.
  */
 @Service
 public class GbifAuthServiceImpl implements GbifAuthService {
@@ -87,14 +82,12 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
   public static final long DEFAULT_MAX_CLOCK_SKEW_SECONDS = 15 * 60;
   public static final String DEFAULT_FORWARDED_AUTH_PATH = "/user/auth/app";
-  public static final boolean DEFAULT_ACCEPT_LEGACY_SIGNATURES = true;
 
   private final SigningService signingService;
   private final Md5EncodeService md5EncodeService;
   private final AppKeyProvider appKeyProvider;
   private final Duration maxClockSkew;
   private final List<String> forwardedAuthPaths;
-  private final boolean acceptLegacySignatures;
   private final Clock clock;
 
   public GbifAuthServiceImpl(
@@ -106,8 +99,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
         md5EncodeService,
         appKeyProvider,
         DEFAULT_MAX_CLOCK_SKEW_SECONDS,
-        new String[] {DEFAULT_FORWARDED_AUTH_PATH},
-        DEFAULT_ACCEPT_LEGACY_SIGNATURES);
+        new String[] {DEFAULT_FORWARDED_AUTH_PATH});
   }
 
   @Autowired
@@ -118,16 +110,13 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       @Value("${gbif.ws.security.gbifAuth.maxClockSkewSeconds:" + DEFAULT_MAX_CLOCK_SKEW_SECONDS + "}")
           long maxClockSkewSeconds,
       @Value("${gbif.ws.security.gbifAuth.forwardedAuthPaths:" + DEFAULT_FORWARDED_AUTH_PATH + "}")
-          String[] forwardedAuthPaths,
-      @Value("${gbif.ws.security.gbifAuth.acceptLegacySignatures:" + DEFAULT_ACCEPT_LEGACY_SIGNATURES + "}")
-          boolean acceptLegacySignatures) {
+          String[] forwardedAuthPaths) {
     this(
         signingService,
         md5EncodeService,
         appKeyProvider,
         Duration.ofSeconds(maxClockSkewSeconds),
         Arrays.asList(forwardedAuthPaths),
-        acceptLegacySignatures,
         Clock.systemUTC());
   }
 
@@ -137,14 +126,12 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       AppKeyProvider appKeyProvider,
       Duration maxClockSkew,
       List<String> forwardedAuthPaths,
-      boolean acceptLegacySignatures,
       Clock clock) {
     this.signingService = signingService;
     this.md5EncodeService = md5EncodeService;
     this.appKeyProvider = appKeyProvider;
     this.maxClockSkew = maxClockSkew;
     this.forwardedAuthPaths = forwardedAuthPaths;
-    this.acceptLegacySignatures = acceptLegacySignatures;
     this.clock = clock;
   }
 
@@ -171,10 +158,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     }
 
     final HttpHeaders headers = request.getHttpHeaders();
-    // clients older than 2.1.4 send no date; a request with a date is never checked as legacy
-    final boolean legacy = acceptLegacySignatures && !headers.containsKey(HEADER_GBIF_DATE);
-    if (!legacy
-        && !GbifAuthUtils.isDateWithinWindow(headers.getFirst(HEADER_GBIF_DATE), clock, maxClockSkew)) {
+    if (!GbifAuthUtils.isDateWithinWindow(headers.getFirst(HEADER_GBIF_DATE), clock, maxClockSkew)) {
       LOG.info(
           "Missing, invalid or expired {} header: {}", HEADER_GBIF_DATE, headers.getFirst(HEADER_GBIF_DATE));
       return false;
@@ -187,35 +171,23 @@ public class GbifAuthServiceImpl implements GbifAuthService {
           && !(isOriginalRequestValid(request, headers) && isContentValid(request, headers))) {
         return false;
       }
-      requestDataToSign = buildRequestDataToSign(request, forwarded, legacy);
+      requestDataToSign = buildRequestDataToSign(request, forwarded);
     } catch (IllegalArgumentException e) {
       LOG.info("Invalid request URL or query string: {}", e.getMessage());
       return false;
     }
-    LOG.debug(
-        "Request data to sign: {}",
-        legacy ? requestDataToSign.legacyStringToSign() : requestDataToSign.stringToSign());
+    LOG.debug("Request data to sign: {}", requestDataToSign.stringToSign());
     // sign
     final String signature;
     try {
-      signature =
-          legacy
-              ? signingService.buildLegacySignature(requestDataToSign, appKey)
-              : signingService.buildSignature(requestDataToSign, appKey);
+      signature = signingService.buildSignature(requestDataToSign, appKey);
     } catch (PrivateKeyNotFoundException e) {
       LOG.debug("Private key was not found for app key {}", appKey);
       return false;
     }
     // compare signatures; use MessageDigest.isEquals to avoid timing attacks
     if (MessageDigest.isEqual(signatureFound.getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8))) {
-      if (legacy) {
-        LOG.warn(
-            "Accepted legacy signature without {} header from app {}, the client must be upgraded",
-            HEADER_GBIF_DATE,
-            appKey);
-      } else {
-        LOG.debug("Trusted application with matching signatures");
-      }
+      LOG.debug("Trusted application with matching signatures");
       return true;
     }
     LOG.info("Invalid signature: {}", authHeader);
@@ -287,10 +259,9 @@ public class GbifAuthServiceImpl implements GbifAuthService {
    * The signed URL is the path, or the original path from x-url when present (the proxy can strip
    * a prefix), followed by the canonical query string of the request. Forwarded authentication
    * requests carry the original query string in x-url, the real one belongs to the forwarding call.
-   * Legacy signatures cover the path only.
    */
   private RequestDataToSign buildRequestDataToSign(
-      final GbifHttpServletRequestWrapper request, boolean forwarded, boolean legacy) {
+      final GbifHttpServletRequestWrapper request, boolean forwarded) {
     final HttpHeaders headers = request.getHttpHeaders();
     final RequestDataToSign dataToSign = new RequestDataToSign();
 
@@ -303,14 +274,17 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     }
 
     String originalUrl = headers.getFirst(HEADER_ORIGINAL_REQUEST_URL);
-    String path =
-        GbifAuthUtils.getCanonicalizedPath(
-            originalUrl == null ? request.getRequestURI() : originalUrl);
-    String rawQuery =
-        originalUrl != null && forwarded
-            ? URI.create(originalUrl).getRawQuery()
-            : request.getQueryString();
-    dataToSign.setUrl(legacy ? path : GbifAuthUtils.getCanonicalizedUrl(path, rawQuery));
+    if (originalUrl == null) {
+      dataToSign.setUrl(
+          GbifAuthUtils.getCanonicalizedUrl(
+              GbifAuthUtils.getCanonicalizedPath(request.getRequestURI()),
+              request.getQueryString()));
+    } else {
+      dataToSign.setUrl(
+          GbifAuthUtils.getCanonicalizedUrl(
+              GbifAuthUtils.getCanonicalizedPath(originalUrl),
+              forwarded ? URI.create(originalUrl).getRawQuery() : request.getQueryString()));
+    }
     dataToSign.setContentType(headers.getFirst(HttpHeaders.CONTENT_TYPE));
     dataToSign.setContentTypeMd5(headers.getFirst(HEADER_CONTENT_MD5));
     dataToSign.setUser(headers.getFirst(HEADER_GBIF_USER));
@@ -351,7 +325,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
     // build the unique request data object to sign
     final RequestDataToSign requestDataToSign =
-        buildRequestDataToSign(request, isForwardedAuthRequest(request), false);
+        buildRequestDataToSign(request, isForwardedAuthRequest(request));
 
     // sign
     final String signature;

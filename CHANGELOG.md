@@ -2,11 +2,9 @@
 
 ## 2.1.4 (unreleased)
 
-New GBIF request signature format, see [GBIF request signing](README.md#gbif-request-signing).
-Signatures made by earlier versions are still accepted while `gbif.ws.security.gbifAuth.acceptLegacySignatures`
-is `true` (the default), so servers can be deployed before clients are upgraded. Legacy signatures are
-logged at WARN with their app key; set the flag to `false` once no more are logged. Clients built with this
-version only produce the new format, so servers must be upgraded first.
+**Breaking:** GBIF request signatures made by earlier versions are rejected. All signers, Java or not,
+must be updated before servers are deployed with this version. See
+[GBIF request signing](README.md#gbif-request-signing).
 
  * Signatures use HMAC-SHA256 instead of HMAC-SHA1.
  * New signed `x-gbif-date` header; requests outside `gbif.ws.security.gbifAuth.maxClockSkewSeconds`
