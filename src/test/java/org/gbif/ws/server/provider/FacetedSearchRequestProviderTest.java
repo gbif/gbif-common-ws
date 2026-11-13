@@ -1,6 +1,12 @@
 package org.gbif.ws.server.provider;
 
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -41,5 +47,103 @@ class FacetedSearchRequestProviderTest {
 
     val = FacetedSearchRequestProvider.getFirstIgnoringCase("FACETMINCOUNT", params);
     assertEquals("100", val);
+  }
+  private final FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>
+      provider =
+          new FacetedSearchRequestProvider<>(
+              OccurrenceSearchRequest.class, OccurrenceSearchParameter.class);
+
+  private OccurrenceSearchRequest parse(String... nameValues) {
+    return parse(provider, nameValues);
+  }
+
+  private static OccurrenceSearchRequest parse(
+      FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter> provider,
+      String... nameValues) {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    for (int i = 0; i < nameValues.length; i += 2) {
+      request.addParameter(nameValues[i], nameValues[i + 1]);
+    }
+    return provider.getValue(new ServletWebRequest(request));
+  }
+
+  @Test
+  void facetParametersWithinBounds() {
+    OccurrenceSearchRequest request =
+        parse(
+            "facet", "country",
+            "facetLimit", "50",
+            "facetOffset", "20",
+            "facetMincount", "2",
+            "country.facetLimit", "30",
+            "country.facetOffset", "10",
+            "spellCheckCount", "5");
+
+    assertEquals(50, request.getFacetLimit());
+    assertEquals(20, request.getFacetOffset());
+    assertEquals(2, request.getFacetMinCount());
+    Pageable countryPage = request.getFacetPage(OccurrenceSearchParameter.COUNTRY);
+    assertEquals(30, countryPage.getLimit());
+    assertEquals(10, countryPage.getOffset());
+    assertEquals(5, request.getSpellCheckCount());
+  }
+
+  @Test
+  void facetLimitsAreCapped() {
+    OccurrenceSearchRequest request =
+        parse(
+            "facet", "country",
+            "facetLimit", "2147483647",
+            "country.facetLimit", "100000",
+            "spellCheckCount", "100000");
+
+    assertEquals(FacetedSearchRequestProvider.DEFAULT_MAX_FACET_LIMIT, request.getFacetLimit());
+    assertEquals(
+        FacetedSearchRequestProvider.DEFAULT_MAX_FACET_LIMIT,
+        request.getFacetPage(OccurrenceSearchParameter.COUNTRY).getLimit());
+    assertEquals(SearchRequestProvider.MAX_SPELL_CHECK_COUNT, request.getSpellCheckCount());
+  }
+
+  @Test
+  void invalidFacetParametersAreRejected() {
+    // IllegalArgumentException is mapped to 400 by IllegalArgumentExceptionMapper
+    assertThrows(IllegalArgumentException.class, () -> parse("facetLimit", "-1"));
+    assertThrows(IllegalArgumentException.class, () -> parse("facetLimit", "ten"));
+    assertThrows(IllegalArgumentException.class, () -> parse("facetOffset", "-5"));
+    assertThrows(IllegalArgumentException.class, () -> parse("facetOffset", "10001"));
+    assertThrows(IllegalArgumentException.class, () -> parse("facetMincount", "-1"));
+    assertThrows(IllegalArgumentException.class, () -> parse("spellCheckCount", "-2"));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> parse("facet", "country", "country.facetOffset", "2147483647"));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> parse("facet", "country", "country.facetLimit", "abc"));
+  }
+
+  /** An offset-only facet page gets the default limit, which must not exceed a lower maximum. */
+  @Test
+  void defaultFacetPageLimitIsCapped() {
+    FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter> capped =
+        new FacetedSearchRequestProvider<>(
+            OccurrenceSearchRequest.class, OccurrenceSearchParameter.class, 100, 5, 100);
+
+    OccurrenceSearchRequest request =
+        parse(capped, "facet", "country", "country.facetOffset", "1");
+
+    assertEquals(5, request.getFacetPage(OccurrenceSearchParameter.COUNTRY).getLimit());
+  }
+
+  /** Without any facet paging parameter the request's default limit must not exceed a lower maximum. */
+  @Test
+  void defaultFacetLimitIsCapped() {
+    FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter> capped =
+        new FacetedSearchRequestProvider<>(
+            OccurrenceSearchRequest.class, OccurrenceSearchParameter.class, 100, 5, 100);
+
+    OccurrenceSearchRequest request = parse(capped, "facet", "country");
+
+    assertEquals(5, request.getFacetLimit());
+    assertNull(request.getFacetPage(OccurrenceSearchParameter.COUNTRY));
   }
 }

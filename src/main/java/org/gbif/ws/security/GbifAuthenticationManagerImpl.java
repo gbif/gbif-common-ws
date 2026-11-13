@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -53,18 +54,34 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
 
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
 
+  private static final String ADMIN_ROLE_SUFFIX = "_ADMIN";
+
   private final IdentityAccessService identityAccessService;
   private final GbifAuthService authService;
+  private final AppkeysConfigurationProperties appkeysConfiguration;
 
   /**
    * In case {@link GbifAuthService} is not provided, this class will reject all authentications
-   * on the GBIF scheme prefix.
+   * on the GBIF scheme prefix. Apps acting as admin users are only logged.
    */
   public GbifAuthenticationManagerImpl(
       @NotNull IdentityAccessService identityAccessService, @Nullable GbifAuthService authService) {
+    this(identityAccessService, authService, new AppkeysConfigurationProperties());
+  }
+
+  /**
+   * @param appkeysConfiguration which admin users each app may act as (gbif/informatics#55)
+   */
+  @Autowired
+  public GbifAuthenticationManagerImpl(
+      @NotNull IdentityAccessService identityAccessService,
+      @Nullable GbifAuthService authService,
+      @NotNull AppkeysConfigurationProperties appkeysConfiguration) {
     Objects.requireNonNull(identityAccessService, "identityAccessService shall be provided");
+    Objects.requireNonNull(appkeysConfiguration, "appkeysConfiguration shall be provided");
     this.identityAccessService = identityAccessService;
     this.authService = authService;
+    this.appkeysConfiguration = appkeysConfiguration;
   }
 
   /**
@@ -91,11 +108,18 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    */
   private GbifAuthentication basicAuthentication(final String authentication) {
     // As specified in RFC 7617, the auth header (if not ASCII) is in UTF-8.
-    byte[] decodedAuthentication = Base64.getDecoder().decode(authentication);
+    byte[] decodedAuthentication;
+    try {
+      decodedAuthentication = Base64.getDecoder().decode(authentication);
+    } catch (IllegalArgumentException e) {
+      LOG.warn("Invalid Base64 in basic authentication header");
+      throw new WebApplicationException(
+          "Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
+    }
     String[] values =
         COLON_PATTERN.split(new String(decodedAuthentication, StandardCharsets.UTF_8), 2);
     if (values.length < 2) {
-      LOG.warn("Invalid syntax for username and password: {}", authentication);
+      LOG.warn("Invalid syntax for username and password");
       throw new WebApplicationException(
           "Invalid syntax for username and password", HttpStatus.BAD_REQUEST);
     }
@@ -103,7 +127,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     String username = values[0];
     String password = values[1];
     if (username == null || password == null) {
-      LOG.warn("Missing basic authentication username or password: {}", authentication);
+      LOG.warn("Missing basic authentication username or password");
       throw new WebApplicationException(
           "Missing basic authentication username or password", HttpStatus.BAD_REQUEST);
     }
@@ -131,7 +155,7 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     GbifUser user = identityAccessService.authenticate(username, password);
     if (user == null) {
       throw new WebApplicationException(
-          "Failed to authenticate user " + username, HttpStatus.UNAUTHORIZED);
+          "Failed to authenticate user", HttpStatus.UNAUTHORIZED);
     }
 
     LOG.debug("Authenticating user {} via scheme {}", username, BASIC_AUTH);
@@ -168,7 +192,39 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
     GbifUser user = identityAccessService.get(username);
     // Note: using an Anonymous Authorizer is probably not the best thing to do here
     // we should consider simply return null to let another filter handle it
-    return user == null ? getAnonymous() : getAuthenticated(user, GBIF_SCHEME);
+    if (user == null) {
+      return getAnonymous();
+    }
+    checkAdminImpersonation(
+        GbifAuthUtils.getAppKeyFromRequest(request.getHeader(HttpHeaders.AUTHORIZATION)), user);
+    return getAuthenticated(user, GBIF_SCHEME);
+  }
+
+  /**
+   * An app acting as an admin user must be allowed to in appkeys.adminImpersonation; otherwise
+   * the request is rejected (403) if appkeys.enforceAdminImpersonation is true, or only logged.
+   */
+  private void checkAdminImpersonation(String appKey, GbifUser user) {
+    boolean admin = user.getRoles().stream().anyMatch(r -> r.name().endsWith(ADMIN_ROLE_SUFFIX));
+    if (!admin) {
+      return;
+    }
+
+    List<String> allowedUsers =
+        appkeysConfiguration.getAdminImpersonation().getOrDefault(appKey, List.of());
+    if (allowedUsers.contains(user.getUserName())) {
+      LOG.warn("App {} acts as admin user {}", appKey, user.getUserName());
+    } else if (appkeysConfiguration.isEnforceAdminImpersonation()) {
+      LOG.warn("App {} is not allowed to act as admin user {}", appKey, user.getUserName());
+      throw new WebApplicationException(
+          "Application not allowed to act as this user", HttpStatus.FORBIDDEN);
+    } else {
+      LOG.warn(
+          "App {} acts as admin user {}, which is not in appkeys.adminImpersonation; "
+              + "this will be rejected once appkeys.enforceAdminImpersonation is true",
+          appKey,
+          user.getUserName());
+    }
   }
 
   /**

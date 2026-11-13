@@ -27,6 +27,26 @@ pipeline {
   }
   stages {
 
+    stage('Setup') {
+      when {
+        allOf {
+          not { expression { params.RELEASE } };
+          not { branch 'dev' };
+          not { branch 'master' };
+        }
+      }
+      steps {
+        script {
+          // Branch-qualified version for feature branches: workspace only, never committed.
+          def suffix = env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9.-]', '-').toUpperCase()
+          sh """
+            BASE_VERSION=\$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
+            mvn versions:set -DnewVersion=\${BASE_VERSION}-${suffix}-SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
+          """
+        }
+      }
+    }
+
     stage('Maven build') {
        when {
         allOf {

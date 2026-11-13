@@ -18,10 +18,12 @@ import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.security.GbifAuthenticationManager;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -64,14 +66,18 @@ public class IdentityFilter extends OncePerRequestFilter {
     Objects.requireNonNull(response, "Can't filter null response");
 
     // authenticates the HTTP method, but ignores legacy UUID user names
+    final Authentication authentication;
     try {
-      final Authentication authentication = authenticationManager.authenticate(request);
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-      filterChain.doFilter(request, response);
+      authentication = authenticationManager.authenticate(request);
     } catch (final WebApplicationException e) {
       LOG.debug("Exception while authentication in IdentityFilter: {}", e.getMessage());
       response.setStatus(e.getStatus());
-      response.getOutputStream().println(e.getMessage());
+      response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+      response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+      response.getWriter().println(e.getMessage());
+      return;
     }
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    filterChain.doFilter(request, response);
   }
 }

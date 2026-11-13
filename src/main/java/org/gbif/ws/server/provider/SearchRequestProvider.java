@@ -51,6 +51,7 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Search
 
   private static final int MAX_PAGE_SIZE = 1000;
   private static final int NON_SPELL_CHECK_COUNT = -1;
+  public static final int MAX_SPELL_CHECK_COUNT = 100;
 
   private final Class<P> searchParameterClass;
   private final Class<RT> requestType;
@@ -138,7 +139,10 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Search
     }
 
     if (StringUtils.isNotEmpty(spellCheckCount)) {
-      searchRequest.setSpellCheckCount(Integer.parseInt(spellCheckCount));
+      searchRequest.setSpellCheckCount(
+          Math.min(
+              parseNonNegativeInt(PARAM_SPELLCHECK_COUNT, spellCheckCount),
+              MAX_SPELL_CHECK_COUNT));
     } else {
       searchRequest.setSpellCheckCount(NON_SPELL_CHECK_COUNT);
     }
@@ -153,6 +157,24 @@ public class SearchRequestProvider<RT extends SearchRequest<P>, P extends Search
 
     // find search parameter enum based filters
     setSearchParams(searchRequest, params);
+  }
+
+  /**
+   * Parses a numeric request parameter.
+   *
+   * @throws IllegalArgumentException (400) if the value is not a non-negative integer
+   */
+  protected static int parseNonNegativeInt(String parameter, String value) {
+    try {
+      int parsed = Integer.parseInt(value.trim());
+      if (parsed >= 0) {
+        return parsed;
+      }
+    } catch (NumberFormatException e) {
+      // rejected below
+    }
+    throw new IllegalArgumentException(
+        "Parameter " + parameter + " must be a non-negative integer");
   }
 
   /**

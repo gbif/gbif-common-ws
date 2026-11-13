@@ -89,11 +89,29 @@ Authorization: GBIF example.app:dxGpb0dP4c87l4xhXGLRZFB3Rs+MZXYKAsPYWAkJyAE=
 A request is rejected with 401 when:
 - `x-gbif-date` is missing, unparseable or more than `gbif.ws.security.gbifAuth.maxClockSkewSeconds`
   (default 900) away from the server clock;
-- `Content-MD5` does not match the body (checked when the request content is wrapped, `gbif.ws.security.wrapContent`);
+- `Content-MD5` does not match the body (checked when the request content is wrapped, `gbif.ws.security.wrapContent`,
+  default true). Buffered bodies larger than `gbif.ws.security.maxBufferedBodyBytes` (default 10 MB, -1 for no limit)
+  are rejected with 413;
 - `x-method` differs from the request method, or `x-url` does not refer to the request path. These headers are
   only taken as-is on `gbif.ws.security.gbifAuth.forwardedAuthPaths` (default `/user/auth/app`), used by
   remote authentication;
 - the signature does not match.
+
+### Acting as admin users
+
+A signed request acts as the user in `x-gbif-user`. When that user has an admin role (any `*_ADMIN` role, e.g.
+`REGISTRY_ADMIN`), the app key must be allowed to act as that user:
+
+```yaml
+appkeys:
+  adminImpersonation:
+    gbif.occurrence.ws: [download.gbif.org]
+  # false (default): pairs not listed are only logged at WARN; true: they are rejected with 403
+  enforceAdminImpersonation: false
+```
+
+Every app acting as an admin is logged at WARN with the app key and user. Run with enforcement off, check the
+logs for pairs to add, then set `enforceAdminImpersonation: true`.
 
 ## Change Log
 [Change Log](CHANGELOG.md)
