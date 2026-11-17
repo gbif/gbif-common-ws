@@ -50,6 +50,8 @@ public class GbifAuthenticationManagerImplTest {
         .thenReturn(user("download.gbif.org", UserRole.USER, UserRole.REGISTRY_ADMIN));
     when(identityAccessService.get("other.admin"))
         .thenReturn(user("other.admin", UserRole.USER, UserRole.GRSCICOLL_ADMIN));
+    when(identityAccessService.get("superuser"))
+        .thenReturn(user("superuser", UserRole.USER, UserRole.ADMIN));
     when(identityAccessService.get("jane")).thenReturn(user("jane", UserRole.USER));
     appkeys.setAdminImpersonation(Map.of(APP, List.of("download.gbif.org")));
   }
@@ -82,6 +84,15 @@ public class GbifAuthenticationManagerImplTest {
         assertThrows(WebApplicationException.class, () -> actAs(APP, "other.admin"));
     assertEquals(403, e.getStatus());
     assertThrows(WebApplicationException.class, () -> actAs("gbif.portal", "download.gbif.org"));
+  }
+
+  @Test
+  public void testAdminRoleIsRejectedWhenEnforced() {
+    appkeys.setEnforceAdminImpersonation(true);
+
+    WebApplicationException e =
+        assertThrows(WebApplicationException.class, () -> actAs(APP, "superuser"));
+    assertEquals(403, e.getStatus());
   }
 
   private GbifAuthentication actAs(String appKey, String username) {

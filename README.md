@@ -99,8 +99,8 @@ A request is rejected with 401 when:
 
 ### Acting as admin users
 
-A signed request acts as the user in `x-gbif-user`. When that user has an admin role (any `*_ADMIN` role, e.g.
-`REGISTRY_ADMIN`), the app key must be allowed to act as that user:
+A signed request acts as the user in `x-gbif-user`. When that user has an admin role (`ADMIN` or any `*_ADMIN`
+role, e.g. `REGISTRY_ADMIN`), the app key must be allowed to act as that user:
 
 ```yaml
 appkeys:

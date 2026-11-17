@@ -15,6 +15,7 @@ package org.gbif.ws.security;
 
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.service.common.IdentityAccessService;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.ws.WebApplicationException;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
@@ -205,7 +206,9 @@ public class GbifAuthenticationManagerImpl implements GbifAuthenticationManager 
    * the request is rejected (403) if appkeys.enforceAdminImpersonation is true, or only logged.
    */
   private void checkAdminImpersonation(String appKey, GbifUser user) {
-    boolean admin = user.getRoles().stream().anyMatch(r -> r.name().endsWith(ADMIN_ROLE_SUFFIX));
+    boolean admin =
+        user.getRoles().stream()
+            .anyMatch(r -> r == UserRole.ADMIN || r.name().endsWith(ADMIN_ROLE_SUFFIX));
     if (!admin) {
       return;
     }

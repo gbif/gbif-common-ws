@@ -30,7 +30,7 @@ public class AppkeysConfigurationProperties {
 
   /**
    * Admin users each app key may act as through x-gbif-user, e.g. {@code gbif.occurrence.ws:
-   * [download.gbif.org]}. Users with any *_ADMIN role count as admins.
+   * [download.gbif.org]}. Users with the ADMIN role or any *_ADMIN role count as admins.
    */
   private Map<String, List<String>> adminImpersonation = Collections.emptyMap();
 
