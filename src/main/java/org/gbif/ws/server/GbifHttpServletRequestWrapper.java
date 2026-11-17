@@ -48,12 +48,20 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   /** No limit on the size of a buffered body. */
   public static final long UNLIMITED = -1;
 
+  /**
+   * Maximum number of query plus form parameters of a buffered form body, the default
+   * server.tomcat.max-parameter-count.
+   */
+  public static final int MAX_FORM_PARAMETERS = 10_000;
+
   private static final int PAYLOAD_TOO_LARGE = 413;
+  private static final int BAD_REQUEST = 400;
+  private static final MediaType MULTIPART = MediaType.parseMediaType("multipart/*");
 
   /** The buffered request body, null when the content is not wrapped. */
   private byte[] content;
 
-  /** Query and form parameters of a buffered form body, parsed on first use. */
+  /** Query and form parameters of a buffered form body, null for any other request. */
   private Map<String, String[]> formParameters;
 
   private HttpHeaders httpHeaders;
@@ -72,7 +80,8 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   /**
    * @param wrapContent     buffer the request body, so it can be read more than once
    * @param maxContentBytes maximum size of the buffered body, or {@link #UNLIMITED}
-   * @throws WebApplicationException with status 413 if the body is larger than maxContentBytes
+   * @throws WebApplicationException with status 413 if the body is larger than maxContentBytes,
+   *     or 400 if a form body has more than {@link #MAX_FORM_PARAMETERS} parameters
    */
   public GbifHttpServletRequestWrapper(
       HttpServletRequest request, boolean wrapContent, long maxContentBytes) {
@@ -80,6 +89,7 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     if (wrapContent) {
       content = readContent(request, maxContentBytes);
     }
+    formParameters = parseFormParameters(request, content);
     httpHeaders = getHttpHeaders(request);
   }
 
@@ -91,6 +101,7 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     } else if (wrapContent) {
       content = readContent(request, UNLIMITED);
     }
+    formParameters = parseFormParameters(request, content);
     httpHeaders = getHttpHeaders(request);
   }
 
@@ -164,36 +175,37 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
    */
   @Override
   public String getParameter(String name) {
-    if (!isBufferedForm()) {
+    if (formParameters == null) {
       return super.getParameter(name);
     }
-    String[] values = getFormParameters().get(name);
+    String[] values = formParameters.get(name);
     return values != null && values.length > 0 ? values[0] : null;
   }
 
   @Override
   public Map<String, String[]> getParameterMap() {
-    return isBufferedForm() ? getFormParameters() : super.getParameterMap();
+    if (formParameters == null) {
+      return super.getParameterMap();
+    }
+    Map<String, String[]> copy = new LinkedHashMap<>();
+    formParameters.forEach((name, values) -> copy.put(name, values.clone()));
+    return Collections.unmodifiableMap(copy);
   }
 
   @Override
   public Enumeration<String> getParameterNames() {
-    return isBufferedForm()
-        ? Collections.enumeration(getFormParameters().keySet())
+    return formParameters != null
+        ? Collections.enumeration(formParameters.keySet())
         : super.getParameterNames();
   }
 
   @Override
   public String[] getParameterValues(String name) {
-    if (!isBufferedForm()) {
+    if (formParameters == null) {
       return super.getParameterValues(name);
     }
-    String[] values = getFormParameters().get(name);
+    String[] values = formParameters.get(name);
     return values != null ? values.clone() : null;
-  }
-
-  private boolean isBufferedForm() {
-    return content != null && isFormUrlEncoded(this);
   }
 
   /** @return true if the request has an application/x-www-form-urlencoded body */
@@ -203,7 +215,7 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
   /** @return true if the request has a multipart body */
   public static boolean isMultipart(HttpServletRequest request) {
-    return contentTypeIncludedIn(request, MediaType.parseMediaType("multipart/*"));
+    return contentTypeIncludedIn(request, MULTIPART);
   }
 
   private static boolean contentTypeIncludedIn(HttpServletRequest request, MediaType mediaType) {
@@ -218,38 +230,60 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
     }
   }
 
-  private Map<String, String[]> getFormParameters() {
-    if (formParameters == null) {
-      Map<String, List<String>> parameters = new LinkedHashMap<>();
-      super.getParameterMap()
-          .forEach(
-              (name, values) ->
-                  parameters
-                      .computeIfAbsent(name, k -> new ArrayList<>())
-                      .addAll(Arrays.asList(values)));
-
-      Charset charset = getCharset(this);
-      for (String pair : new String(content, charset).split("&")) {
-        if (pair.isEmpty()) {
-          continue;
-        }
-        int separator = pair.indexOf('=');
-        try {
-          String name =
-              URLDecoder.decode(separator < 0 ? pair : pair.substring(0, separator), charset);
-          String value =
-              separator < 0 ? "" : URLDecoder.decode(pair.substring(separator + 1), charset);
-          parameters.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
-        } catch (IllegalArgumentException e) {
-          // malformed percent encoding, the parameter is ignored as servlet containers do
-        }
-      }
-
-      Map<String, String[]> result = new LinkedHashMap<>();
-      parameters.forEach((name, values) -> result.put(name, values.toArray(new String[0])));
-      formParameters = Collections.unmodifiableMap(result);
+  /**
+   * Parses the query parameters and the parameters of a buffered form body, parsed when the
+   * request is wrapped so too many parameters are rejected before the request is handled.
+   *
+   * @return the parameters, or null if the request has no buffered form body
+   * @throws WebApplicationException with status 400 if there are more than {@link
+   *     #MAX_FORM_PARAMETERS} parameters
+   */
+  private static Map<String, String[]> parseFormParameters(
+      HttpServletRequest request, byte[] content) {
+    if (content == null || !isFormUrlEncoded(request)) {
+      return null;
     }
-    return formParameters;
+    Map<String, List<String>> parameters = new LinkedHashMap<>();
+    int count = 0;
+    for (Map.Entry<String, String[]> query : request.getParameterMap().entrySet()) {
+      count += query.getValue().length;
+      parameters
+          .computeIfAbsent(query.getKey(), k -> new ArrayList<>())
+          .addAll(Arrays.asList(query.getValue()));
+    }
+
+    Charset charset = getCharset(request);
+    String body = new String(content, charset);
+    int start = 0;
+    while (start <= body.length()) {
+      int end = body.indexOf('&', start);
+      if (end < 0) {
+        end = body.length();
+      }
+      String pair = body.substring(start, end);
+      start = end + 1;
+      if (pair.isEmpty()) {
+        continue;
+      }
+      if (++count > MAX_FORM_PARAMETERS) {
+        throw new WebApplicationException(
+            "More than " + MAX_FORM_PARAMETERS + " request parameters", BAD_REQUEST);
+      }
+      int separator = pair.indexOf('=');
+      try {
+        String name =
+            URLDecoder.decode(separator < 0 ? pair : pair.substring(0, separator), charset);
+        String value =
+            separator < 0 ? "" : URLDecoder.decode(pair.substring(separator + 1), charset);
+        parameters.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
+      } catch (IllegalArgumentException e) {
+        // malformed percent encoding, the parameter is ignored as servlet containers do
+      }
+    }
+
+    Map<String, String[]> result = new LinkedHashMap<>();
+    parameters.forEach((name, values) -> result.put(name, values.toArray(new String[0])));
+    return Collections.unmodifiableMap(result);
   }
 
   private HttpHeaders getHttpHeaders(HttpServletRequest request) {

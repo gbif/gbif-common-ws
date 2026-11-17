@@ -198,6 +198,47 @@ public class HttpServletRequestWrapperFilterTest {
     assertArrayEquals(new String[] {"\u00e6"}, wrapped.getParameterMap().get("key"));
   }
 
+  @Test
+  public void testFormParameterMapCannotChangeTheParameters() throws Exception {
+    MockHttpServletRequest request = post("name=a".getBytes(StandardCharsets.UTF_8), null);
+    request.setContentType("application/x-www-form-urlencoded");
+    GbifHttpServletRequestWrapper wrapped = new GbifHttpServletRequestWrapper(request, true);
+
+    wrapped.getParameterMap().get("name")[0] = "changed";
+
+    assertEquals("a", wrapped.getParameter("name"));
+  }
+
+  /** Query plus form parameters are limited as servlet containers limit them, by default. */
+  @Test
+  public void testTooManyFormParametersAreRejected() throws Exception {
+    int max = GbifHttpServletRequestWrapper.MAX_FORM_PARAMETERS;
+    HttpServletRequestWrapperFilter unlimited =
+        new HttpServletRequestWrapperFilter(true, GbifHttpServletRequestWrapper.UNLIMITED);
+
+    MockHttpServletRequest atLimit = formWithParameters(max - 1);
+    atLimit.addParameter("query", "1");
+    MockFilterChain chain = new MockFilterChain();
+    unlimited.doFilter(atLimit, new MockHttpServletResponse(), chain);
+    assertEquals(
+        max - 1, ((GbifHttpServletRequestWrapper) chain.getRequest()).getParameterValues("p").length);
+
+    MockHttpServletRequest overLimit = formWithParameters(max);
+    overLimit.addParameter("query", "1");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    chain = new MockFilterChain();
+    unlimited.doFilter(overLimit, response, chain);
+    assertEquals(400, response.getStatus());
+    assertNull(chain.getRequest());
+  }
+
+  private static MockHttpServletRequest formWithParameters(int count) {
+    MockHttpServletRequest request =
+        post("&p=1".repeat(count).getBytes(StandardCharsets.UTF_8), "GBIF app:signature");
+    request.setContentType("application/x-www-form-urlencoded");
+    return request;
+  }
+
   /** The container parses multipart parts from the input stream, so it must not be buffered. */
   @Test
   public void testMultipartBodyIsNotBuffered() throws Exception {

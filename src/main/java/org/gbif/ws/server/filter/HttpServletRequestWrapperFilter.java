@@ -42,7 +42,11 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * <p>Multipart bodies are never buffered: the servlet container parses their parts from the input
  * stream, so their Content-MD5 can't be verified. Form parameters of buffered
- * application/x-www-form-urlencoded bodies are served from the buffer.
+ * application/x-www-form-urlencoded bodies are served from the buffer, at most {@link
+ * GbifHttpServletRequestWrapper#MAX_FORM_PARAMETERS} query plus form parameters, more are rejected
+ * with 400. Spring Boot's FormContentFilter reads PUT, PATCH and DELETE form bodies before this
+ * filter, so services receiving signed form bodies with those methods disable it
+ * (spring.mvc.formcontent.filter.enabled=false).
  *
  * <p>Buffered bodies larger than gbif.ws.security.maxBufferedBodyBytes (default 10 MB, -1 for no
  * limit) are rejected with 413.
