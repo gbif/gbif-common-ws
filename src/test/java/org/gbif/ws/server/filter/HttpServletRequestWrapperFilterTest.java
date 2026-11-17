@@ -54,6 +54,17 @@ public class HttpServletRequestWrapperFilterTest {
     assertArrayEquals(BODY, IOUtils.toByteArray(wrapped.getInputStream()));
   }
 
+  @Test
+  public void testContentBytesCannotChangeTheBody() throws Exception {
+    GbifHttpServletRequestWrapper wrapped =
+        doFilter(post(BODY, "GBIF app:signature"), new MockHttpServletResponse());
+
+    wrapped.getContentBytes()[0] = 'x';
+
+    assertArrayEquals(BODY, wrapped.getContentBytes());
+    assertArrayEquals(BODY, IOUtils.toByteArray(wrapped.getInputStream()));
+  }
+
   /** The registry's editor authorization filters read the body of Basic and JWT requests too. */
   @Test
   public void testOtherRequestsAreBuffered() throws Exception {

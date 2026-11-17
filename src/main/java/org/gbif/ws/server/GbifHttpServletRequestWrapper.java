@@ -163,10 +163,11 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
   }
 
   /**
-   * @return the buffered request body exactly as received, or null if the content was not wrapped
+   * @return a copy of the buffered request body exactly as received, or null if the content was
+   *     not wrapped
    */
   public byte[] getContentBytes() {
-    return content;
+    return content != null ? content.clone() : null;
   }
 
   public HttpHeaders getHttpHeaders() {
