@@ -110,6 +110,12 @@ public class XSSUtilTest {
     assertFalse(stripped.toLowerCase().contains("<script"), stripped);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"java\0script:alert(1)", "onlo\0ad=alert(1)"})
+  public void testNullCharactersAreIgnored(String value) {
+    assertTrue(XSSUtil.containsXSS(value), value);
+  }
+
   /** Repeated unclosed fragments made the old regex patterns take quadratic time. */
   @ParameterizedTest
   @ValueSource(strings = {"<a", "<img", "<script>", "onload", "eval(", "<scr"})

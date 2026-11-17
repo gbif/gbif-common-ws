@@ -68,10 +68,12 @@ public class XSSUtil {
       return false;
     }
 
+    // null characters would split payloads such as java\0script: that browsers may still run
+    String cleanValue = value.replace("\0", "");
     DiscardListener listener = new DiscardListener();
-    POLICY.sanitize(value, listener, null);
+    POLICY.sanitize(cleanValue, listener, null);
     if (listener.discarded
-        || TEXT_PATTERNS.stream().anyMatch(p -> p.matcher(value).find())) {
+        || TEXT_PATTERNS.stream().anyMatch(p -> p.matcher(cleanValue).find())) {
       LOG.warn("Potentially malicious XSS script found: {}", value);
       return true;
     }
