@@ -14,31 +14,49 @@
 package org.gbif.ws.remoteauth;
 
 import java.time.Duration;
+import java.util.List;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * Implementation of a {@link RemoteAuthClient} by using {@link RestTemplate} as client.
+ *
+ * <p>Calls are retried only while the login service is unavailable (I/O errors and 5xx responses),
+ * rejected credentials are never retried.
  */
 public class RestTemplateRemoteAuthClient implements RemoteAuthClient {
 
+  private static final int MAX_ATTEMPTS = 3;
+  private static final long BACKOFF_MILLIS = 300;
+
   private final RestTemplate restTemplate;
+  private final RetryTemplate retryTemplate;
 
   public RestTemplateRemoteAuthClient(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
+    this.retryTemplate =
+        RetryTemplate.builder()
+            .maxAttempts(MAX_ATTEMPTS)
+            .fixedBackoff(BACKOFF_MILLIS)
+            .retryOn(List.of(ResourceAccessException.class, HttpServerErrorException.class))
+            .build();
   }
 
   @Override
   public ResponseEntity<String> remoteAuth(String path, HttpHeaders headers) {
     try {
-      return restTemplate.postForEntity(path, new HttpEntity<>(headers), String.class);
+      return retryTemplate.execute(
+          context -> restTemplate.postForEntity(path, new HttpEntity<>(headers), String.class));
     } catch (HttpClientErrorException.Unauthorized
         | HttpClientErrorException.Forbidden
         | HttpClientErrorException.BadRequest e) {

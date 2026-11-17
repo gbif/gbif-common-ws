@@ -46,7 +46,8 @@ public abstract class BaseSigningService implements SigningService {
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);
     } catch (InvalidKeyException e) {
-      throw new RuntimeException("Invalid secret key " + secretKey, e);
+      // never put the secret in the message, it ends up in logs and error responses
+      throw new RuntimeException("Invalid secret key", e);
     }
   }
 }

@@ -22,6 +22,8 @@ import org.gbif.ws.security.GbifAuthServiceTest;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,11 +48,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -64,6 +71,7 @@ public class IdentityFilterTest {
 
   // initialize in setUp()
   private IdentityFilter identityFilter;
+  private GbifAuthenticationManagerImpl authenticationManager;
   private GbifAuthService authService;
 
   private static String heinzAuthBasic;
@@ -104,26 +112,35 @@ public class IdentityFilterTest {
   @BeforeEach
   public void setUp() throws Exception {
     authService = GbifAuthServiceTest.prepareGbifAuthService();
-    identityFilter =
-        new IdentityFilter(
-            new GbifAuthenticationManagerImpl(
-                new IdentityAccessService() {
+    authenticationManager =
+        new GbifAuthenticationManagerImpl(
+            new IdentityAccessService() {
 
-                  @Nullable
-                  @Override
-                  public GbifUser get(String username) {
-                    return TEST_USERS.get(username);
-                  }
+              @Nullable
+              @Override
+              public GbifUser get(String username) {
+                return TEST_USERS.get(username);
+              }
 
-                  @Nullable
-                  @Override
-                  public GbifUser authenticate(String username, String password) {
-                    return Optional.ofNullable(get(username))
-                        .filter(u -> u.getPasswordHash().equals(password))
-                        .orElse(null);
-                  }
-                },
-                authService));
+              @Nullable
+              @Override
+              public GbifUser authenticate(String username, String password) {
+                return Optional.ofNullable(get(username))
+                    .filter(u -> u.getPasswordHash().equals(password))
+                    .orElse(null);
+              }
+            },
+            authService);
+    identityFilter = new IdentityFilter(authenticationManager);
+  }
+
+  @Test
+  public void testInvalidBase64IsBadRequest() {
+    WebApplicationException e =
+        assertThrows(
+            WebApplicationException.class,
+            () -> authenticationManager.authenticate(getMockRequestAuthorization("Basic !!!")));
+    assertEquals(400, e.getStatus());
   }
 
   private static String toAuthorizationString(GbifUser user) {
@@ -159,15 +176,48 @@ public class IdentityFilterTest {
   }
 
   @Test
-  public void testFilterWithBasicAuthWrongPassword() {
-    doThrow(WebApplicationException.class).when(mockResponse).setStatus(anyInt());
-    assertThrows(
-        WebApplicationException.class,
-        () ->
-            assertPrincipalName(
-                null,
-                getMockRequestAuthorization(
-                    "Basic " + toAuthorizationString(heinz.getUserName(), "wrong"))));
+  public void testFilterWithBasicAuthWrongPassword() throws Exception {
+    StringWriter body = new StringWriter();
+    when(mockResponse.getWriter()).thenReturn(new PrintWriter(body));
+
+    identityFilter.doFilter(
+        getMockRequestAuthorization("Basic " + toAuthorizationString(heinz.getUserName(), "wrong")),
+        mockResponse,
+        mockFilterChain);
+
+    verify(mockResponse).setStatus(401);
+    verify(mockResponse).setContentType("text/plain");
+    verify(mockFilterChain, never()).doFilter(any(), any());
+    // the response does not echo the user name
+    assertEquals("Failed to authenticate user", body.toString().trim());
+  }
+
+  @Test
+  public void testFilterWithInvalidBase64IsBadRequest() throws Exception {
+    when(mockResponse.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+    identityFilter.doFilter(getMockRequestAuthorization("Basic !!!"), mockResponse, mockFilterChain);
+
+    verify(mockResponse).setStatus(400);
+    verify(mockFilterChain, never()).doFilter(any(), any());
+  }
+
+  /** Errors further down the chain are not answered as authentication failures. */
+  @Test
+  public void testFilterChainExceptionIsNotCaught() throws Exception {
+    WebApplicationException downstream =
+        new WebApplicationException("downstream", HttpStatus.CONFLICT);
+    doThrow(downstream).when(mockFilterChain).doFilter(any(), any());
+
+    WebApplicationException e =
+        assertThrows(
+            WebApplicationException.class,
+            () ->
+                identityFilter.doFilter(
+                    getMockRequestAuthorization(heinzAuthBasic), mockResponse, mockFilterChain));
+
+    assertSame(downstream, e);
+    verify(mockResponse, never()).setStatus(anyInt());
   }
 
   private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request)

@@ -146,14 +146,14 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
     String[] values = COLON_PATTERN.split(authHeader.substring(5), 2);
     if (values.length < 2) {
-      LOG.warn("Invalid syntax for application key and signature: {}", authHeader);
+      LOG.warn("Invalid syntax for application key and signature");
       return false;
     }
 
     final String appKey = values[0];
     final String signatureFound = values[1];
     if (appKey == null || signatureFound == null) {
-      LOG.warn("Authentication header missing applicationKey or signature: {}", authHeader);
+      LOG.warn("Authentication header missing applicationKey or signature");
       return false;
     }
 
@@ -190,7 +190,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       LOG.debug("Trusted application with matching signatures");
       return true;
     }
-    LOG.info("Invalid signature: {}", authHeader);
+    LOG.info("Invalid signature for app key {}", appKey);
 
     return false;
   }
@@ -340,10 +340,10 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     final String header = buildAuthHeader(appKey, signature);
     // add authorization header
     LOG.debug(
-        "Adding authentication header to request {} for proxied user {} : {}",
+        "Adding authentication header to request {} for proxied user {} with app key {}",
         request.getRequestURI(),
         username,
-        header);
+        appKey);
     request.getHttpHeaders().add(HttpHeaders.AUTHORIZATION, header);
 
     return request;
