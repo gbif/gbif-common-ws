@@ -36,6 +36,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import feign.Request.HttpMethod;
@@ -299,6 +300,29 @@ public class GbifAuthServiceTest {
     assertFalse(service.isValidRequest(wrap("POST", "/dataset", "{\"title\":\"evil\"}", headers)));
     // body removed
     assertFalse(service.isValidRequest(wrap("POST", "/dataset", "", headers)));
+  }
+
+  /** Form bodies are buffered too, so their parameters can't be swapped under a valid signature. */
+  @Test
+  public void testSwappedFormBodyIsRejected() {
+    GbifHttpServletRequestWrapper request = wrapForm("title=Simsalabim", Collections.emptyMap());
+    service.signRequest(USER, request);
+    assertTrue(service.isValidRequest(request));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.addAll(request.getHttpHeaders());
+    headers.remove(HttpHeaders.CONTENT_TYPE);
+    GbifHttpServletRequestWrapper swapped = wrapForm("title=evil", headers.toSingleValueMap());
+    assertEquals("evil", swapped.getParameter("title"));
+    assertFalse(service.isValidRequest(swapped));
+  }
+
+  private static GbifHttpServletRequestWrapper wrapForm(String body, Map<String, String> headers) {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/dataset");
+    request.setContentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+    request.setContent(body.getBytes(StandardCharsets.UTF_8));
+    headers.forEach(request::addHeader);
+    return new GbifHttpServletRequestWrapper(request, true);
   }
 
   @Test
