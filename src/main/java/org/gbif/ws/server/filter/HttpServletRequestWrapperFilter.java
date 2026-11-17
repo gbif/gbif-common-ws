@@ -40,6 +40,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * before the controller, e.g. the registry's editor authorization filters. Services receiving large
  * bodies, such as uploads, set it to false.
  *
+ * <p>Multipart bodies are never buffered: the servlet container parses their parts from the input
+ * stream, so their Content-MD5 can't be verified. Form parameters of buffered
+ * application/x-www-form-urlencoded bodies are served from the buffer.
+ *
  * <p>Buffered bodies larger than gbif.ws.security.maxBufferedBodyBytes (default 10 MB, -1 for no
  * limit) are rejected with 413.
  */
@@ -76,7 +80,10 @@ public class HttpServletRequestWrapperFilter extends OncePerRequestFilter {
     } else {
       try {
         requestWrapper =
-            new GbifHttpServletRequestWrapper(request, wrapContent, maxBufferedBodyBytes);
+            new GbifHttpServletRequestWrapper(
+                request,
+                wrapContent && !GbifHttpServletRequestWrapper.isMultipart(request),
+                maxBufferedBodyBytes);
       } catch (WebApplicationException e) {
         LOG.info("Rejected request to {}: {}", request.getRequestURI(), e.getMessage());
         response.setStatus(e.getStatus());

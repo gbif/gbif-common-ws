@@ -10,7 +10,10 @@ must be updated before servers are deployed with this version. See
  * New signed `x-gbif-date` header; requests outside `gbif.ws.security.gbifAuth.maxClockSkewSeconds`
    (default 15 minutes) are rejected to limit replays ([informatics#52](https://github.com/gbif/informatics/issues/52)).
  * The canonical query string is now part of the signed URL.
- * `Content-MD5` is verified against the request body.
+ * `Content-MD5` is verified against the request body. Form parameters of buffered
+   `application/x-www-form-urlencoded` bodies are read from the buffer, as the servlet container can
+   no longer read them. Multipart bodies are not buffered, so the container can parse their parts;
+   their `Content-MD5` is not verified.
  * `x-url` and `x-method` must match the real request, except on `gbif.ws.security.gbifAuth.forwardedAuthPaths`
    (default `/user/auth/app`).
  * Signatures are compared in constant time ([informatics#56](https://github.com/gbif/informatics/issues/56)).

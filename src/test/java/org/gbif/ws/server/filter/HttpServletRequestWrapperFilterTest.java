@@ -16,6 +16,8 @@ package org.gbif.ws.server.filter;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -168,6 +170,46 @@ public class HttpServletRequestWrapperFilterTest {
     MockFilterChain chain = new MockFilterChain();
     filter.doFilter(request, response, chain);
     return assertInstanceOf(GbifHttpServletRequestWrapper.class, chain.getRequest());
+  }
+
+  /**
+   * Form bodies are buffered so their Content-MD5 can be verified. The container no longer sees
+   * their parameters, so they are read from the buffer.
+   */
+  @Test
+  public void testFormBodyIsBufferedAndItsParametersRead() throws Exception {
+    byte[] body = "name=a%20b&name=c&empty&key=%C3%A6&bad=%zz".getBytes(StandardCharsets.UTF_8);
+    MockHttpServletRequest request = post(body, "GBIF app:signature");
+    request.setContentType("application/x-www-form-urlencoded; charset=UTF-8");
+    // query parameter, still parsed by the container
+    request.addParameter("name", "query");
+
+    GbifHttpServletRequestWrapper wrapped =
+        new GbifHttpServletRequestWrapper(request, true, GbifHttpServletRequestWrapper.UNLIMITED);
+
+    assertArrayEquals(body, wrapped.getContentBytes());
+    assertArrayEquals(new String[] {"query", "a b", "c"}, wrapped.getParameterValues("name"));
+    assertEquals("query", wrapped.getParameter("name"));
+    assertEquals("", wrapped.getParameter("empty"));
+    assertEquals("\u00e6", wrapped.getParameter("key"));
+    assertNull(wrapped.getParameter("bad"));
+    assertEquals(
+        Arrays.asList("name", "empty", "key"), Collections.list(wrapped.getParameterNames()));
+    assertArrayEquals(new String[] {"\u00e6"}, wrapped.getParameterMap().get("key"));
+  }
+
+  /** The container parses multipart parts from the input stream, so it must not be buffered. */
+  @Test
+  public void testMultipartBodyIsNotBuffered() throws Exception {
+    byte[] body = "--b\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\nx\r\n--b--\r\n"
+        .getBytes(StandardCharsets.UTF_8);
+    MockHttpServletRequest request = post(body, "GBIF app:signature");
+    request.setContentType("multipart/form-data; boundary=b");
+
+    GbifHttpServletRequestWrapper wrapped = doFilter(request, new MockHttpServletResponse());
+
+    assertNull(wrapped.getContentBytes());
+    assertArrayEquals(body, IOUtils.toByteArray(wrapped.getInputStream()));
   }
 
   private static MockHttpServletRequest post(byte[] body, String authorization) {

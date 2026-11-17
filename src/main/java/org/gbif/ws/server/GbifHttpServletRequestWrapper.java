@@ -20,18 +20,24 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +52,9 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
   /** The buffered request body, null when the content is not wrapped. */
   private byte[] content;
+
+  /** Query and form parameters of a buffered form body, parsed on first use. */
+  private Map<String, String[]> formParameters;
 
   private HttpHeaders httpHeaders;
 
@@ -146,6 +155,101 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
       return super.getReader();
     }
     return new BufferedReader(new InputStreamReader(getInputStream(), getCharset(this)));
+  }
+
+  /**
+   * The servlet container parses form parameters from the request input stream, which is empty once
+   * the body is buffered. The parameters of a buffered application/x-www-form-urlencoded body are
+   * therefore parsed from the buffer and added to the query parameters the container still reads.
+   */
+  @Override
+  public String getParameter(String name) {
+    if (!isBufferedForm()) {
+      return super.getParameter(name);
+    }
+    String[] values = getFormParameters().get(name);
+    return values != null && values.length > 0 ? values[0] : null;
+  }
+
+  @Override
+  public Map<String, String[]> getParameterMap() {
+    return isBufferedForm() ? getFormParameters() : super.getParameterMap();
+  }
+
+  @Override
+  public Enumeration<String> getParameterNames() {
+    return isBufferedForm()
+        ? Collections.enumeration(getFormParameters().keySet())
+        : super.getParameterNames();
+  }
+
+  @Override
+  public String[] getParameterValues(String name) {
+    if (!isBufferedForm()) {
+      return super.getParameterValues(name);
+    }
+    String[] values = getFormParameters().get(name);
+    return values != null ? values.clone() : null;
+  }
+
+  private boolean isBufferedForm() {
+    return content != null && isFormUrlEncoded(this);
+  }
+
+  /** @return true if the request has an application/x-www-form-urlencoded body */
+  public static boolean isFormUrlEncoded(HttpServletRequest request) {
+    return contentTypeIncludedIn(request, MediaType.APPLICATION_FORM_URLENCODED);
+  }
+
+  /** @return true if the request has a multipart body */
+  public static boolean isMultipart(HttpServletRequest request) {
+    return contentTypeIncludedIn(request, MediaType.parseMediaType("multipart/*"));
+  }
+
+  private static boolean contentTypeIncludedIn(HttpServletRequest request, MediaType mediaType) {
+    String contentType = request.getContentType();
+    if (contentType == null) {
+      return false;
+    }
+    try {
+      return mediaType.includes(MediaType.parseMediaType(contentType));
+    } catch (InvalidMediaTypeException e) {
+      return false;
+    }
+  }
+
+  private Map<String, String[]> getFormParameters() {
+    if (formParameters == null) {
+      Map<String, List<String>> parameters = new LinkedHashMap<>();
+      super.getParameterMap()
+          .forEach(
+              (name, values) ->
+                  parameters
+                      .computeIfAbsent(name, k -> new ArrayList<>())
+                      .addAll(Arrays.asList(values)));
+
+      Charset charset = getCharset(this);
+      for (String pair : new String(content, charset).split("&")) {
+        if (pair.isEmpty()) {
+          continue;
+        }
+        int separator = pair.indexOf('=');
+        try {
+          String name =
+              URLDecoder.decode(separator < 0 ? pair : pair.substring(0, separator), charset);
+          String value =
+              separator < 0 ? "" : URLDecoder.decode(pair.substring(separator + 1), charset);
+          parameters.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
+        } catch (IllegalArgumentException e) {
+          // malformed percent encoding, the parameter is ignored as servlet containers do
+        }
+      }
+
+      Map<String, String[]> result = new LinkedHashMap<>();
+      parameters.forEach((name, values) -> result.put(name, values.toArray(new String[0])));
+      formParameters = Collections.unmodifiableMap(result);
+    }
+    return formParameters;
   }
 
   private HttpHeaders getHttpHeaders(HttpServletRequest request) {
