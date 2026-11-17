@@ -141,6 +141,18 @@ public class HttpServletRequestWrapperFilterTest {
   }
 
   @Test
+  public void testUnsupportedCharsetIsUtf8() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/dataset");
+    request.setCharacterEncoding("no-such-charset");
+    request.setContent("søren".getBytes(StandardCharsets.UTF_8));
+
+    GbifHttpServletRequestWrapper wrapped = new GbifHttpServletRequestWrapper(request, true);
+
+    assertEquals("søren", wrapped.getContent());
+    assertEquals("søren", wrapped.getReader().readLine());
+  }
+
+  @Test
   public void testNotWrappedInputStreamIsTheRequestStream() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("POST", "/dataset");
     request.setContent(BODY);

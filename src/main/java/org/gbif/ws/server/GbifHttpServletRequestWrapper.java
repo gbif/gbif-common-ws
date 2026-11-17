@@ -118,10 +118,18 @@ public class GbifHttpServletRequestWrapper extends HttpServletRequestWrapper {
         "Request body larger than " + maxContentBytes + " bytes", PAYLOAD_TOO_LARGE);
   }
 
-  /** The request charset, UTF-8 if none is given. */
+  /** The request charset, UTF-8 if none is given or it is not supported. */
   private static Charset getCharset(HttpServletRequest request) {
     String encoding = request.getCharacterEncoding();
-    return encoding != null ? Charset.forName(encoding) : StandardCharsets.UTF_8;
+    if (encoding == null) {
+      return StandardCharsets.UTF_8;
+    }
+    try {
+      return Charset.forName(encoding);
+    } catch (IllegalArgumentException e) {
+      // IllegalCharsetNameException and UnsupportedCharsetException
+      return StandardCharsets.UTF_8;
+    }
   }
 
   @Override
