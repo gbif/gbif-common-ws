@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,9 +48,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -186,6 +190,34 @@ public class IdentityFilterTest {
     verify(mockFilterChain, never()).doFilter(any(), any());
     // the response does not echo the user name
     assertEquals("Failed to authenticate user", body.toString().trim());
+  }
+
+  @Test
+  public void testFilterWithInvalidBase64IsBadRequest() throws Exception {
+    when(mockResponse.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+    identityFilter.doFilter(getMockRequestAuthorization("Basic !!!"), mockResponse, mockFilterChain);
+
+    verify(mockResponse).setStatus(400);
+    verify(mockFilterChain, never()).doFilter(any(), any());
+  }
+
+  /** Errors further down the chain are not answered as authentication failures. */
+  @Test
+  public void testFilterChainExceptionIsNotCaught() throws Exception {
+    WebApplicationException downstream =
+        new WebApplicationException("downstream", HttpStatus.CONFLICT);
+    doThrow(downstream).when(mockFilterChain).doFilter(any(), any());
+
+    WebApplicationException e =
+        assertThrows(
+            WebApplicationException.class,
+            () ->
+                identityFilter.doFilter(
+                    getMockRequestAuthorization(heinzAuthBasic), mockResponse, mockFilterChain));
+
+    assertSame(downstream, e);
+    verify(mockResponse, never()).setStatus(anyInt());
   }
 
   private void assertPrincipalName(String expectedUsername, GbifHttpServletRequestWrapper request)
