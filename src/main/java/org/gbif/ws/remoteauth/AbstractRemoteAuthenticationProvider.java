@@ -73,9 +73,8 @@ public abstract class AbstractRemoteAuthenticationProvider<T extends Authenticat
   }
 
   /**
-   * Performs the remote call to the login service. Not retried: the previous {@code @Retryable}
-   * retried any RuntimeException, rejected credentials included, and was never applied anyway
-   * since the providers are not Spring beans and this method is self-invoked.
+   * Performs the remote call to the login service. Retries while the service is unavailable are
+   * handled by the {@link RemoteAuthClient}, rejected credentials are not retried.
    */
   protected ResponseEntity<String> tryLogin(T authentication) {
     return remoteAuthClient.remoteAuth(authWsPath, createHttpHeaders(authentication));
