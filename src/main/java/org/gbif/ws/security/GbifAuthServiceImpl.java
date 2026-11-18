@@ -71,7 +71,8 @@ import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
  *
  * <p>The x-url and x-method headers are only honoured as-is on the forwarded authentication paths
  * (e.g. the registry's /user/auth/app used by remote authentication). On any other path x-method
- * must match the real method and x-url must refer to the real path.
+ * must match the real method and x-url must be the real path, possibly behind one of the proxy path
+ * prefixes (gbif.ws.security.gbifAuth.proxyPathPrefixes, default /v1).
  */
 @Service
 public class GbifAuthServiceImpl implements GbifAuthService {
@@ -88,6 +89,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   private final AppKeyProvider appKeyProvider;
   private final Duration maxClockSkew;
   private final List<String> forwardedAuthPaths;
+  private final List<String> proxyPathPrefixes;
   private final Clock clock;
 
   public GbifAuthServiceImpl(
@@ -99,7 +101,8 @@ public class GbifAuthServiceImpl implements GbifAuthService {
         md5EncodeService,
         appKeyProvider,
         DEFAULT_MAX_CLOCK_SKEW_SECONDS,
-        new String[] {DEFAULT_FORWARDED_AUTH_PATH});
+        new String[] {DEFAULT_FORWARDED_AUTH_PATH},
+        new String[] {GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIX});
   }
 
   @Autowired
@@ -110,13 +113,16 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       @Value("${gbif.ws.security.gbifAuth.maxClockSkewSeconds:" + DEFAULT_MAX_CLOCK_SKEW_SECONDS + "}")
           long maxClockSkewSeconds,
       @Value("${gbif.ws.security.gbifAuth.forwardedAuthPaths:" + DEFAULT_FORWARDED_AUTH_PATH + "}")
-          String[] forwardedAuthPaths) {
+          String[] forwardedAuthPaths,
+      @Value("${gbif.ws.security.gbifAuth.proxyPathPrefixes:" + GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIX + "}")
+          String[] proxyPathPrefixes) {
     this(
         signingService,
         md5EncodeService,
         appKeyProvider,
         Duration.ofSeconds(maxClockSkewSeconds),
         Arrays.asList(forwardedAuthPaths),
+        Arrays.asList(proxyPathPrefixes),
         Clock.systemUTC());
   }
 
@@ -127,11 +133,30 @@ public class GbifAuthServiceImpl implements GbifAuthService {
       Duration maxClockSkew,
       List<String> forwardedAuthPaths,
       Clock clock) {
+    this(
+        signingService,
+        md5EncodeService,
+        appKeyProvider,
+        maxClockSkew,
+        forwardedAuthPaths,
+        GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIXES,
+        clock);
+  }
+
+  GbifAuthServiceImpl(
+      SigningService signingService,
+      Md5EncodeService md5EncodeService,
+      AppKeyProvider appKeyProvider,
+      Duration maxClockSkew,
+      List<String> forwardedAuthPaths,
+      List<String> proxyPathPrefixes,
+      Clock clock) {
     this.signingService = signingService;
     this.md5EncodeService = md5EncodeService;
     this.appKeyProvider = appKeyProvider;
     this.maxClockSkew = maxClockSkew;
     this.forwardedAuthPaths = forwardedAuthPaths;
+    this.proxyPathPrefixes = proxyPathPrefixes;
     this.clock = clock;
   }
 
@@ -198,11 +223,12 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   /**
    * Forwarded authentication requests (remote auth) carry the method and URL of the original
    * request in the x-method and x-url headers, the forwarding service is responsible to bind them
-   * to the original request.
+   * to the original request. Only the forwarded authentication paths themselves are, possibly
+   * behind a proxy path prefix, not any path ending with one.
    */
   private boolean isForwardedAuthRequest(final GbifHttpServletRequestWrapper request) {
     String path = GbifAuthUtils.getCanonicalizedPath(request.getRequestURI());
-    return path != null && forwardedAuthPaths.stream().anyMatch(path::endsWith);
+    return GbifAuthUtils.isPathOneOf(path, forwardedAuthPaths, proxyPathPrefixes);
   }
 
   /**
@@ -222,7 +248,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     }
     String originalUrl = headers.getFirst(HEADER_ORIGINAL_REQUEST_URL);
     String requestPath = GbifAuthUtils.getCanonicalizedPath(request.getRequestURI());
-    if (originalUrl != null && !GbifAuthUtils.isOriginalUrlValid(originalUrl, requestPath)) {
+    if (originalUrl != null && !GbifAuthUtils.isOriginalUrlValid(originalUrl, requestPath, proxyPathPrefixes)) {
       LOG.info(
           "{} header {} does not match request path {}",
           HEADER_ORIGINAL_REQUEST_URL,

@@ -19,6 +19,10 @@ must be updated before servers are deployed with this version. See
    signed form bodies with those methods must set `spring.mvc.formcontent.filter.enabled=false`.
  * `x-url` and `x-method` must match the real request, except on `gbif.ws.security.gbifAuth.forwardedAuthPaths`
    (default `/user/auth/app`).
+ * **Breaking:** the `x-url` path must be the request path, or one of `gbif.ws.security.gbifAuth.proxyPathPrefixes`
+   (default `/v1`) followed by it, instead of any path ending with it; forwarded authentication paths are matched the
+   same way. Services behind another proxy prefix (e.g. `/v1/directory`) must configure it
+   ([security-issues#44](https://github.com/gbif/security-issues/issues/44)).
  * Signatures are compared in constant time ([informatics#56](https://github.com/gbif/informatics/issues/56)).
  * `commons-beanutils` upgraded to 1.11.0 for CVE-2025-48734 ([informatics#60](https://github.com/gbif/informatics/issues/60)).
  * **Breaking:** requests without credentials are no longer treated as authenticated

@@ -19,10 +19,14 @@ import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
 import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
 import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
+import org.gbif.ws.security.GbifAuthUtils;
 import org.gbif.ws.security.SecurityUtils;
 import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 
+import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -51,7 +55,9 @@ public class RemoteAuthWebSecurityConfigurer {
       HttpSecurity http,
       AuthenticationManager authenticationManager,
       HttpServletRequestWrapperFilter httpServletRequestWrapperFilter,
-      RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter)
+      RequestHeaderParamUpdateFilter requestHeaderParamUpdateFilter,
+      @Value("${gbif.ws.security.gbifAuth.proxyPathPrefixes:" + GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIX + "}")
+          String[] proxyPathPrefixes)
       throws Exception {
     return SecurityUtils.gbifFilterChain(
             http, httpServletRequestWrapperFilter, requestHeaderParamUpdateFilter)
@@ -59,7 +65,9 @@ public class RemoteAuthWebSecurityConfigurer {
         .addFilterAfter(
             new BasicAuthRequestFilter(authenticationManager), RequestHeaderParamUpdateFilter.class)
         .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
-        .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
+        .addFilterAfter(
+            new GbifAppRequestFilter(authenticationManager, Arrays.asList(proxyPathPrefixes)),
+            JwtRequestFilter.class)
         .build();
   }
 

@@ -184,6 +184,16 @@ public class RemoteAuthTest {
                 .header(HEADER_ORIGINAL_REQUEST_URL, "/other"))
         .andExpect(MockMvcResultMatchers.status().isUnauthorized());
 
+    // nor by keeping the real path behind a prefix that is not a proxy path prefix
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.get("/admin")
+                .header(HttpHeaders.AUTHORIZATION, ADMIN_USER.getGbifSchemeHeader())
+                .header(HEADER_GBIF_USER, ADMIN_USER.getLoggedUser().getUserName())
+                .header(HEADER_GBIF_DATE, DATE)
+                .header(HEADER_ORIGINAL_REQUEST_URL, "/v1/foo/admin"))
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+
     // x-url matching the real path is accepted
     mockMvc
         .perform(

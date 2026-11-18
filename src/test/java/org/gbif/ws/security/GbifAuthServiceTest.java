@@ -370,12 +370,50 @@ public class GbifAuthServiceTest {
   }
 
   @Test
+  public void testOriginalUrlWithUnknownPrefixIsRejected() {
+    // signature captured for /v1/foo/admin/user/x, replayed against /admin/user/x
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("GET", "/v1/foo/admin/user/x", null, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "https://api.gbif.org/v1/foo/admin/user/x");
+
+    assertTrue(
+        service.isValidRequest(wrap("GET", "/foo/admin/user/x", null, headers.toSingleValueMap())));
+    assertFalse(
+        service.isValidRequest(wrap("GET", "/admin/user/x", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testOnlyForwardedAuthPathsHonourOriginalUrlAndMethod() {
+    // a path merely ending with /user/auth/app does not skip the x-url and x-method checks
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("PUT", "/dataset/1", BODY, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset/1");
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "PUT");
+    headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+    Map<String, String> h = headers.toSingleValueMap();
+
+    assertTrue(service.isValidRequest(wrap("POST", "/v1/user/auth/app", null, h)));
+    assertTrue(service.isValidRequest(wrap("POST", "/user/auth/app/", null, h)));
+    assertFalse(service.isValidRequest(wrap("POST", "/foo/user/auth/app", null, h)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset/1/user/auth/app", null, h)));
+  }
+
+  @Test
   public void testIsOriginalUrlValid() {
     assertTrue(GbifAuthUtils.isOriginalUrlValid("/dataset", "/dataset"));
     assertTrue(GbifAuthUtils.isOriginalUrlValid("/dataset/", "/dataset"));
     assertTrue(GbifAuthUtils.isOriginalUrlValid("/v1/dataset", "/dataset"));
-    assertTrue(GbifAuthUtils.isOriginalUrlValid("http://api.gbif.org/v1/directory/person/1", "/person/1"));
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("https://api.gbif.org/v1/dataset?limit=1", "/dataset"));
     assertTrue(GbifAuthUtils.isOriginalUrlValid("admin/user/x", "/admin/user/x"));
+    // only the configured proxy prefixes may come before the real path
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/foo/admin/user/x", "/admin/user/x"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/foo/admin/user/x", "/admin/user/x"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("http://api.gbif.org/v1/directory/person/1", "/person/1"));
+    assertTrue(
+        GbifAuthUtils.isOriginalUrlValid(
+            "http://api.gbif.org/v1/directory/person/1", "/person/1", List.of("/v1", "/v1/directory/")));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/dataset", "/dataset", List.of()));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset", "/dataset/1", List.of("")));
     assertFalse(GbifAuthUtils.isOriginalUrlValid("min/user/x", "/admin/user/x"));
     assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/mydataset", "/dataset"));
     assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset", "/v1/dataset"));

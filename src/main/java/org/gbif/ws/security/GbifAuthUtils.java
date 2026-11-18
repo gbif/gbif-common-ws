@@ -28,6 +28,8 @@ import java.time.format.DateTimeParseException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +40,14 @@ import org.apache.commons.lang3.StringUtils;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 
 public final class GbifAuthUtils {
+
+  /**
+   * Path prefixes a proxy can strip before the request reaches the service, and that clients can
+   * keep in the x-url header.
+   */
+  public static final String DEFAULT_PROXY_PATH_PREFIX = "/v1";
+
+  public static final List<String> DEFAULT_PROXY_PATH_PREFIXES = List.of(DEFAULT_PROXY_PATH_PREFIX);
 
   private static final Pattern COLON_PATTERN = Pattern.compile(":");
 
@@ -139,12 +149,24 @@ public final class GbifAuthUtils {
   }
 
   /**
-   * Checks the client supplied original URL (x-url header) refers to the path actually requested.
-   * The proxy can strip leading path segments (e.g. /v1), so the original path must equal the real
-   * path or end with it on a path segment boundary. Scheme, host and query parameters are ignored,
-   * a relative original path (e.g. admin/user/x) is taken as rooted.
+   * Checks the client supplied original URL (x-url header) refers to the path actually requested,
+   * with the default proxy path prefixes.
+   *
+   * @see #isOriginalUrlValid(String, String, Collection)
    */
   public static boolean isOriginalUrlValid(String originalUrl, String requestPath) {
+    return isOriginalUrlValid(originalUrl, requestPath, DEFAULT_PROXY_PATH_PREFIXES);
+  }
+
+  /**
+   * Checks the client supplied original URL (x-url header) refers to the path actually requested.
+   * The proxy can strip a leading path prefix (e.g. /v1), so the original path must equal the real
+   * path, or one of the given prefixes followed by the real path. Any other prefix is refused, else
+   * a signature for /v1/foo/admin/user/x would also be valid for /admin/user/x. Scheme, host and
+   * query parameters are ignored, a relative original path (e.g. admin/user/x) is taken as rooted.
+   */
+  public static boolean isOriginalUrlValid(
+      String originalUrl, String requestPath, Collection<String> proxyPathPrefixes) {
     final String originalPath;
     try {
       originalPath = getCanonicalizedPath(originalUrl);
@@ -156,10 +178,30 @@ public final class GbifAuthUtils {
     }
     String path = StringUtils.removeEnd(requestPath, "/");
     String original = StringUtils.removeEnd(StringUtils.prependIfMissing(originalPath, "/"), "/");
-    if (original.equals(path)) {
-      return true;
+    return original.equals(path)
+        || (!path.isEmpty() && path.startsWith("/") && hasPrefix(original, path, proxyPathPrefixes));
+  }
+
+  /**
+   * Checks the path is one of the given paths, possibly behind one of the proxy path prefixes.
+   */
+  public static boolean isPathOneOf(
+      String path, Collection<String> paths, Collection<String> proxyPathPrefixes) {
+    if (path == null) {
+      return false;
     }
-    return !path.isEmpty() && path.startsWith("/") && original.endsWith(path);
+    String p = StringUtils.removeEnd(path, "/");
+    return paths.stream()
+        .map(s -> StringUtils.removeEnd(StringUtils.prependIfMissing(s, "/"), "/"))
+        .anyMatch(s -> p.equals(s) || hasPrefix(p, s, proxyPathPrefixes));
+  }
+
+  /** Checks full is exactly one of the prefixes followed by path. */
+  private static boolean hasPrefix(String full, String path, Collection<String> prefixes) {
+    return prefixes.stream()
+        .map(prefix -> StringUtils.removeEnd(StringUtils.prependIfMissing(prefix, "/"), "/"))
+        .filter(prefix -> !prefix.isEmpty())
+        .anyMatch(prefix -> full.equals(prefix + path));
   }
 
   /**

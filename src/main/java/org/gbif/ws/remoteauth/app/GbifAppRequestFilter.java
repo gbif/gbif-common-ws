@@ -22,6 +22,7 @@ import org.gbif.ws.util.SecurityConstants;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -40,25 +41,41 @@ import lombok.extern.slf4j.Slf4j;
  * Intercepts all requests to look for a GBIF scheme authorization header.
  *
  * <p>The signature is verified remotely, so the original method and URL sent along are taken from
- * this request: a client supplied x-url is only forwarded if it refers to the real path, and the
- * Content-MD5 header is verified here against the actual body since the body is not forwarded.
+ * this request: a client supplied x-url is only forwarded if it is the real path, possibly behind one
+ * of the proxy path prefixes, and the Content-MD5 header is verified here against the actual body
+ * since the body is not forwarded.
  */
 @Slf4j
 public class GbifAppRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
   private final Md5EncodeService md5EncodeService;
+  private final List<String> proxyPathPrefixes;
 
   public GbifAppRequestFilter(AuthenticationManager authenticationManager) {
+    this(authenticationManager, GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIXES);
+  }
+
+  public GbifAppRequestFilter(
+      AuthenticationManager authenticationManager, List<String> proxyPathPrefixes) {
     this(
         authenticationManager,
-        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()));
+        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
+        proxyPathPrefixes);
   }
 
   public GbifAppRequestFilter(
       AuthenticationManager authenticationManager, Md5EncodeService md5EncodeService) {
+    this(authenticationManager, md5EncodeService, GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIXES);
+  }
+
+  public GbifAppRequestFilter(
+      AuthenticationManager authenticationManager,
+      Md5EncodeService md5EncodeService,
+      List<String> proxyPathPrefixes) {
     this.authenticationManager = authenticationManager;
     this.md5EncodeService = md5EncodeService;
+    this.proxyPathPrefixes = proxyPathPrefixes;
   }
 
   /**
@@ -81,7 +98,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
       String originalRequestUrl = request.getHeader(SecurityConstants.HEADER_ORIGINAL_REQUEST_URL);
 
       if (originalRequestUrl != null
-          && !GbifAuthUtils.isOriginalUrlValid(originalRequestUrl, requestPath)) {
+          && !GbifAuthUtils.isOriginalUrlValid(originalRequestUrl, requestPath, proxyPathPrefixes)) {
         log.info(
             "{} header {} does not match request path {}",
             SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,

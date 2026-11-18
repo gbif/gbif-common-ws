@@ -92,9 +92,11 @@ A request is rejected with 401 when:
 - `Content-MD5` does not match the body (checked when the request content is wrapped, `gbif.ws.security.wrapContent`,
   default true). Buffered bodies larger than `gbif.ws.security.maxBufferedBodyBytes` (default 10 MB, -1 for no limit)
   are rejected with 413;
-- `x-method` differs from the request method, or `x-url` does not refer to the request path. These headers are
-  only taken as-is on `gbif.ws.security.gbifAuth.forwardedAuthPaths` (default `/user/auth/app`), used by
-  remote authentication;
+- `x-method` differs from the request method, or `x-url` does not refer to the request path: its path must be the
+  request path, or one of `gbif.ws.security.gbifAuth.proxyPathPrefixes` (default `/v1`) followed by the request
+  path. A service behind another proxy prefix, e.g. `/v1/directory`, must add it. These headers are only taken
+  as-is on `gbif.ws.security.gbifAuth.forwardedAuthPaths` (default `/user/auth/app`, also behind a proxy path
+  prefix), used by remote authentication;
 - the signature does not match.
 
 ### Acting as admin users
