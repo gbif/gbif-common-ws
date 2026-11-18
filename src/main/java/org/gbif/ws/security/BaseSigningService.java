@@ -23,10 +23,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public abstract class BaseSigningService implements SigningService {
 
-  private static final String ALGORITHM = "HmacSHA1";
+  private static final String ALGORITHM = "HmacSHA256";
 
   /**
-   * Generates a Base64 encoded HMAC-SHA1 signature of the passed request data with the secret key.
+   * Generates a Base64 encoded HMAC-SHA256 signature of the passed request data with the secret key.
    * See Message Authentication Code specs http://tools.ietf.org/html/rfc2104
    *
    * @param requestDataToSign the request data to be signed
@@ -46,7 +46,8 @@ public abstract class BaseSigningService implements SigningService {
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("Cant find " + ALGORITHM + " message digester", e);
     } catch (InvalidKeyException e) {
-      throw new RuntimeException("Invalid secret key " + secretKey, e);
+      // never put the secret in the message, it ends up in logs and error responses
+      throw new RuntimeException("Invalid secret key", e);
     }
   }
 }

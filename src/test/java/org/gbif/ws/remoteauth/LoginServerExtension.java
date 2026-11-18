@@ -35,7 +35,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
-import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
+import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_DATE;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 import static org.springframework.http.HttpHeaders.*;
 
@@ -131,16 +133,18 @@ public class LoginServerExtension implements BeforeAllCallback, AfterAllCallback
         post("/user/auth/app")
             .withHeader(AUTHORIZATION, equalTo(USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(USER.getLoggedUser().getUserName()))
-            .withHeader(HEADER_CONTENT_MD5, matching(".*"))
-            .withHeader(CONTENT_TYPE, matching(".*"))
+            .withHeader(HEADER_GBIF_DATE, matching(".+"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_METHOD, equalTo("GET"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_URL, equalTo("/admin"))
             .willReturn(
                 aResponse().withBody(OBJECT_MAPPER.writeValueAsString(USER.getLoggedUser()))));
     wireMockServer.stubFor(
         post("/user/auth/app")
             .withHeader(AUTHORIZATION, equalTo(ADMIN_USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(ADMIN_USER.getLoggedUser().getUserName()))
-            .withHeader(HEADER_CONTENT_MD5, matching(".*"))
-            .withHeader(CONTENT_TYPE, matching(".*"))
+            .withHeader(HEADER_GBIF_DATE, matching(".+"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_METHOD, equalTo("GET"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_URL, equalTo("/admin"))
             .willReturn(
                 aResponse()
                     .withBody(OBJECT_MAPPER.writeValueAsString(ADMIN_USER.getLoggedUser()))));
@@ -148,8 +152,9 @@ public class LoginServerExtension implements BeforeAllCallback, AfterAllCallback
         post("/user/auth/app")
             .withHeader(AUTHORIZATION, equalTo(INVALID_USER.getGbifSchemeHeader()))
             .withHeader(HEADER_GBIF_USER, equalTo(INVALID_USER.getLoggedUser().getUserName()))
-            .withHeader(HEADER_CONTENT_MD5, matching(".*"))
-            .withHeader(CONTENT_TYPE, matching(".*"))
+            .withHeader(HEADER_GBIF_DATE, matching(".+"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_METHOD, equalTo("GET"))
+            .withHeader(HEADER_ORIGINAL_REQUEST_URL, equalTo("/admin"))
             .willReturn(aResponse().withStatus(HttpStatus.UNAUTHORIZED.value())));
 
     wireMockServer.start();

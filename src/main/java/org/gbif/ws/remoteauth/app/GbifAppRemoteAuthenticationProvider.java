@@ -73,6 +73,9 @@ public class GbifAppRemoteAuthenticationProvider
           SecurityConstants.HEADER_ORIGINAL_REQUEST_URL,
           gbifAppAuthentication.getOriginalRequestUrl());
     }
+    if (gbifAppAuthentication.getDate() != null && !gbifAppAuthentication.getDate().isEmpty()) {
+      headers.add(SecurityConstants.HEADER_GBIF_DATE, gbifAppAuthentication.getDate());
+    }
     if (gbifAppAuthentication.getMethod() != null && !gbifAppAuthentication.getMethod().isEmpty()) {
       headers.add(
           SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD, gbifAppAuthentication.getMethod());

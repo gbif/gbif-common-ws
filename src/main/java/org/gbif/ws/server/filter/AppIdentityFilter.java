@@ -118,6 +118,8 @@ public class AppIdentityFilter extends OncePerRequestFilter {
         } else {
           LOG.warn("Invalid GBIF authenticated request");
           response.setStatus(HttpStatus.UNAUTHORIZED.value());
+          // stop here: the request must not reach the controller as anonymous
+          return;
         }
       }
     }

@@ -32,6 +32,9 @@ public class RequestDataToSign {
   // required
   private String user;
 
+  // required, RFC 1123 date
+  private String date;
+
   public String getMethod() {
     return method;
   }
@@ -72,6 +75,14 @@ public class RequestDataToSign {
     this.user = user;
   }
 
+  public String getDate() {
+    return date;
+  }
+
+  public void setDate(String date) {
+    this.date = date;
+  }
+
   /**
    * Concatenates the information to be encrypted from a request into a single String. When the
    * server receives an authenticated request, it compares the computed request signature with the
@@ -98,6 +109,8 @@ public class RequestDataToSign {
     }
     sb.append('\n');
     sb.append(user);
+    sb.append('\n');
+    sb.append(date);
 
     return sb.toString();
   }

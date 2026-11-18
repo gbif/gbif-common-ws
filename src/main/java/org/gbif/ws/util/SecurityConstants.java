@@ -30,4 +30,6 @@ public final class SecurityConstants {
   public static final String HEADER_CONTENT_MD5 = "Content-MD5";
   public static final String HEADER_ORIGINAL_REQUEST_URL = "x-url";
   public static final String HEADER_ORIGINAL_REQUEST_METHOD = "x-method";
+  // RFC 1123 date of the signed request, used to limit the time a signature can be replayed
+  public static final String HEADER_GBIF_DATE = "x-gbif-date";
 }

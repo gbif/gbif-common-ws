@@ -65,6 +65,8 @@ public class SecurityUtils {
         .addFilterAfter(httpServletRequestWrapperFilter, CsrfFilter.class)
         .addFilterAfter(requestHeaderParamUpdateFilter, HttpServletRequestWrapperFilter.class)
         .cors(c -> c.configurationSource(corsAllOriginsAndMethodsConfiguration()))
+        // no CSRF tokens: there are no sessions or cookies, and no Basic challenge (see
+        // AuthResponseFilter), so browsers never add credentials to a request by themselves
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(smc -> smc.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
   }

@@ -30,6 +30,7 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
   private String contentType;
   private String method;
   private String originalRequestUrl;
+  private String date;
 
   public GbifAppAuthentication(
       String gbifScheme,
@@ -38,7 +39,19 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
       String contentType,
       String method,
       String originalRequestUrl) {
+    this(gbifScheme, gbifUser, contentMd5, contentType, method, originalRequestUrl, null);
+  }
+
+  public GbifAppAuthentication(
+      String gbifScheme,
+      String gbifUser,
+      String contentMd5,
+      String contentType,
+      String method,
+      String originalRequestUrl,
+      String date) {
     super(null);
+    this.date = date;
     this.gbifScheme = gbifScheme;
     this.gbifUser = gbifUser;
     this.contentMd5 = contentMd5;
@@ -82,6 +95,10 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
     return contentType;
   }
 
+  public String getDate() {
+    return date;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -98,12 +115,21 @@ public class GbifAppAuthentication extends AbstractAuthenticationToken {
         && Objects.equals(gbifUser, that.gbifUser)
         && Objects.equals(contentMd5, that.contentMd5)
         && Objects.equals(contentType, that.contentType)
-        && Objects.equals(originalRequestUrl, that.originalRequestUrl);
+        && Objects.equals(method, that.method)
+        && Objects.equals(originalRequestUrl, that.originalRequestUrl)
+        && Objects.equals(date, that.date);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
-        super.hashCode(), gbifScheme, gbifUser, contentMd5, contentType, originalRequestUrl);
+        super.hashCode(),
+        gbifScheme,
+        gbifUser,
+        contentMd5,
+        contentType,
+        method,
+        originalRequestUrl,
+        date);
   }
 }

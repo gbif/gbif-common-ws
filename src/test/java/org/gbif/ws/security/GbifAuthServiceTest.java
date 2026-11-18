@@ -13,19 +13,40 @@
  */
 package org.gbif.ws.security;
 
+import org.gbif.ws.client.GbifAuthRequestInterceptor;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 
-import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+
+import feign.Request.HttpMethod;
+import feign.RequestTemplate;
 
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
+import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_DATE;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,17 +58,25 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 public class GbifAuthServiceTest {
 
   public static final String APPKEY = "appKey";
+  private static final String SECRET = "fghj56g66b676DFG";
+  private static final String USER = "heinz";
+  private static final String BODY = "{\"title\":\"Simsalabim\"}";
+  private static final Instant NOW = Instant.parse("2026-11-05T10:00:00Z");
 
-  private URI testUri;
-  private GbifAuthService service;
+  private GbifAuthServiceImpl service;
+  private SigningService signingService;
 
   @BeforeEach
   public void setUp() throws Exception {
-    testUri = new URI("http://api.gbif.org/v1/dataset");
-    service = prepareGbifAuthService();
+    signingService = prepareSigningService();
+    service = serviceAt(NOW);
   }
 
   public static GbifAuthService prepareGbifAuthService() throws Exception {
+    return new GbifAuthServiceImpl(prepareSigningService(), () -> APPKEY);
+  }
+
+  private static SigningService prepareSigningService() throws Exception {
     URL resource = GbifAuthServiceTest.class.getClassLoader().getResource("appkeys.properties");
     String stringPath = Paths.get(resource.toURI()).toAbsolutePath().toString();
 
@@ -55,71 +84,474 @@ public class GbifAuthServiceTest {
         mock(AppkeysConfigurationProperties.class);
     when(mockAppkeysConfiguration.getFile()).thenReturn(stringPath);
 
+    return new AppKeySigningService(new FileSystemKeyStore(mockAppkeysConfiguration));
+  }
+
+  private GbifAuthServiceImpl serviceAt(Instant instant) {
     return new GbifAuthServiceImpl(
-        new AppKeySigningService(new FileSystemKeyStore(mockAppkeysConfiguration)),
-        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
-        () -> APPKEY);
+        signingService,
+        () -> APPKEY,
+        Duration.ofMinutes(15),
+        Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
+        Clock.fixed(instant, ZoneOffset.UTC));
+  }
+
+  private static GbifHttpServletRequestWrapper wrap(
+      String method, String uri, String body, Map<String, String> headers) {
+    int idx = uri.indexOf('?');
+    MockHttpServletRequest request =
+        new MockHttpServletRequest(method, idx < 0 ? uri : uri.substring(0, idx));
+    if (idx >= 0) {
+      request.setQueryString(uri.substring(idx + 1));
+    }
+    if (body != null) {
+      request.setContent(body.getBytes(StandardCharsets.UTF_8));
+      request.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+    }
+    headers.forEach(request::addHeader);
+    return new GbifHttpServletRequestWrapper(request, true);
+  }
+
+  /** Signs the request the same way GbifAuthRequestInterceptor does. */
+  private Map<String, String> sign(
+      String method, String url, String body, Instant instant, String user) {
+    RequestDataToSign data = new RequestDataToSign();
+    data.setMethod(method);
+    data.setUrl(url);
+    data.setUser(user);
+    String date = GbifAuthUtils.formatDate(Clock.fixed(instant, ZoneOffset.UTC));
+    data.setDate(date);
+    HttpHeaders headers = new HttpHeaders();
+    if (body != null) {
+      String md5 = GbifAuthUtils.contentMd5(body.getBytes(StandardCharsets.UTF_8));
+      data.setContentType("application/json");
+      data.setContentTypeMd5(md5);
+      headers.set(HEADER_CONTENT_MD5, md5);
+    }
+    headers.set(HEADER_GBIF_USER, user);
+    headers.set(HEADER_GBIF_DATE, date);
+    headers.set(AUTHORIZATION, "GBIF " + APPKEY + ":" + signingService.buildSignature(data, APPKEY));
+    return headers.toSingleValueMap();
   }
 
   @Test
   public void testSignRequest() {
-    // given
-    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
-    HttpHeaders headers = new HttpHeaders();
-    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
-    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
-    when(requestObjectMock.getMethod()).thenReturn("POST");
-    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
+    GbifHttpServletRequestWrapper request =
+        wrap("POST", "/v1/dataset", BODY, Collections.emptyMap());
 
-    // when
-    service.signRequest("heinz", requestObjectMock);
+    service.signRequest(USER, request);
 
-    // then
+    HttpHeaders headers = request.getHttpHeaders();
     assertNotNull(headers.getFirst(HEADER_CONTENT_MD5));
-    assertEquals("heinz", headers.getFirst(HEADER_GBIF_USER));
-    assertNotNull(headers.getFirst(AUTHORIZATION));
+    assertNotNull(headers.getFirst(HEADER_GBIF_DATE));
+    assertEquals(USER, headers.getFirst(HEADER_GBIF_USER));
     assertTrue(headers.getFirst(AUTHORIZATION).startsWith("GBIF appKey:"));
   }
 
   @Test
   public void testIsValid() {
-    // given
-    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
+    GbifHttpServletRequestWrapper request =
+        wrap("POST", "/v1/dataset", BODY, Collections.emptyMap());
+    service.signRequest(USER, request);
+    assertTrue(service.isValidRequest(request));
+
+    // tampered Content-MD5 header
+    request.getHttpHeaders().set(HEADER_CONTENT_MD5, "73");
+    assertFalse(service.isValidRequest(request));
+  }
+
+  @Test
+  public void testClientSignatureIsValid() {
+    assertTrue(service.isValidRequest(wrap("GET", "/dataset", null, sign("GET", "/dataset", null, NOW, USER))));
+    assertTrue(service.isValidRequest(wrap("POST", "/dataset", BODY, sign("POST", "/dataset", BODY, NOW, USER))));
+  }
+
+  @Test
+  public void testRawBodyMd5IsAccepted() {
+    // non Java clients hash the raw body
+    String rawMd5 = Base64.getEncoder().encodeToString(DigestUtils.md5(BODY.getBytes(StandardCharsets.UTF_8)));
+    RequestDataToSign data = new RequestDataToSign();
+    data.setMethod("POST");
+    data.setUrl("/dataset");
+    data.setContentType("application/json");
+    data.setContentTypeMd5(rawMd5);
+    data.setUser(USER);
+    data.setDate(GbifAuthUtils.formatDate(Clock.fixed(NOW, ZoneOffset.UTC)));
     HttpHeaders headers = new HttpHeaders();
-    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
-    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
-    when(requestObjectMock.getMethod()).thenReturn("POST");
-    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
-    when(requestObjectMock.getHeader(AUTHORIZATION)).thenCallRealMethod();
-    service.signRequest("heinz", requestObjectMock);
+    headers.set(HEADER_CONTENT_MD5, rawMd5);
+    headers.set(HEADER_GBIF_USER, USER);
+    headers.set(HEADER_GBIF_DATE, data.getDate());
+    headers.set(AUTHORIZATION, "GBIF " + APPKEY + ":" + signingService.buildSignature(data, APPKEY));
 
-    // when
-    boolean isRequestValidCorrectContentActual = service.isValidRequest(requestObjectMock);
-    headers.set(HEADER_CONTENT_MD5, "73");
-    boolean isRequestValidWrongContentActual = service.isValidRequest(requestObjectMock);
+    assertTrue(service.isValidRequest(wrap("POST", "/dataset", BODY, headers.toSingleValueMap())));
+  }
 
-    // then
-    assertTrue(isRequestValidCorrectContentActual);
-    assertFalse(service.isValidRequest(requestObjectMock));
+  @Test
+  public void testReplayOutsideWindowIsRejected() {
+    Map<String, String> headers = sign("GET", "/dataset", null, NOW, USER);
+
+    assertTrue(serviceAt(NOW.plus(Duration.ofMinutes(14))).isValidRequest(wrap("GET", "/dataset", null, headers)));
+    assertFalse(serviceAt(NOW.plus(Duration.ofMinutes(16))).isValidRequest(wrap("GET", "/dataset", null, headers)));
+    assertFalse(serviceAt(NOW.minus(Duration.ofMinutes(16))).isValidRequest(wrap("GET", "/dataset", null, headers)));
+  }
+
+  @Test
+  public void testMissingOrTamperedDateIsRejected() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("GET", "/dataset", null, NOW, USER));
+
+    headers.remove(HEADER_GBIF_DATE);
+    assertFalse(service.isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+
+    // a date within the window but not the signed one
+    headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW.plusSeconds(60), ZoneOffset.UTC)));
+    assertFalse(service.isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+  }
+
+  /**
+   * The worked example in the README is the reference for non-Java signers, so it must stay correct.
+   */
+  @Test
+  public void testReadmeExample() {
+    String body = "{\"title\":\"Example dataset\"}";
+    String md5 = "BW6JIbyk1iXd2gEjg2Lo9Q==";
+    String date = "Wed, 11 Nov 2026 15:04:05 GMT";
+    String signature = "dxGpb0dP4c87l4xhXGLRZFB3Rs+MZXYKAsPYWAkJyAE=";
+    SigningService exampleSigningService =
+        new AppKeySigningService(appKey -> "example.app".equals(appKey) ? "example-secret" : null);
+
+    assertEquals(md5, rawMd5(body));
+
+    RequestDataToSign data = new RequestDataToSign();
+    data.setMethod("POST");
+    data.setUrl("/v1/dataset?tag=a%20b&tag=b%2A&validate=true");
+    data.setContentType("application/json");
+    data.setContentTypeMd5(md5);
+    data.setUser("exampleuser");
+    data.setDate(date);
+    assertEquals(
+        "POST\n/v1/dataset?tag=a%20b&tag=b%2A&validate=true\napplication/json\n" + md5
+            + "\nexampleuser\n" + date,
+        data.stringToSign());
+    assertEquals(signature, exampleSigningService.buildSignature(data, "example.app"));
+
+    // the request as sent, with the raw query string, is accepted by the server
+    GbifAuthServiceImpl exampleService =
+        new GbifAuthServiceImpl(
+            exampleSigningService,
+            () -> "example.app",
+            Duration.ofMinutes(15),
+            Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
+            Clock.fixed(Instant.parse("2026-11-11T15:04:05Z"), ZoneOffset.UTC));
+    Map<String, String> headers =
+        Map.of(
+            HEADER_GBIF_USER, "exampleuser",
+            HEADER_GBIF_DATE, date,
+            HEADER_CONTENT_MD5, md5,
+            AUTHORIZATION, "GBIF example.app:" + signature);
+    assertTrue(
+        exampleService.isValidRequest(
+            wrap("POST", "/v1/dataset?validate=true&tag=b*&tag=a+b", body, headers)));
+  }
+
+  /**
+   * Signatures made by clients older than 2.1.4 (HMAC-SHA1 of method, path, content type, MD5 and
+   * user, without x-gbif-date) are no longer accepted.
+   */
+  @Test
+  public void testLegacySignatureIsRejected() throws Exception {
+    String md5 = rawMd5(BODY);
+    String stringToSign = "POST\n/dataset\napplication/json\n" + md5 + "\n" + USER;
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset");
+    headers.set(HEADER_GBIF_USER, USER);
+    headers.set(HEADER_CONTENT_MD5, md5);
+    headers.set(AUTHORIZATION, "GBIF " + APPKEY + ":" + hmacSha1(stringToSign, SECRET));
+
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", BODY, headers.toSingleValueMap())));
+
+    // adding a current, unsigned x-gbif-date does not make it valid
+    headers.set(HEADER_GBIF_DATE, GbifAuthUtils.formatDate(Clock.fixed(NOW, ZoneOffset.UTC)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", BODY, headers.toSingleValueMap())));
+  }
+
+  /** Base64 of the MD5 of the exact body bytes, as non-Java signers compute it. */
+  private static String rawMd5(String body) {
+    return Base64.getEncoder().encodeToString(DigestUtils.md5(body.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  private static String hmacSha1(String stringToSign, String secret) throws Exception {
+    Mac mac = Mac.getInstance("HmacSHA1");
+    mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA1"));
+    return Base64.getEncoder()
+        .encodeToString(mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  @Test
+  public void testSwappedBodyIsRejected() {
+    Map<String, String> headers = sign("POST", "/dataset", BODY, NOW, USER);
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", "{\"title\":\"evil\"}", headers)));
+    // body removed
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", "", headers)));
+  }
+
+  /** Form bodies are buffered too, so their parameters can't be swapped under a valid signature. */
+  @Test
+  public void testSwappedFormBodyIsRejected() {
+    GbifHttpServletRequestWrapper request = wrapForm("title=Simsalabim", Collections.emptyMap());
+    service.signRequest(USER, request);
+    assertTrue(service.isValidRequest(request));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.addAll(request.getHttpHeaders());
+    headers.remove(HttpHeaders.CONTENT_TYPE);
+    GbifHttpServletRequestWrapper swapped = wrapForm("title=evil", headers.toSingleValueMap());
+    assertEquals("evil", swapped.getParameter("title"));
+    assertFalse(service.isValidRequest(swapped));
+  }
+
+  private static GbifHttpServletRequestWrapper wrapForm(String body, Map<String, String> headers) {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/dataset");
+    request.setContentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+    request.setContent(body.getBytes(StandardCharsets.UTF_8));
+    headers.forEach(request::addHeader);
+    return new GbifHttpServletRequestWrapper(request, true);
+  }
+
+  @Test
+  public void testBodyAddedToBodylessSignatureIsRejected() {
+    Map<String, String> headers = sign("POST", "/dataset/1/endorse", null, NOW, USER);
+    assertTrue(service.isValidRequest(wrap("POST", "/dataset/1/endorse", null, headers)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset/1/endorse", BODY, headers)));
+  }
+
+  @Test
+  public void testSpoofedOriginalUrlAndMethodAreRejected() {
+    // signature captured for GET /dataset, replayed with x-url/x-method against another resource
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("GET", "/dataset", null, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset");
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "GET");
+
+    assertTrue(service.isValidRequest(wrap("GET", "/dataset", null, headers.toSingleValueMap())));
+    assertFalse(service.isValidRequest(wrap("DELETE", "/dataset", null, headers.toSingleValueMap())));
+    assertFalse(service.isValidRequest(wrap("GET", "/user/admin", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testOriginalUrlWithProxyPrefixIsAccepted() {
+    // the proxy strips /v1, clients like the portal send the full public URL in x-url and sign its
+    // canonical form: the path and the sorted query string
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("GET", "/v1/dataset?limit=1", null, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "https://api.gbif.org/v1/dataset?limit=1");
+
+    assertTrue(service.isValidRequest(wrap("GET", "/dataset?limit=1", null, headers.toSingleValueMap())));
+    assertFalse(service.isValidRequest(wrap("GET", "/set?limit=1", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testForwardedAuthRequestHonoursOriginalUrlAndMethod() {
+    // remote auth forwards the original method and url to the registry
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("PUT", "/dataset/1", BODY, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset/1");
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "PUT");
+    headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+
+    assertTrue(service.isValidRequest(wrap("POST", "/user/auth/app", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testOriginalUrlWithUnknownPrefixIsRejected() {
+    // signature captured for /v1/foo/admin/user/x, replayed against /admin/user/x
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("GET", "/v1/foo/admin/user/x", null, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "https://api.gbif.org/v1/foo/admin/user/x");
+
+    assertTrue(
+        service.isValidRequest(wrap("GET", "/foo/admin/user/x", null, headers.toSingleValueMap())));
+    assertFalse(
+        service.isValidRequest(wrap("GET", "/admin/user/x", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testOnlyForwardedAuthPathsHonourOriginalUrlAndMethod() {
+    // a path merely ending with /user/auth/app does not skip the x-url and x-method checks
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(sign("PUT", "/dataset/1", BODY, NOW, USER));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset/1");
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "PUT");
+    headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+    Map<String, String> h = headers.toSingleValueMap();
+
+    assertTrue(service.isValidRequest(wrap("POST", "/v1/user/auth/app", null, h)));
+    assertTrue(service.isValidRequest(wrap("POST", "/user/auth/app/", null, h)));
+    assertFalse(service.isValidRequest(wrap("POST", "/foo/user/auth/app", null, h)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset/1/user/auth/app", null, h)));
+  }
+
+  @Test
+  public void testIsOriginalUrlValid() {
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("/dataset", "/dataset"));
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("/dataset/", "/dataset"));
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("/v1/dataset", "/dataset"));
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("https://api.gbif.org/v1/dataset?limit=1", "/dataset"));
+    assertTrue(GbifAuthUtils.isOriginalUrlValid("admin/user/x", "/admin/user/x"));
+    // only the configured proxy prefixes may come before the real path
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/foo/admin/user/x", "/admin/user/x"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/foo/admin/user/x", "/admin/user/x"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("http://api.gbif.org/v1/directory/person/1", "/person/1"));
+    assertTrue(
+        GbifAuthUtils.isOriginalUrlValid(
+            "http://api.gbif.org/v1/directory/person/1", "/person/1", List.of("/v1", "/v1/directory/")));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/dataset", "/dataset", List.of()));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset", "/dataset/1", List.of("")));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("min/user/x", "/admin/user/x"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/v1/mydataset", "/dataset"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset", "/v1/dataset"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset/../user", "/dataset"));
+    assertFalse(GbifAuthUtils.isOriginalUrlValid("/dataset", "/"));
+  }
+
+  /** Signs with the Feign client interceptor, returning the headers it set. */
+  private Map<String, String> clientSign(String method, String url, String body, Instant instant) {
+    RequestTemplate template = new RequestTemplate();
+    template.method(HttpMethod.valueOf(method));
+    template.uri(url);
+    if (body != null) {
+      template.header(HttpHeaders.CONTENT_TYPE, "application/json");
+      template.body(body);
+    }
+    new GbifAuthRequestInterceptor(
+            USER,
+            APPKEY,
+            SECRET,
+            new SecretKeySigningService(),
+            Clock.fixed(instant, ZoneOffset.UTC))
+        .apply(template);
+    HttpHeaders headers = new HttpHeaders();
+    template.headers().forEach((name, values) -> headers.addAll(name, List.copyOf(values)));
+    return headers.toSingleValueMap();
+  }
+
+  @Test
+  public void testClientInterceptorSignatureIsValid() {
+    assertTrue(
+        service.isValidRequest(
+            wrap("GET", "/dataset?q=a b&limit=1", null, clientSign("GET", "/dataset?q=a%20b&limit=1", null, NOW))));
+    assertTrue(
+        service.isValidRequest(wrap("POST", "/dataset", BODY, clientSign("POST", "/dataset", BODY, NOW))));
+    assertFalse(
+        service.isValidRequest(
+            wrap("POST", "/dataset", "{}", clientSign("POST", "/dataset", BODY, NOW))));
+  }
+
+  @Test
+  public void testClientInterceptorSignatureOnEncodedPathIsValid() {
+    // the path is signed as sent, percent-encoded
+    assertTrue(
+        service.isValidRequest(
+            wrap("GET", "/dataset/a%20b", null, clientSign("GET", "/dataset/a%20b", null, NOW))));
+    assertTrue(
+        service.isValidRequest(
+            wrap("POST", "/dataset/a%2Fb", BODY, clientSign("POST", "/dataset/a%2Fb", BODY, NOW))));
+    // a signature for the decoded path is not valid for the encoded one
+    assertFalse(
+        service.isValidRequest(
+            wrap("GET", "/dataset/a%2Fb", null, sign("GET", "/dataset/a/b", null, NOW, USER))));
+  }
+
+  @Test
+  public void testBodyReplacedByJsonEncodedBodyIsRejected() {
+    // the body as a JSON string of its Base64 bytes once had the same digest in another encoding
+    Map<String, String> headers = clientSign("POST", "/dataset", BODY, NOW);
+    String replaced =
+        '"' + Base64.getEncoder().encodeToString(BODY.getBytes(StandardCharsets.UTF_8)) + '"';
+
+    assertTrue(service.isValidRequest(wrap("POST", "/dataset", BODY, headers)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", replaced, headers)));
+    assertFalse(
+        GbifAuthUtils.isContentMd5Valid(
+            new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper())
+                .encode(BODY.getBytes(StandardCharsets.UTF_8)),
+            BODY.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  @Test
+  public void testClientInterceptorRetryReplacesHeaders() {
+    RequestTemplate template = new RequestTemplate();
+    template.method(HttpMethod.GET);
+    template.uri("/dataset");
+    GbifAuthRequestInterceptor interceptor =
+        new GbifAuthRequestInterceptor(
+            USER, APPKEY, SECRET, new SecretKeySigningService());
+    interceptor.apply(template);
+    interceptor.apply(template);
+
+    assertEquals(1, template.headers().get(AUTHORIZATION).size());
+    assertEquals(1, template.headers().get(HEADER_GBIF_DATE).size());
+  }
+
+  @Test
+  public void testQueryStringIsSigned() {
+    Map<String, String> headers = clientSign("GET", "/occurrence/search?taxonKey=1&country=DK", null, NOW);
+
+    assertTrue(service.isValidRequest(wrap("GET", "/occurrence/search?taxonKey=1&country=DK", null, headers)));
+    // sorted by the proxy and encoded differently
+    assertTrue(service.isValidRequest(wrap("GET", "/occurrence/search?country=%44K&taxonKey=1", null, headers)));
+    // tampered, added or removed parameters
+    assertFalse(service.isValidRequest(wrap("GET", "/occurrence/search?taxonKey=2&country=DK", null, headers)));
+    assertFalse(service.isValidRequest(wrap("GET", "/occurrence/search?taxonKey=1&country=DK&limit=300", null, headers)));
+    assertFalse(service.isValidRequest(wrap("GET", "/occurrence/search?taxonKey=1", null, headers)));
+    assertFalse(service.isValidRequest(wrap("GET", "/occurrence/search", null, headers)));
+    // malformed query string
+    assertFalse(service.isValidRequest(wrap("GET", "/occurrence/search?taxonKey=%zz", null, headers)));
+  }
+
+  @Test
+  public void testQueryStringIsSignedWithOriginalUrl() {
+    // the query string in x-url is not trusted, the real one is signed
+    Map<String, String> signed = clientSign("GET", "/v1/dataset?limit=1", null, NOW);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(signed);
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "https://api.gbif.org/v1/dataset?limit=1");
+
+    assertTrue(service.isValidRequest(wrap("GET", "/dataset?limit=1", null, headers.toSingleValueMap())));
+    assertFalse(service.isValidRequest(wrap("GET", "/dataset?limit=1000", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testForwardedAuthRequestSignsOriginalQueryString() {
+    Map<String, String> signed = clientSign("GET", "/dataset?limit=1", null, NOW);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAll(signed);
+    headers.set(HEADER_ORIGINAL_REQUEST_METHOD, "GET");
+
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset?limit=1");
+    assertTrue(service.isValidRequest(wrap("POST", "/user/auth/app", null, headers.toSingleValueMap())));
+    headers.set(HEADER_ORIGINAL_REQUEST_URL, "/dataset?limit=1000");
+    assertFalse(service.isValidRequest(wrap("POST", "/user/auth/app", null, headers.toSingleValueMap())));
+  }
+
+  @Test
+  public void testCanonicalizedQuery() {
+    assertEquals("", GbifAuthUtils.getCanonicalizedQuery(null));
+    assertEquals("", GbifAuthUtils.getCanonicalizedQuery(""));
+    assertEquals("a=0&a=1&b=2&flag=", GbifAuthUtils.getCanonicalizedQuery("b=2&a=1&flag&a=0"));
+    assertEquals("q=a%20b", GbifAuthUtils.getCanonicalizedQuery("q=a+b"));
+    assertEquals("q=a%20b", GbifAuthUtils.getCanonicalizedQuery("q=a%20b"));
+    assertEquals("q=%26~%2A", GbifAuthUtils.getCanonicalizedQuery("q=%26%7E*"));
+    assertEquals("/dataset", GbifAuthUtils.getCanonicalizedUrl("/dataset", "&"));
   }
 
   @Test
   public void testGetAppKeyFromRequest() {
-    // given
-    GbifHttpServletRequestWrapper requestObjectMock = mock(GbifHttpServletRequestWrapper.class);
-    HttpHeaders headers = new HttpHeaders();
-    when(requestObjectMock.getRequestURI()).thenReturn(testUri.toString());
-    when(requestObjectMock.getHttpHeaders()).thenReturn(headers);
-    when(requestObjectMock.getMethod()).thenReturn("POST");
-    when(requestObjectMock.getContent()).thenReturn("Simsalabim");
-    when(requestObjectMock.getHeader(AUTHORIZATION)).thenCallRealMethod();
+    GbifHttpServletRequestWrapper request =
+        wrap("POST", "/v1/dataset", BODY, Collections.emptyMap());
 
-    // when
-    service.signRequest("heinz", requestObjectMock);
-    String actualAppKey =
-        GbifAuthUtils.getAppKeyFromRequest(requestObjectMock.getHeader(AUTHORIZATION));
+    service.signRequest(USER, request);
 
-    // then
-    assertEquals(APPKEY, actualAppKey);
+    assertEquals(APPKEY, GbifAuthUtils.getAppKeyFromRequest(request.getHeader(AUTHORIZATION)));
   }
 }
