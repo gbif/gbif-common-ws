@@ -91,10 +91,13 @@ public final class GbifAuthUtils {
   }
 
   /**
-   * @return an absolute uri of the resource path alone, excluding host, scheme and query parameters
+   * The path of the URI as sent, still percent-encoded, with dot segments removed. Signers sign the
+   * path they send, so it is not decoded: decoding would make /dataset/a%20b verify as /dataset/a b.
+   *
+   * @return the raw resource path alone, excluding host, scheme and query parameters
    */
   public static String getCanonicalizedPath(final String strUri) {
-    return URI.create(strUri).normalize().getPath();
+    return URI.create(strUri).normalize().getRawPath();
   }
 
   /**
@@ -205,21 +208,24 @@ public final class GbifAuthUtils {
   }
 
   /**
-   * Checks the Content-MD5 header against the actual request body. Two encodings are accepted:
-   * the MD5 of the raw body, and the MD5 of the body serialized as a JSON byte array, which is
-   * what {@link org.gbif.ws.client.GbifAuthRequestInterceptor} produces.
+   * The Content-MD5 header value of a body: the Base64 encoded MD5 digest of the exact body bytes.
    */
-  public static boolean isContentMd5Valid(
-      String contentMd5, byte[] body, Md5EncodeService md5EncodeService) {
+  public static String contentMd5(byte[] body) {
+    return Base64.getEncoder().encodeToString(DigestUtils.md5(body));
+  }
+
+  /**
+   * Checks the Content-MD5 header against the actual request body. Only the MD5 of the raw body is
+   * accepted: accepting a second encoding would let a body be replaced by another one with the same
+   * digest in the other encoding.
+   */
+  public static boolean isContentMd5Valid(String contentMd5, byte[] body) {
     if (contentMd5 == null || body == null) {
       return false;
     }
-    byte[] expected = contentMd5.getBytes(StandardCharsets.UTF_8);
-    String rawMd5 = Base64.getEncoder().encodeToString(DigestUtils.md5(body));
-    String clientMd5 = md5EncodeService.encode(body);
-    // evaluate both to avoid leaking which encoding matched through timing
-    boolean rawMatch = MessageDigest.isEqual(expected, rawMd5.getBytes(StandardCharsets.UTF_8));
-    boolean clientMatch = MessageDigest.isEqual(expected, clientMd5.getBytes(StandardCharsets.UTF_8));
-    return rawMatch || clientMatch;
+    return MessageDigest.isEqual(
+        contentMd5.getBytes(StandardCharsets.UTF_8),
+        contentMd5(body).getBytes(StandardCharsets.UTF_8));
   }
+
 }

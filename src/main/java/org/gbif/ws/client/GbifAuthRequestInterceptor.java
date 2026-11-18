@@ -57,19 +57,28 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
   private static final Logger LOG = LoggerFactory.getLogger(GbifAuthRequestInterceptor.class);
 
   private SigningService signingService;
-  private Md5EncodeService md5EncodeService;
   private String username;
   private String appKey;
   private String secretKey;
   private Clock clock;
 
   public GbifAuthRequestInterceptor(
+      String username, String appKey, String secretKey, SigningService signingService) {
+    this(username, appKey, secretKey, signingService, Clock.systemUTC());
+  }
+
+  /**
+   * @deprecated the Content-MD5 header is the MD5 of the raw body, md5EncodeService is not used;
+   *     use {@link #GbifAuthRequestInterceptor(String, String, String, SigningService)}
+   */
+  @Deprecated
+  public GbifAuthRequestInterceptor(
       String username,
       String appKey,
       String secretKey,
       SigningService signingService,
       Md5EncodeService md5EncodeService) {
-    this(username, appKey, secretKey, signingService, md5EncodeService, Clock.systemUTC());
+    this(username, appKey, secretKey, signingService);
   }
 
   public GbifAuthRequestInterceptor(
@@ -77,11 +86,9 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
       String appKey,
       String secretKey,
       SigningService signingService,
-      Md5EncodeService md5EncodeService,
       Clock clock) {
     this.clock = clock;
     this.signingService = signingService;
-    this.md5EncodeService = md5EncodeService;
     this.username = username;
     this.appKey = appKey;
     this.secretKey = secretKey;
@@ -107,7 +114,7 @@ public class GbifAuthRequestInterceptor implements RequestInterceptor {
               : "application/json";
       requestDataToSign.setContentType(contentType);
 
-      String contentMd5 = md5EncodeService.encode(template.body());
+      String contentMd5 = GbifAuthUtils.contentMd5(template.body());
       requestDataToSign.setContentTypeMd5(contentMd5);
 
       template.removeHeader("Content-MD5");

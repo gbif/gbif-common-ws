@@ -32,8 +32,8 @@ with signatures made by older versions, see the [Change Log](CHANGELOG.md).
 
 ### Building the signature
 
-1. Canonicalize the URL: the request path followed, if the query string is not empty, by `?` and the
-   canonical query string:
+1. Canonicalize the URL: the request path as sent, percent-encoded (e.g. `/dataset/a%20b`) with `.` and
+   `..` segments removed, followed, if the query string is not empty, by `?` and the canonical query string:
    - split the query on `&`, drop empty parameters, split each on the first `=` (no `=` means an empty value);
    - URL-decode names and values (`+` decodes to a space, so a literal `+` must be sent as `%2B`);
    - sort by name, then by value;

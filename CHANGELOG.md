@@ -17,6 +17,12 @@ must be updated before servers are deployed with this version. See
    buffered, so the container can parse their parts; their `Content-MD5` is not verified. Spring
    Boot's `FormContentFilter` reads PUT, PATCH and DELETE form bodies first, so services receiving
    signed form bodies with those methods must set `spring.mvc.formcontent.filter.enabled=false`.
+ * `Content-MD5` is only accepted as the MD5 of the raw body, as the README describes. Java signers
+   (`GbifAuthRequestInterceptor`, `GbifAuthServiceImpl#signRequest`) no longer hash the body serialized as a JSON
+   byte array: accepting both let a body be replaced by its JSON-serialized form under the same signature.
+   Constructors and `ClientBuilder#withCustomGbifAuth` taking an `Md5EncodeService` are deprecated, it is not used.
+ * The signed path is the path as sent, percent-encoded, instead of the decoded path: Java clients could not sign
+   requests to encoded paths such as `/dataset/a%20b`.
  * `x-url` and `x-method` must match the real request, except on `gbif.ws.security.gbifAuth.forwardedAuthPaths`
    (default `/user/auth/app`).
  * **Breaking:** the `x-url` path must be the request path, or one of `gbif.ws.security.gbifAuth.proxyPathPrefixes`

@@ -85,30 +85,36 @@ public class GbifAuthServiceImpl implements GbifAuthService {
   public static final String DEFAULT_FORWARDED_AUTH_PATH = "/user/auth/app";
 
   private final SigningService signingService;
-  private final Md5EncodeService md5EncodeService;
   private final AppKeyProvider appKeyProvider;
   private final Duration maxClockSkew;
   private final List<String> forwardedAuthPaths;
   private final List<String> proxyPathPrefixes;
   private final Clock clock;
 
-  public GbifAuthServiceImpl(
-      SigningService signingService,
-      Md5EncodeService md5EncodeService,
-      AppKeyProvider appKeyProvider) {
+  public GbifAuthServiceImpl(SigningService signingService, AppKeyProvider appKeyProvider) {
     this(
         signingService,
-        md5EncodeService,
         appKeyProvider,
         DEFAULT_MAX_CLOCK_SKEW_SECONDS,
         new String[] {DEFAULT_FORWARDED_AUTH_PATH},
         new String[] {GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIX});
   }
 
-  @Autowired
+  /**
+   * @deprecated the Content-MD5 header is the MD5 of the raw body, md5EncodeService is not used;
+   *     use {@link #GbifAuthServiceImpl(SigningService, AppKeyProvider)}
+   */
+  @Deprecated
   public GbifAuthServiceImpl(
       SigningService signingService,
       Md5EncodeService md5EncodeService,
+      AppKeyProvider appKeyProvider) {
+    this(signingService, appKeyProvider);
+  }
+
+  @Autowired
+  public GbifAuthServiceImpl(
+      SigningService signingService,
       @Autowired(required = false) AppKeyProvider appKeyProvider,
       @Value("${gbif.ws.security.gbifAuth.maxClockSkewSeconds:" + DEFAULT_MAX_CLOCK_SKEW_SECONDS + "}")
           long maxClockSkewSeconds,
@@ -118,7 +124,6 @@ public class GbifAuthServiceImpl implements GbifAuthService {
           String[] proxyPathPrefixes) {
     this(
         signingService,
-        md5EncodeService,
         appKeyProvider,
         Duration.ofSeconds(maxClockSkewSeconds),
         Arrays.asList(forwardedAuthPaths),
@@ -128,14 +133,12 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
   GbifAuthServiceImpl(
       SigningService signingService,
-      Md5EncodeService md5EncodeService,
       AppKeyProvider appKeyProvider,
       Duration maxClockSkew,
       List<String> forwardedAuthPaths,
       Clock clock) {
     this(
         signingService,
-        md5EncodeService,
         appKeyProvider,
         maxClockSkew,
         forwardedAuthPaths,
@@ -145,14 +148,12 @@ public class GbifAuthServiceImpl implements GbifAuthService {
 
   GbifAuthServiceImpl(
       SigningService signingService,
-      Md5EncodeService md5EncodeService,
       AppKeyProvider appKeyProvider,
       Duration maxClockSkew,
       List<String> forwardedAuthPaths,
       List<String> proxyPathPrefixes,
       Clock clock) {
     this.signingService = signingService;
-    this.md5EncodeService = md5EncodeService;
     this.appKeyProvider = appKeyProvider;
     this.maxClockSkew = maxClockSkew;
     this.forwardedAuthPaths = forwardedAuthPaths;
@@ -274,7 +275,7 @@ public class GbifAuthServiceImpl implements GbifAuthService {
     if (body.length == 0 && contentMd5 == null) {
       return true;
     }
-    if (!GbifAuthUtils.isContentMd5Valid(contentMd5, body, md5EncodeService)) {
+    if (!GbifAuthUtils.isContentMd5Valid(contentMd5, body)) {
       LOG.info("{} header {} does not match the request body", HEADER_CONTENT_MD5, contentMd5);
       return false;
     }
@@ -343,10 +344,10 @@ public class GbifAuthServiceImpl implements GbifAuthService {
             HEADER_ORIGINAL_REQUEST_URL,
             GbifAuthUtils.getCanonicalizedPath(request.getRequestURI()));
 
-    // adds content md5, encoded the same way as the GbifAuthRequestInterceptor does
+    // adds content md5 of the raw body, as the GbifAuthRequestInterceptor does
     byte[] content = request.getContentBytes();
     if (content != null && content.length > 0) {
-      request.getHttpHeaders().add(HEADER_CONTENT_MD5, md5EncodeService.encode(content));
+      request.getHttpHeaders().add(HEADER_CONTENT_MD5, GbifAuthUtils.contentMd5(content));
     }
 
     // build the unique request data object to sign

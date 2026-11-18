@@ -65,20 +65,15 @@ public class GbifAuthServiceTest {
 
   private GbifAuthServiceImpl service;
   private SigningService signingService;
-  private Md5EncodeService md5EncodeService;
 
   @BeforeEach
   public void setUp() throws Exception {
     signingService = prepareSigningService();
-    md5EncodeService = new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper());
     service = serviceAt(NOW);
   }
 
   public static GbifAuthService prepareGbifAuthService() throws Exception {
-    return new GbifAuthServiceImpl(
-        prepareSigningService(),
-        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
-        () -> APPKEY);
+    return new GbifAuthServiceImpl(prepareSigningService(), () -> APPKEY);
   }
 
   private static SigningService prepareSigningService() throws Exception {
@@ -95,7 +90,6 @@ public class GbifAuthServiceTest {
   private GbifAuthServiceImpl serviceAt(Instant instant) {
     return new GbifAuthServiceImpl(
         signingService,
-        md5EncodeService,
         () -> APPKEY,
         Duration.ofMinutes(15),
         Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
@@ -129,7 +123,7 @@ public class GbifAuthServiceTest {
     data.setDate(date);
     HttpHeaders headers = new HttpHeaders();
     if (body != null) {
-      String md5 = md5EncodeService.encode(body.getBytes(StandardCharsets.UTF_8));
+      String md5 = GbifAuthUtils.contentMd5(body.getBytes(StandardCharsets.UTF_8));
       data.setContentType("application/json");
       data.setContentTypeMd5(md5);
       headers.set(HEADER_CONTENT_MD5, md5);
@@ -245,7 +239,6 @@ public class GbifAuthServiceTest {
     GbifAuthServiceImpl exampleService =
         new GbifAuthServiceImpl(
             exampleSigningService,
-            md5EncodeService,
             () -> "example.app",
             Duration.ofMinutes(15),
             Collections.singletonList(GbifAuthServiceImpl.DEFAULT_FORWARDED_AUTH_PATH),
@@ -435,7 +428,6 @@ public class GbifAuthServiceTest {
             APPKEY,
             SECRET,
             new SecretKeySigningService(),
-            md5EncodeService,
             Clock.fixed(instant, ZoneOffset.UTC))
         .apply(template);
     HttpHeaders headers = new HttpHeaders();
@@ -456,13 +448,44 @@ public class GbifAuthServiceTest {
   }
 
   @Test
+  public void testClientInterceptorSignatureOnEncodedPathIsValid() {
+    // the path is signed as sent, percent-encoded
+    assertTrue(
+        service.isValidRequest(
+            wrap("GET", "/dataset/a%20b", null, clientSign("GET", "/dataset/a%20b", null, NOW))));
+    assertTrue(
+        service.isValidRequest(
+            wrap("POST", "/dataset/a%2Fb", BODY, clientSign("POST", "/dataset/a%2Fb", BODY, NOW))));
+    // a signature for the decoded path is not valid for the encoded one
+    assertFalse(
+        service.isValidRequest(
+            wrap("GET", "/dataset/a%2Fb", null, sign("GET", "/dataset/a/b", null, NOW, USER))));
+  }
+
+  @Test
+  public void testBodyReplacedByJsonEncodedBodyIsRejected() {
+    // the body as a JSON string of its Base64 bytes once had the same digest in another encoding
+    Map<String, String> headers = clientSign("POST", "/dataset", BODY, NOW);
+    String replaced =
+        '"' + Base64.getEncoder().encodeToString(BODY.getBytes(StandardCharsets.UTF_8)) + '"';
+
+    assertTrue(service.isValidRequest(wrap("POST", "/dataset", BODY, headers)));
+    assertFalse(service.isValidRequest(wrap("POST", "/dataset", replaced, headers)));
+    assertFalse(
+        GbifAuthUtils.isContentMd5Valid(
+            new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper())
+                .encode(BODY.getBytes(StandardCharsets.UTF_8)),
+            BODY.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  @Test
   public void testClientInterceptorRetryReplacesHeaders() {
     RequestTemplate template = new RequestTemplate();
     template.method(HttpMethod.GET);
     template.uri("/dataset");
     GbifAuthRequestInterceptor interceptor =
         new GbifAuthRequestInterceptor(
-            USER, APPKEY, SECRET, new SecretKeySigningService(), md5EncodeService);
+            USER, APPKEY, SECRET, new SecretKeySigningService());
     interceptor.apply(template);
     interceptor.apply(template);
 

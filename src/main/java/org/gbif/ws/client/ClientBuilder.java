@@ -14,7 +14,6 @@
 package org.gbif.ws.client;
 
 import org.gbif.ws.security.Md5EncodeService;
-import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.security.SecretKeySigningService;
 import org.gbif.ws.security.SigningService;
 
@@ -111,12 +110,7 @@ public class ClientBuilder {
    */
   public ClientBuilder withAppKeyCredentials(String username, String appKey, String secretKey) {
     this.requestInterceptor =
-        new GbifAuthRequestInterceptor(
-            username,
-            appKey,
-            secretKey,
-            new SecretKeySigningService(),
-            new Md5EncodeServiceImpl(objectMapper));
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, new SecretKeySigningService());
     return this;
   }
 
@@ -158,15 +152,26 @@ public class ClientBuilder {
    * Custom GBIF authentication.
    */
   public ClientBuilder withCustomGbifAuth(
+      String username, String appKey, String secretKey, SigningService signingService) {
+    this.requestInterceptor =
+        new GbifAuthRequestInterceptor(username, appKey, secretKey, signingService);
+    return this;
+  }
+
+  /**
+   * Custom GBIF authentication.
+   *
+   * @deprecated the Content-MD5 header is the MD5 of the raw body, md5EncodeService is not used;
+   *     use {@link #withCustomGbifAuth(String, String, String, SigningService)}
+   */
+  @Deprecated
+  public ClientBuilder withCustomGbifAuth(
       String username,
       String appKey,
       String secretKey,
       SigningService signingService,
       Md5EncodeService md5EncodeService) {
-    this.requestInterceptor =
-        new GbifAuthRequestInterceptor(
-            username, appKey, secretKey, signingService, md5EncodeService);
-    return this;
+    return withCustomGbifAuth(username, appKey, secretKey, signingService);
   }
 
   public ClientBuilder withFormEncoder() {

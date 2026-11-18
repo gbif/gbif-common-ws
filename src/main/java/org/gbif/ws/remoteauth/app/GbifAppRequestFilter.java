@@ -13,10 +13,7 @@
  */
 package org.gbif.ws.remoteauth.app;
 
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.security.GbifAuthUtils;
-import org.gbif.ws.security.Md5EncodeService;
-import org.gbif.ws.security.Md5EncodeServiceImpl;
 import org.gbif.ws.server.GbifHttpServletRequestWrapper;
 import org.gbif.ws.util.SecurityConstants;
 
@@ -49,7 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 public class GbifAppRequestFilter extends OncePerRequestFilter {
 
   private final AuthenticationManager authenticationManager;
-  private final Md5EncodeService md5EncodeService;
   private final List<String> proxyPathPrefixes;
 
   public GbifAppRequestFilter(AuthenticationManager authenticationManager) {
@@ -58,23 +54,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
 
   public GbifAppRequestFilter(
       AuthenticationManager authenticationManager, List<String> proxyPathPrefixes) {
-    this(
-        authenticationManager,
-        new Md5EncodeServiceImpl(JacksonJsonObjectMapperProvider.getObjectMapper()),
-        proxyPathPrefixes);
-  }
-
-  public GbifAppRequestFilter(
-      AuthenticationManager authenticationManager, Md5EncodeService md5EncodeService) {
-    this(authenticationManager, md5EncodeService, GbifAuthUtils.DEFAULT_PROXY_PATH_PREFIXES);
-  }
-
-  public GbifAppRequestFilter(
-      AuthenticationManager authenticationManager,
-      Md5EncodeService md5EncodeService,
-      List<String> proxyPathPrefixes) {
     this.authenticationManager = authenticationManager;
-    this.md5EncodeService = md5EncodeService;
     this.proxyPathPrefixes = proxyPathPrefixes;
   }
 
@@ -160,7 +140,7 @@ public class GbifAppRequestFilter extends OncePerRequestFilter {
     if (body.length == 0 && contentMd5 == null) {
       return true;
     }
-    return GbifAuthUtils.isContentMd5Valid(contentMd5, body, md5EncodeService);
+    return GbifAuthUtils.isContentMd5Valid(contentMd5, body);
   }
 
   private static void reject(HttpServletResponse response) {
