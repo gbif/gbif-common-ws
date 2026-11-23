@@ -13,6 +13,8 @@
  */
 package org.gbif.ws.server.mapper;
 
+import org.gbif.ws.server.advice.AuthResponseFilter;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +27,11 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * Maps access denied to 401 for requests without credentials (AuthResponseFilter adds the
- * challenge) and to 403 for authenticated users without the required role.
+ * Maps access denied to 401 for requests without credentials and to 403 for authenticated users
+ * without the required role.
+ *
+ * <p>The WWW-Authenticate challenge of the 401 is added by {@link AuthResponseFilter}, which must
+ * be registered too.
  */
 @ControllerAdvice
 public class AccessDeniedExceptionMapper {
@@ -36,11 +41,10 @@ public class AccessDeniedExceptionMapper {
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<Object> toResponse(AccessDeniedException exception) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    boolean anonymous =
-        authentication == null
-            || !authentication.isAuthenticated()
-            || trustResolver.isAnonymous(authentication);
-    return ResponseEntity.status(anonymous ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN)
+    return ResponseEntity.status(
+            trustResolver.isAuthenticated(authentication)
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.UNAUTHORIZED)
         .contentType(MediaType.TEXT_PLAIN)
         .body(exception.getMessage());
   }

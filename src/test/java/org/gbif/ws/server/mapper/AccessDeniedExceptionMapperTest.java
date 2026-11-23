@@ -13,7 +13,7 @@
  */
 package org.gbif.ws.server.mapper;
 
-import org.gbif.ws.security.GbifAnonymousAuthenticationToken;
+import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.server.advice.AuthResponseFilter;
 
 import java.util.Collections;
@@ -64,9 +64,11 @@ public class AccessDeniedExceptionMapperTest {
   }
 
   @Test
-  public void testAnonymousGets401() throws Exception {
-    authenticate(new GbifAnonymousAuthenticationToken());
-    mvc.perform(get("/denied")).andExpect(status().isUnauthorized());
+  public void testAnonymousGets401WithChallenge() throws Exception {
+    authenticate(GbifAuthenticationToken.anonymous());
+    mvc.perform(get("/denied"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, AuthResponseFilter.CHALLENGE));
   }
 
   @Test

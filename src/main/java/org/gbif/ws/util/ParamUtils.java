@@ -13,10 +13,6 @@
  */
 package org.gbif.ws.util;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -24,6 +20,12 @@ import org.gbif.api.util.DnaUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.vocabulary.DurationUnit;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

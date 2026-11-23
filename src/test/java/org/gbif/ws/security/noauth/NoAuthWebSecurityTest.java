@@ -19,6 +19,8 @@ import org.gbif.api.vocabulary.UserRole;
 import org.gbif.ws.security.GbifAuthService;
 import org.gbif.ws.security.GbifAuthenticationToken;
 import org.gbif.ws.security.noauth.NoAuthTestApplication.TestController;
+import org.gbif.ws.server.advice.AuthResponseFilter;
+import org.gbif.ws.server.mapper.AccessDeniedExceptionMapper;
 
 import java.util.Collections;
 
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
@@ -38,6 +41,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -45,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(controllers = TestController.class)
 @AutoConfigureMockMvc
+@Import({AccessDeniedExceptionMapper.class, AuthResponseFilter.class})
 public class NoAuthWebSecurityTest {
 
   private static final String PASSWORD = "password";
@@ -75,8 +80,14 @@ public class NoAuthWebSecurityTest {
   @Test
   public void anonymousTest() throws Exception {
     mockMvc.perform(get("/open")).andExpect(status().isOk());
-    mockMvc.perform(get("/authenticated")).andExpect(status().isForbidden());
-    mockMvc.perform(get("/admin")).andExpect(status().isForbidden());
+    mockMvc
+        .perform(get("/authenticated"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, AuthResponseFilter.CHALLENGE));
+    mockMvc
+        .perform(get("/admin"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, AuthResponseFilter.CHALLENGE));
   }
 
   @Test

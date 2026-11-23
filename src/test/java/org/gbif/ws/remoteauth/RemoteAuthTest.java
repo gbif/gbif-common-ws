@@ -14,6 +14,8 @@
 package org.gbif.ws.remoteauth;
 
 import org.gbif.ws.remoteauth.TestApplication.TestController;
+import org.gbif.ws.server.advice.AuthResponseFilter;
+import org.gbif.ws.server.mapper.AccessDeniedExceptionMapper;
 
 import java.nio.charset.StandardCharsets;
 
@@ -27,6 +29,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -42,8 +45,8 @@ import static org.gbif.ws.remoteauth.LoginServerExtension.INVALID_USER;
 import static org.gbif.ws.remoteauth.LoginServerExtension.USER;
 import static org.gbif.ws.util.SecurityConstants.HEADER_CONTENT_MD5;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_DATE;
-import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
+import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
 
 /**
  * Tests the remote auth classes
@@ -55,6 +58,7 @@ import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 @AutoConfigureMockMvc
 @AutoConfigureWebClient
 @ContextConfiguration(initializers = {RemoteAuthTest.ContextInitializer.class})
+@Import({AccessDeniedExceptionMapper.class, AuthResponseFilter.class})
 public class RemoteAuthTest {
 
   @RegisterExtension static LoginServerExtension loginServer = new LoginServerExtension();
@@ -73,7 +77,10 @@ public class RemoteAuthTest {
     // secured endpoint
     mockMvc
         .perform(MockMvcRequestBuilders.get("/admin"))
-        .andExpect(MockMvcResultMatchers.status().isForbidden());
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+        .andExpect(
+            MockMvcResultMatchers.header()
+                .string(HttpHeaders.WWW_AUTHENTICATE, AuthResponseFilter.CHALLENGE));
   }
 
   @Test
