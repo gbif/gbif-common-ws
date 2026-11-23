@@ -17,15 +17,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+/**
+ * Maps access denied to 401 for requests without credentials (AuthResponseFilter adds the
+ * challenge) and to 403 for authenticated users without the required role.
+ */
 @ControllerAdvice
 public class AccessDeniedExceptionMapper {
 
+  private final AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
+
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<Object> toResponse(AccessDeniedException exception) {
-    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    boolean anonymous =
+        authentication == null
+            || !authentication.isAuthenticated()
+            || trustResolver.isAnonymous(authentication);
+    return ResponseEntity.status(anonymous ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN)
         .contentType(MediaType.TEXT_PLAIN)
         .body(exception.getMessage());
   }
