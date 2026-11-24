@@ -25,7 +25,8 @@ import org.springframework.security.core.userdetails.UserDetails;
  * <p>It is an {@link AnonymousAuthenticationToken}, so Spring Security's {@code
  * AuthenticationTrustResolver} recognises it as anonymous: {@code .authenticated()}, {@code
  * isAuthenticated()} and {@code isFullyAuthenticated()} are not satisfied by it, and access denied
- * to it is handled by the authentication entry point. The principal is an {@link
+ * to it is answered with 401 (by the authentication entry point, or by {@code
+ * AccessDeniedExceptionMapper} when the denial is raised in a controller). The principal is an {@link
  * AnonymousUserPrincipal}.
  */
 public class GbifAnonymousAuthenticationToken extends AnonymousAuthenticationToken

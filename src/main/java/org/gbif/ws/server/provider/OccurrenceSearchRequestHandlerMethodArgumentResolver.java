@@ -13,17 +13,19 @@
  */
 package org.gbif.ws.server.provider;
 
-import static org.gbif.ws.util.ParamUtils.convertDnaSequenceParam;
-
-import java.util.Optional;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+
+import java.util.Optional;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import static org.gbif.ws.util.ParamUtils.convertDnaSequenceParam;
 
 public class OccurrenceSearchRequestHandlerMethodArgumentResolver
     extends FacetedSearchRequestProvider<OccurrenceSearchRequest, OccurrenceSearchParameter>

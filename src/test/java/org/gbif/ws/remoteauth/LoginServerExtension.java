@@ -36,9 +36,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static org.gbif.ws.util.SecurityConstants.GBIF_SCHEME_PREFIX;
 import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_DATE;
+import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_METHOD;
 import static org.gbif.ws.util.SecurityConstants.HEADER_ORIGINAL_REQUEST_URL;
-import static org.gbif.ws.util.SecurityConstants.HEADER_GBIF_USER;
 import static org.springframework.http.HttpHeaders.*;
 
 /**

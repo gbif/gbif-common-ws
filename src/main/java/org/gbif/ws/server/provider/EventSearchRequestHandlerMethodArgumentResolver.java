@@ -13,17 +13,19 @@
  */
 package org.gbif.ws.server.provider;
 
-import static org.gbif.ws.util.ParamUtils.convertHumboldtUnitsParam;
-
-import java.util.Optional;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
+
+import java.util.Optional;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import static org.gbif.ws.util.ParamUtils.convertHumboldtUnitsParam;
 
 public class EventSearchRequestHandlerMethodArgumentResolver
     extends FacetedSearchRequestProvider<EventSearchRequest, EventSearchParameter>
