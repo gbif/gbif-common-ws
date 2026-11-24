@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,6 +108,11 @@ public class IdentityFilterTest {
     heinzAuthBasic = "Basic " + toAuthorizationString(heinz);
     sørenAuthBasic = "Basic " + toAuthorizationString(søren);
     legacyBasic = "Basic " + toAuthorizationString(UUID.randomUUID().toString(), ":password");
+  }
+
+  @AfterEach
+  public void clearContext() {
+    SecurityContextHolder.clearContext();
   }
 
   @BeforeEach

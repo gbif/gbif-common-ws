@@ -21,6 +21,7 @@ import org.gbif.ws.util.SecurityConstants;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,11 @@ public class AppIdentityFilterTest {
   @Mock private GbifAuthService authServiceMock;
 
   private SecurityContext context;
+
+  @AfterEach
+  public void clearContext() {
+    SecurityContextHolder.clearContext();
+  }
 
   @BeforeEach
   public void setUp() {

@@ -19,6 +19,7 @@ import org.gbif.ws.server.advice.AuthResponseFilter;
 import java.util.Collections;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.AccessDeniedException;
@@ -51,6 +52,7 @@ public class AccessDeniedExceptionMapperTest {
           .setControllerAdvice(new AccessDeniedExceptionMapper(), new AuthResponseFilter())
           .build();
 
+  @BeforeEach
   @AfterEach
   public void clearContext() {
     SecurityContextHolder.clearContext();
